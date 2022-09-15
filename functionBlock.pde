@@ -8,8 +8,8 @@ public class FunctionBlock
     int IN1 ;
     int IN2 ;
     int IN3 ;
-    int Q   ;
-    int index ;
+    int Q ;
+    int index ; //note not really used or needed..
 
     FunctionBlock(int xPos, int yPos, int type, int gridSize, int index )
     {
@@ -24,7 +24,27 @@ public class FunctionBlock
     {
         textAlign( CENTER, CENTER ) ;
         fill(245);
-        rect( xPos * gridSize + (gridSize/5), yPos * gridSize + 1, 3*gridSize/5, gridSize - 2 ) ; // main box
+        if( type < 6 ) // if not input or output
+        {
+            rect( xPos * gridSize + (gridSize/5), yPos * gridSize + 1, 3*gridSize/5, gridSize - 2 ) ; // main box
+        }
+        else if( type == 6 )
+        {
+            stroke(245);
+            rect( xPos * gridSize, yPos * gridSize +(gridSize/4), gridSize/2, gridSize/2 ) ; // input
+            triangle(xPos * gridSize + (gridSize/2),   yPos * gridSize +(gridSize/4),
+                     xPos * gridSize +  gridSize,      yPos * gridSize +(gridSize/2),
+                     xPos * gridSize + (gridSize/2),   yPos * gridSize + 3*gridSize/4) ;
+        }
+        else if( type == 7)
+        {
+            stroke(245);
+            rect( xPos * gridSize +(gridSize/2), yPos * gridSize+(gridSize/4), gridSize/2, gridSize/2 ) ; // output
+            triangle(xPos * gridSize + (gridSize/2),   yPos * gridSize + (gridSize/4),
+                     xPos * gridSize,                  yPos * gridSize + (gridSize/2),
+                     xPos * gridSize + (gridSize/2),   yPos * gridSize + 3*gridSize/4) ;
+        }
+        stroke(0);
         fill(255);
 
         byte box = 0 ;
@@ -32,11 +52,13 @@ public class FunctionBlock
 
         switch( type )
         {                         // in1, in2, in3,
-            case 1: txt =   "&" ;  box = 0b111 ; break ;
-            case 2: txt =  ">1" ;  box = 0b111 ; break ;
-            case 3: txt =  " M" ;  box = 0b101 ; break ;
-            case 4: txt =   "!" ;  box = 0b010 ; break ; // text replaced by clock symbol
-            case 5: txt =   "1" ;  box = 0b010 ; break ;
+            case 1: txt =   "&" ;  box = 0b1111 ; break ;
+            case 2: txt =  ">1" ;  box = 0b1111 ; break ;
+            case 3: txt =  " M" ;  box = 0b1101 ; break ;
+            case 4: txt =   "!" ;  box = 0b1010 ; break ; // text replaced by clock symbol
+            case 5: txt =   "1" ;  box = 0b1010 ; break ;
+            case 6: textAlign( RIGHT, CENTER ) ;txt =  "IN" ;  box = 0b1000 ; break ;
+            case 7: textAlign(  LEFT, CENTER ) ;txt = "OUT" ;  box = 0b010 ; break ;
         }
 
         int x1 = xPos * gridSize ;
@@ -51,8 +73,8 @@ public class FunctionBlock
         
         x1 = xPos * gridSize + gridSize ;
         x2 = xPos * gridSize + gridSize - gridSize/5 ;
+        if( (box & 0b1000) > 0 )//if( type == 5 )          line(x1, y1, x2, y1) ; //ellipse( xPos * gridSize + 7*gridSize/8, yPos * gridSize +   gridSize/3, gridSize/5, gridSize/5 ) ; // ellipse for not
         line(x1, y2, x2, y2) ;                          // line of Q
-        //if( type == 5 )          line(x1, y1, x2, y1) ; //ellipse( xPos * gridSize + 7*gridSize/8, yPos * gridSize +   gridSize/3, gridSize/5, gridSize/5 ) ; // ellipse for not
         fill(0);
 
         textSize( gridSize / 4 ) ; 
@@ -73,7 +95,7 @@ public class FunctionBlock
             
             x1 = xPos * gridSize + gridSize / 2 ;   
             y1 = yPos * gridSize + gridSize / 2 ;
-             y2 = yPos * gridSize ;
+            y2 = yPos * gridSize ;
             line(x1, y2, x1, y2) ;
             fill(0);
         }

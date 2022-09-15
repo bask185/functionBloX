@@ -17,11 +17,17 @@ class Link
     int subX ;
     int subY ;
 
+    int subRow ;
+
 
     Link( int x, int y, int gridSize, int Q )   // creates the first
     { 
         this.gridSize = gridSize ;
         this.Q = Q ;
+
+        IN1 = 0 ;
+        IN2 = 0 ;
+        IN3 = 0 ;
 
         subX = 2 ;
         subY = 1 ;
@@ -62,18 +68,28 @@ class Link
 
     void setIn( int subRow, int IN)
     {
+        this.subRow = subRow ;
         if( subRow == 0 )  this.IN1 = IN ;
         if( subRow == 1 )  this.IN2 = IN ;
         if( subRow == 2 )  this.IN3 = IN ;
     }
 
-    int getQ() { return Q ; }
+    int getQ()
+    {
+        return Q ;
+    }
+    
     int getIn( int idx )
     {
         if( idx == 0 )  return IN1 ;
         if( idx == 1 )  return IN2 ;
         if( idx == 2 )  return IN3 ;
         else return 255 ; // keeps compiler from complaining
+    }
+
+    int getSubrow()
+    {
+        return subRow ;
     }
 
     void updatePoint( int x, int y, int subX, int subY )

@@ -1,124 +1,115 @@
-#include <Arduino.h>
+const int nBlocks = 6 ;
 
-typedef struct AND
+typedef struct blox
 {
-    uint8_t IN1 : 1 ;
-    uint8_t IN2 : 1 ;
-    uint8_t IN3 : 1 ;
-    uint8_t Q   : 1 ;
-} AND_GATE ;
+    uint8_t  IN1 : 1 ;
+    uint8_t  IN2 : 1 ;
+    uint8_t  IN3 : 1 ;
+    uint8_t    Q : 1 ;
+    uint8_t  pin : 5 ;
+    uint8_t type : 3 ; // 8 combinations, may not be enough in the future
+    //uint32_t        oldTime ;  // bad idea to use this amount of memory per block if only delays need it?
+    //const uint32_t  interval ; // perhaps couple a function pointers or obj pointer to it?
+} FunctionBlock ;
 
-typedef struct OR
+FunctionBlock block [ nBlocks ] ;
+
+enum blockTypes
 {
-    uint8_t IN1 : 1 ;
-    uint8_t IN2 : 1 ;
-    uint8_t IN3 : 1 ;
-    uint8_t Q   : 1 ;
-} OR_GATE ;
-
-typedef struct SR
-{
-    uint8_t S : 1 ;
-    uint8_t R : 1 ;
-    uint8_t Q   : 1 ;
-} SR_GATE ;
-
-typedef struct DELAY  // MAY NEED TO BECOME A CLASS IN ORDER TO HANDLE THE ACTUAL TIMING PART..
-{
-    uint8_t         IN : 1 ;
-    uint8_t         Q : 1 ;
-    uint32_t        oldTime ;
-    const uint32_t  interval ; // const possible?
-} DELAY_GATE ;
-
-typedef struct NOT
-{
-    uint8_t IN : 1 ;
-    uint8_t Q  : 1 ;
-} NOT_GATE ;
-
-
-AND_GATE     and_gate[ n_and_gates ] ;
-OR_GATE       or_gate[ n_or_gates ] ;
-SR_GATE       sr_gate[ n_sr_gates ] ;
-DELAY_GATE delay_gate[ n_delay_gates ] ;
-NOT_GATE     not_gate[ n_not_gates ] ;
-
-// demo code...
+       AND = 0,
+        OR, 
+         M, 
+       DEL, 
+       NOT, 
+     INPUT,
+    OUTPUT,
+} ;
 
 void setup()
 {
+    for( int i = 0 ; i < nBlocks ; i ++ )
+    {
+        switch( block[i].type )
+        {
+        case AND: 
+            block[i].IN1 = block[i].IN2 = block[i].IN3 = 1 ; // force all AND gate INs to be 1 in case of unused things
+            break ;
 
+        case INPUT:
+            pinMode( block[i].pin, INPUT_PULLUP ) ;
+            break ;
+
+        case OUTPUT:
+            pinMode( block[i].pin, OUTPUT ) ;
+            break ;
+
+        case DEL:       // idk do something clever with adding timers or something
+            break ;
+        }
+    }
 }
 
 void loop()
 {
-
-    // INPUTS
-    for( int i = 0 ; i < n_inputs  ; i ++ ) input[i].Q = digitalRead( input[i].pin ) ;
-
-    // OUTPUTS
-    for( int i = 0 ; i < n_inputs  ; i ++ )
+/***************** UPDATE FUNCTION BLOCKS *****************/
+    for( int i = 0 ; i < nBlocks ; i ++ )
     {
-        digitalWrite( output[i].pin, output[i].in2 ) ;
-    }
-
-    // AND GATES
-    for( int i = 0 ; i < n_and_gates  ; i ++ )
-    {
-        and_gate[i].Q = and_gate[i].in1 & and_gate[i].in2 & and_gate[i].in3 ;
-    }
-
-    // OR GATES
-    for( int i = 0 ; i < n_or_gates  ; i ++ )
-    {
-        or_gate[i].Q = or_gate[i].in1 | or_gate[i].in2 | or_gate[i].in3 ;
-    }
-
-    // SR MEMORY GATES
-    for( int i = 0 ; i < n_sr_gates  ; i ++ )
-    {
-        if(      sr_gate[i].R ) sr_gate[i].Q = 0 ;    // reset is dominant
-        else if( sr_gate[i].S ) sr_gate[i].Q = 1 ;
-    }
-
-    // DELAY
-    for( int i = 0 ; i < n_delay_gates  ; i ++ )
-    {
-        if( delay_gate[i].Q != delay_gate[i].IN )                                   // if new state changes
+        switch( block[i].type )
         {
-            if( millis() - delay_gate[i].oldTime >= delay_gate[i].interval )         // keep monitor if interval has expired
-            {
-                delay_gate[i].Q = delay_gate[i].IN ;                                // if so, adopt the new state
-            }
-        }
-        else
-        {
-            delay_gate[i].oldTime = millis() ;                                      // if new state does not change, keep setting oldTime
+        case AND: 
+            block[i].Q = block[i].IN1 & block[i].IN2 & block[i].IN3 ;
+            break ;
+
+        case OR: 
+            block[i].Q = block[i].IN1 | block[i].IN2 | block[i].IN3 ;
+            break ;
+
+        case M: 
+            if(      block[i].IN3 ) block[i].Q = 0 ; // R
+            else if( block[i].IN1 ) block[i].Q = 1 ; // S
+            break ; 
+
+        case NOT: 
+            block[i].Q = !block[i].IN2 ; 
+            break ;
+
+        case INPUT: 
+            block[i].Q = digitalRead( block[i].pin ) ;
+            break ;
+
+        case OUTPUT: 
+            digitalWrite( output[i].pin, output[i].IN2 ) ;
+            break ;
+
+        // case DEL: for( int i = 0 ; i < n_blocks  ; i ++ )
+        //     {
+        //         if( block[i].Q != block[i].IN )                                   // if new state changes
+        //         {
+        //             if( millis() - block[i].oldTime >= block[i].interval )         // keep monitor if interval has expired
+        //             {
+        //                 block[i].Q = block[i].IN ;                                // if so, adopt the new state
+        //             }
+        //         }
+        //         else
+        //         {
+        //             block[i].oldTime = millis() ;                                      // if new state does not change, keep setting oldTime
+        //         }
+        //     }
+        //     break ;
         }
     }
 
-    // NOT
-    for( int i = 0 ; i < n_not_gates  ; i ++ )
-    {
-        not_gate[i].Q = !not_gate[i].IN ;
-    }
-    // add links
-
+/***************** UPDATE LINKS *****************/
+    block[1].IN1 = block[2].Q ;
+    block[2].IN2 = block[4].Q ;
+    block[3].IN3 = block[6].Q ;
+    block[1].IN1 = block[1].Q ;
+    block[1].IN2 = block[2].Q ;
+    block[2].IN1 = block[1].Q ;
+    block[2].IN2 = block[2].Q ;
+    block[2].IN1 = block[5].Q ;
+    block[2].IN3 = block[2].Q ;
 } ;
 
-// demo links between blocks, every IN line, should have a link     // NOTE. This can also be done by using an array of links and pointers.
-                                                                    //  In the main loop all links can be handled by a for loop. It will take more time to process though...
-                                                                    //  the main difference is that the linkage info is moved from loop to constructors.. 
-                                                                    //  so if you gain anything by it? I doubt it
-delay_gate[1].IN    = and_gate[2].Q ;
-delay_gate[2].IN    = and_gate[4].Q ;
-delay_gate[3].IN    = and_gate[6].Q ;
+// demo links between blocks
 
-or_gate[1].IN1      = sr_gate[1].Q ;
-or_gate[1].IN2      = sr_gate[2].Q ;
-or_gate[2].IN1      = or_gate[1].Q ;
-or_gate[2].IN2      = or_gate[2].Q ;
-
-sr_gate[2]          = input[5].Q ;
-or_gate[4]          = sr_gate[2].Q ;
