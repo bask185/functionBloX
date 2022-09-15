@@ -18,7 +18,19 @@ V organize update cursor with functions.
 V try to remove the locked variable, may unneeded <== was useless
 V organize all texts
 - add small sphere to mouse if there is anything to click. perhaps half green and half red to indicate which buttons can be pressed
-- use keyboard to enter numbers, also make sure that the current index does not change
+V use keyboard to enter numbers, also make sure that the current index does not change
+- make small nodes along link nodes, so you can see when lines just simply cross
+V need some interlocking while creating and moving blocks. It happens alot that
+we get index out of bounds error with the first block. 
+You can draw 2 blocks on eachother which is really annoying
+sometimes while making and dragging a new block, you are removing the previous block.
+It seems that the index lags behind..
+V you can delete an item while creating a line
+V pressing LMB on a block while adding link points, causes the mode to switch to moving
+V you can 'finish' a link on every row, as long as the column is ok...
+I think over over FB is always true?
+- entering a number works, but as soon as you touch a new function block
+the number is overwritten. It seems that all blocks share the pin number -_-
 
 
 EXTRA
@@ -32,10 +44,9 @@ BACKLOG
 - move node of a line by dragging it with LMB
 
 CURRENT WORK:
-Add a makenumber to enter number for inputs n outputs. Do this and the very basic should work
+Make creating and moving blocks flawless
 
-
-3 events:
+3 events:git
 mouse pressed ==> create line object and store initial X/Y coordinates. Inc point index
 mouse drag    ==> update the current element with new X/Y coordinates
 mouse release ==> increment the index counter
@@ -88,6 +99,7 @@ int         mode = idle ;
 int         linkIndex = 0 ;
 int         foundLinkIndex ;
 int         currentType ;
+int         pinNumber;
 
 boolean     hoverOverFB ;
 boolean     hoverOverPoint ;
@@ -103,35 +115,37 @@ FunctionBlock outp1 ;
 void setup()
 {
     
-    fullScreen() ;
-    //size( 900, 600 ) ;
+    //fullScreen() ;
+    size(displayWidth, displayHeight) ;
     textSize( 20 );
     background(200) ;
     
-    and1    = new FunctionBlock((width-gridSize)/gridSize, 0, AND, gridSize, 1 ) ;
-    or1     = new FunctionBlock((width-gridSize)/gridSize, 1,  OR, gridSize, 1 ) ;
-    sr1     = new FunctionBlock((width-gridSize)/gridSize, 2,   M, gridSize, 1 ) ;
-    delay1  = new FunctionBlock((width-gridSize)/gridSize, 3, DEL, gridSize, 1 ) ;
-    not1    = new FunctionBlock((width-gridSize)/gridSize, 4, NOT, gridSize, 1 ) ;
-    inp1    = new FunctionBlock((width-gridSize)/gridSize, 5, INPUT, gridSize, 1 ) ;
-    outp1   = new FunctionBlock((width-gridSize)/gridSize, 6, OUTPUT, gridSize, 1 ) ;
+    and1    = new FunctionBlock((width-gridSize)/gridSize, 0, AND, gridSize ) ;
+    or1     = new FunctionBlock((width-gridSize)/gridSize, 1,  OR, gridSize ) ;
+    sr1     = new FunctionBlock((width-gridSize)/gridSize, 2,   M, gridSize ) ;
+    delay1  = new FunctionBlock((width-gridSize)/gridSize, 3, DEL, gridSize ) ;
+    not1    = new FunctionBlock((width-gridSize)/gridSize, 4, NOT, gridSize ) ;
+    inp1    = new FunctionBlock((width-gridSize)/gridSize, 5, INPUT, gridSize ) ;
+    outp1   = new FunctionBlock((width-gridSize)/gridSize, 6, OUTPUT, gridSize ) ;
 }
 
 void leftMousePress()
 {
     if( mode == settingNumber ) return ;                                        // as long as a number is set, LMB nor RMB must do anything
 
-    if(mouseX > (width-gridSize) && mode == idle )
+    if((mouseX > (width-gridSize)) && mode == idle )
     {
-        mode = movingItem ;
+        mode = movingItem ;         
+        currentType = row + 1 ;
+        pinNumber = 0 ;
+
+        blocks.add( new FunctionBlock(( width- 2*gridSize) / gridSize, row, currentType, gridSize )) ;
 
         index = blocks.size() - 1 ;
-        currentType = row + 1 ;
-
-        blocks.add( new FunctionBlock(( width- 2*gridSize) / gridSize, row, currentType, gridSize, index )) ;
+        return ;
     }
 
-    else for (int i = 0; i < blocks.size(); i++)
+    else if( mode == idle ) for (int i = 0; i < blocks.size(); i++)
     { 
         FunctionBlock block = blocks.get(i);
 
@@ -179,7 +193,10 @@ void rightMousePress()
     if( mode == settingNumber ) return ;                                        // as long as a number is set, LMB nor RMB must do anything
 
     /* if hover about a FB, delete it */
-    if(blocks.size() > 0 && index < blocks.size() && hoverOverFB == true )
+    if( mode == idle 
+    && blocks.size() > 0 
+    &&  index < blocks.size() 
+    && hoverOverFB == true )
     {
         blocks.remove(index);		// DELETE THE OBJECT
         hoverOverFB = false ;
@@ -253,8 +270,8 @@ void mouseWheel(MouseEvent event) {
 
 void drawBackground()
 {
-    background(200) ;
-    fill(230) ;
+    background(100) ;
+    fill(130) ;
     rect(0,0,(width - gridSize) , (height - gridSize) ) ;
 
     textAlign(CENTER,CENTER);
@@ -290,6 +307,8 @@ void drawBlocks()
 
 void checkFunctionBlocks()
 {
+    if( mode == movingItem ) return ;
+
     for (int i = 0; i < blocks.size(); i++)                                     // loop over all function blocks, sets index according and sets or clears 'hoverOverFB'
     { 
         hoverOverFB = false ;
@@ -312,6 +331,8 @@ void checkFunctionBlocks()
 // determens if the cursor hovers above 
 void checkLinePoints()
 {
+    if( mode != idle ) return ;
+
     hoverOverPoint = false ;
     for( foundLinkIndex = 0 ; foundLinkIndex < links.size() ; foundLinkIndex++ )
     {
@@ -348,18 +369,19 @@ void updateCursor()
         subRow = mouseY / (gridSize/3) % 3 ;
     }  
 
+    textAlign(LEFT,TOP);
+    textSize(20);    
+    text("X: " + col,10,50);                                                         // row and col on screen.
+    text("Y: " + row,10,70);
+    //if(hoverOverFB==true)text("ITEM TRUE",10,90);
+    text("index: "+ index,10,90);
+    text("mode " + mode,10,110);
+    text("subCol " + subCol,10,130);
+    text("subRow " + subRow,10,150);
+    if(hoverOverPoint == true ) text("line detected ",10,190);    
     textAlign(CENTER,TOP);
-    textSize(50);    
-    // text("X: " + col,10,50);                                                         // row and col on screen.
-    // text("Y: " + row,10,70);
-    // //if(hoverOverFB==true)text("ITEM TRUE",10,90);
-    // text("index: "+ index,10,90);
-    // text("mode " + mode,10,110);
-    // text("subCol " + subCol,10,130);
-    // text("subRow " + subRow,10,150);
-   // if(hoverOverPoint == true ) text("line detected ",10,190);    
-    //textAlign(CENTER,CENTER);
 
+    textSize(50);  
     text( text1,   width/3, 0 ) ;
     text( text2, 2*width/3, 0 ) ;
     textAlign(CENTER,CENTER);
@@ -404,7 +426,7 @@ void printTexts()
     }
     else if( mode == settingNumber)
     {
-        text1 = "SET PIN NUMBER" ;
+        text1 = "SET PIN NUMBER, HIT <ENTER> WHEN READY" ;
         text2 = "" ;
     }
     else
@@ -428,10 +450,59 @@ void draw()
 }
 
 // ASSEMBLE ARDUINO PROGRAM.
+int makeNumber(int _number, int lowerLimit, int upperLimit )
+{
+    //if( (key >= '0' && key <= '9') || keyCode == BACKSPACE || keyCode == LEFT || keyCode == RIGHT )
+    //{
+         if( keyCode ==  LEFT      ) { _number -- ;             }
+    else if( keyCode == RIGHT      ) { _number ++ ;             }
+    else if( _number == upperLimit ) { _number = ( key-'0' ) ;  }
+    else if( keyCode == BACKSPACE  ) { _number /= 10;           }
+    else if( key >= '0' && key <= '9') 
+    {
+        _number *= 10;
+        _number += ( key-'0' );
+    }
+
+    _number = constrain(_number,lowerLimit,upperLimit);   
+    //println(_number);    
+    return _number;
+}
+
 void keyPressed()
 {
     // PRINT LINKS FOR DEBUGGING
-    if( key== 'p' )
+    if (key == ESC) 
+    {
+        println("escape pressed");
+        key = 0 ;
+    }
+    
+    if( mode == settingNumber )
+    {
+        if( keyCode == ENTER )
+        {
+            mode = idle ;
+            return ;
+        }
+        else
+        {
+            pinNumber = makeNumber( pinNumber, 0, 31) ;
+
+            FunctionBlock block = blocks.get( index ) ;
+            block.setPin( pinNumber ) ;
+        }
+    }
+    if( key == 't' )
+    {
+        for( int i = 0 ; i < blocks.size() ; i ++ )
+        {
+            FunctionBlock block = blocks.get( i ) ;
+            int number = block.getPin() ;
+            println(number) ;
+        }
+    }
+    if( key == 'p' )
     {
         file = createWriter("arduinoProgram/arduinoProgram.ino");
 

@@ -9,15 +9,14 @@ public class FunctionBlock
     int IN2 ;
     int IN3 ;
     int Q ;
-    int index ; //note not really used or needed..
+    int pin ;
 
-    FunctionBlock(int xPos, int yPos, int type, int gridSize, int index )
+    FunctionBlock(int xPos, int yPos, int type, int gridSize )
     {
         this.xPos       = xPos ;
         this.yPos       = yPos ;
         this.type       = type ;
         this.gridSize   = gridSize ;
-        this.index      = index ;
     }
 
     void draw()
@@ -43,6 +42,7 @@ public class FunctionBlock
             triangle(xPos * gridSize + (gridSize/2),   yPos * gridSize + (gridSize/4),
                      xPos * gridSize,                  yPos * gridSize + (gridSize/2),
                      xPos * gridSize + (gridSize/2),   yPos * gridSize + 3*gridSize/4) ;
+            
         }
         stroke(0);
         fill(255);
@@ -52,13 +52,13 @@ public class FunctionBlock
 
         switch( type )
         {                         // in1, in2, in3,
-            case 1: txt =   "&" ;  box = 0b1111 ; break ;
-            case 2: txt =  ">1" ;  box = 0b1111 ; break ;
-            case 3: txt =  " M" ;  box = 0b1101 ; break ;
-            case 4: txt =   "!" ;  box = 0b1010 ; break ; // text replaced by clock symbol
-            case 5: txt =   "1" ;  box = 0b1010 ; break ;
-            case 6: textAlign( RIGHT, CENTER ) ;txt =  "IN" ;  box = 0b1000 ; break ;
-            case 7: textAlign(  LEFT, CENTER ) ;txt = "OUT" ;  box = 0b010 ; break ;
+            case 1: txt =  "AND" ;  box = 0b1111 ; break ;
+            case 2: txt =   "OR" ;  box = 0b1111 ; break ;
+            case 3: txt =   " M" ;  box = 0b1101 ; break ;
+            case 4: txt =  "NOT" ;  box = 0b1010 ; break ; // text replaced by clock symbol
+            case 5: txt ="DELAY" ;  box = 0b1010 ; break ;
+            case 6: txt =   "IN " + pin;  box = 0b1000 ; break ;
+            case 7: txt =  "OUT " + pin;  box = 0b0010 ; break ;
         }
 
         int x1 = xPos * gridSize ;
@@ -77,29 +77,23 @@ public class FunctionBlock
         line(x1, y2, x2, y2) ;                          // line of Q
         fill(0);
 
-        textSize( gridSize / 4 ) ; 
-        
-       
+        textSize( gridSize / 5 ) ; 
         
         int x = xPos * gridSize + gridSize/2 ;
         int y = yPos * gridSize + gridSize/2 ;
 
         text( txt, x , y ) ;
         textSize( gridSize / 5 ) ; 
-        if( type == 3 ) text( "S\nR", x-(gridSize/5) , y ) ; // draw S and R for memory
+        if( type == 3 ) text( "S\n\nR", x-(gridSize/5) , y ) ; // draw S and R for memory
         if( type == 4 )
         {
-            fill(255);
-            
-            //marc( gridSize * xPos + gridSize/2, gridSize * yPos + gridSize/4, gridSize/3, gridSize/3, -HALF_PI, PI ); // draws partial circle for delay symbol
-            
+            fill(255);            
             x1 = xPos * gridSize + gridSize / 2 ;   
             y1 = yPos * gridSize + gridSize / 2 ;
             y2 = yPos * gridSize ;
             line(x1, y2, x1, y2) ;
             fill(0);
         }
-         
     }
 
     void setPos( int xPos, int yPos )
@@ -113,8 +107,9 @@ public class FunctionBlock
         this.gridSize = gridSize ;
     }
     
+    void setPin( int pin ) { this.pin = pin ; }
     int  getXpos() { return xPos ; }
     int  getYpos() { return yPos ; }
     int  getType() { return type ; }
-    int  getIndex() { return index ; }
+    int  getPin()  { return pin  ; }
 }
