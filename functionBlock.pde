@@ -52,13 +52,13 @@ public class FunctionBlock
 
         switch( type )
         {                         // in1, in2, in3,
-            case 1: txt =  "AND" ;  box = 0b1111 ; break ;
-            case 2: txt =   "OR" ;  box = 0b1111 ; break ;
-            case 3: txt =   " M" ;  box = 0b1101 ; break ;
-            case 4: txt =  "NOT" ;  box = 0b1010 ; break ; // text replaced by clock symbol
-            case 5: txt ="DELAY" ;  box = 0b1010 ; break ;
-            case 6: txt =   "IN " + pin;  box = 0b1000 ; break ;
-            case 7: txt =  "OUT " + pin;  box = 0b0010 ; break ;
+            case 1: txt =  "AND" ;  box = 0x0F ; break ;
+            case 2: txt =   "OR" ;  box = 0x0F ; break ;
+            case 3: txt =   " M" ;  box = 0x0D ; break ;
+            case 4: txt ="DELAY" ;  box = 0x0A ; break ;
+            case 5: txt =  "NOT" ;  box = 0x0A ; break ; // text replaced by clock symbol
+            case 6: txt =   "IN " + pin;  box = 0x08 ; break ;
+            case 7: txt =  "OUT " + pin;  box = 0x02 ; break ;
         }
 
         int x1 = xPos * gridSize ;
@@ -67,13 +67,13 @@ public class FunctionBlock
         int y2 = yPos * gridSize + gridSize/6 + 1 * gridSize / 3 ;
         int y3 = yPos * gridSize + gridSize/6 + 2 * gridSize / 3 ;
 
-        if( (box & 0b0001) > 0 ) line(x1, y1, x2, y1) ; //rect( xPos * gridSize,                yPos * gridSize +   gridSize/5, gridSize/5, gridSize/5 ) ; // top left
-        if( (box & 0b0010) > 0 ) line(x1, y2, x2, y2) ; //rect( xPos * gridSize,                yPos * gridSize + 3*gridSize/5, gridSize/5, gridSize/5 ) ; // bottom left
-        if( (box & 0b0100) > 0 ) line(x1, y3, x2, y3) ; //rect( xPos * gridSize + 4*gridSize/5, yPos * gridSize +   gridSize/5, gridSize/5, gridSize/5 ) ; // top right
+        if( (box & 0x01) > 0 ) line(x1, y1, x2, y1) ; //rect( xPos * gridSize,                yPos * gridSize +   gridSize/5, gridSize/5, gridSize/5 ) ; // top left
+        if( (box & 0x02) > 0 ) line(x1, y2, x2, y2) ; //rect( xPos * gridSize,                yPos * gridSize + 3*gridSize/5, gridSize/5, gridSize/5 ) ; // bottom left
+        if( (box & 0x04) > 0 ) line(x1, y3, x2, y3) ; //rect( xPos * gridSize + 4*gridSize/5, yPos * gridSize +   gridSize/5, gridSize/5, gridSize/5 ) ; // top right
         
         x1 = xPos * gridSize + gridSize ;
         x2 = xPos * gridSize + gridSize - gridSize/5 ;
-        if( (box & 0b1000) > 0 )//if( type == 5 )          line(x1, y1, x2, y1) ; //ellipse( xPos * gridSize + 7*gridSize/8, yPos * gridSize +   gridSize/3, gridSize/5, gridSize/5 ) ; // ellipse for not
+        if( (box & 0x08) > 0 )//if( type == 5 )          line(x1, y1, x2, y1) ; //ellipse( xPos * gridSize + 7*gridSize/8, yPos * gridSize +   gridSize/3, gridSize/5, gridSize/5 ) ; // ellipse for not
         line(x1, y2, x2, y2) ;                          // line of Q
         fill(0);
 

@@ -3,23 +3,17 @@ V finalize part to create, move and delete all items, re-use things from NX GUI 
 V create link if we are hovering about a Q output..
 V change boxes to stripes, make extra stripe for not. And make 3 stripes per item
 V create all GPIO items, inputs, outputs, ~~~pwm out, analog in~~~.
-- for the analog stuff, make a map block
-- make onscreen keypad to click on numbers so one may enter a number for an input for instance
-- create special items like servo motors, blinking lights (auto toggling IO)
-- create the arduino framework
+X make onscreen keypad to click on numbers so one may enter a number for an input for instance
+V create the arduino framework
 V make 3 inputs for and and or gates
 V beacon off the X and Y limits to exlude the right and bottom side (DONER)
 V auto set modes, depending on where one clicks. I no longer want to use the kayboard. (DONER)
 V remove subclasses and change the functionBlock class to contain type variable.. (DONER, seems to work)
-- make variable gridsize workable
-- store and load layout, add buttons.
 V add a dynamic message box which tells you what LMB and RMB does at any time
 V organize update cursor with functions.
 V try to remove the locked variable, may unneeded <== was useless
 V organize all texts
-- add small sphere to mouse if there is anything to click. perhaps half green and half red to indicate which buttons can be pressed
 V use keyboard to enter numbers, also make sure that the current index does not change
-- make small nodes along link nodes, so you can see when lines just simply cross
 V need some interlocking while creating and moving blocks. It happens alot that
 we get index out of bounds error with the first block. 
 You can draw 2 blocks on eachother which is really annoying
@@ -29,8 +23,13 @@ V you can delete an item while creating a line
 V pressing LMB on a block while adding link points, causes the mode to switch to moving
 V you can 'finish' a link on every row, as long as the column is ok...
 I think over over FB is always true?
-- entering a number works, but as soon as you touch a new function block
+V entering a number works, but as soon as you touch a new function block
 the number is overwritten. It seems that all blocks share the pin number -_-
+- create special items like servo motors, blinking lights (auto toggling IO)
+- make variable gridsize workable
+- store and load layout, add buttons.
+- add small sphere to mouse if there is anything to click. perhaps half green and half red to indicate which buttons can be pressed
+- make small nodes along link nodes, so you can see when lines just simply cross
 
 
 EXTRA
@@ -42,11 +41,16 @@ EXTRA
 
 BACKLOG
 - move node of a line by dragging it with LMB
+- for the analog stuff, make a map block
 
 CURRENT WORK:
-Make creating and moving blocks flawless
+THE CORE FUNCTIONS SHOULD WORK. IT MUST BE TESTED WITH REAL INPUTS AND OUTPUTS. DELAYS are not yet working
+saving and loading layouts should be implemented next
 
-3 events:git
+
+add pinnumber links for all input and outputs to the arduino program
+
+3 events:
 mouse pressed ==> create line object and store initial X/Y coordinates. Inc point index
 mouse drag    ==> update the current element with new X/Y coordinates
 mouse release ==> increment the index counter
@@ -78,6 +82,7 @@ final int    DEL = 4 ;
 final int    NOT = 5 ;
 final int  INPUT = 6 ;
 final int OUTPUT = 7 ;
+
 
 // digital input
 // digital output
@@ -510,7 +515,7 @@ void keyPressed()
         file.println("") ;
         file.println("enum blockTypes") ;
         file.println("{") ;
-        file.println("       AND = 0,") ;
+        file.println("       AND = 1,") ;
         file.println("        OR, ") ;
         file.println("         M, ") ;
         file.println("       DEL, ") ;
@@ -544,6 +549,13 @@ void keyPressed()
         file.println("") ;
         file.println("void setup()") ;
         file.println("{") ;
+        for( int i = 0 ; i < blocks.size() ; i ++ )
+        {
+            FunctionBlock block = blocks.get( i ) ;
+            int pin  = block.getPin() ;
+            if( pin > 0 ) { file.println("    block["+i+"].pin = " + pin + " ;" ) ; }
+        }
+        file.println("") ;
         file.println("    for( int i = 0 ; i < nBlocks ; i ++ )") ;
         file.println("    {") ;
         file.println("        block[i].type = typeArray[i] ;") ;
