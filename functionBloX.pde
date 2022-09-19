@@ -58,7 +58,9 @@ mousewheel    ==> alter grid size
 
 */
 
-PrintWriter  file ;
+PrintWriter     file ;
+PrintWriter     output;
+BufferedReader  input;
 
 String text1 = "" ;
 String text2 = "" ;
@@ -117,10 +119,12 @@ FunctionBlock not1 ;
 FunctionBlock inp1 ;
 FunctionBlock outp1 ;
 
+
 void setup()
 {
-    
+   
     //fullScreen() ;
+    loadLayout() ;
     size(displayWidth, displayHeight) ;
     textSize( 20 );
     background(200) ;
@@ -498,6 +502,8 @@ void keyPressed()
             block.setPin( pinNumber ) ;
         }
     }
+    if( key == 's') saveLayout() ;
+
     if( key == 't' )
     {
         for( int i = 0 ; i < blocks.size() ; i ++ )
@@ -646,3 +652,74 @@ void keyPressed()
         file.close() ;
     }
 }
+
+void saveLayout()
+{
+
+    output = createWriter("program.csv");
+
+    output.println(blocks.size());          // the amount of elements is saved first, this is used for the loading
+    for (int i = 0; i < blocks.size(); i++ )
+    {
+        FunctionBlock block = blocks.get(i) ;
+        output.println( block.getXpos() + "," + block.getYpos() + "," + block.getType() ) ;
+    }
+
+    output.println(links.size());           // the amount of links is saved
+    for (int i = 0; i < links.size(); i++ )
+    {
+        Link link = links.get(i) ;
+        output.print( link.getQ() + "," + link.getIn(0) + "," + link.getIn(1) + "," + link.getIn(2) ) ;
+        for (int j = 0 ; j < 50 ; j++ ) 
+        {
+            output.print( "," + link.getPosX(j) + "," + link.getPosY(j) + ","  // store all 50 coordinates
+                              + link.getSubX(j) + "," + link.getSubY(j) ) ;
+        }
+        output.println() ;  // newline
+    }  
+    output.close();
+    println("LAYOUT SAVED");
+}
+
+
+String line ;
+void loadLayout()
+{
+    input = createReader("program.csv");
+    try
+    {
+        line = input.readLine();
+    } 
+    catch (IOException e) {}
+    
+    int size = Integer.parseInt(line);
+    
+    for(int j=0; j<size; j++)
+    {
+        try
+        {
+            line = input.readLine();
+        } 
+        catch (IOException e)
+        {
+            line = null;
+            println("line = null ERROR EXCEPTION");
+        }
+        
+        if (line == null)
+        {
+            println("line = null ERROR");
+        } 
+        else {
+            String[] pieces = split(line, ',');
+            int X          = Integer.parseInt( pieces[0] );
+            int Y          = Integer.parseInt( pieces[1] );
+            int type       = Integer.parseInt( pieces[2] );
+
+            blocks.add( new FunctionBlock(X, Y, type, gridSize )) ;
+        }
+    } 
+    //line = input.readLine();
+    //size = Integer.parseInt(line);
+}
+
