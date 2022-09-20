@@ -143,3 +143,28 @@ class Link
     // int getLastX() { return  positions[0][nPoints-1] ; }
     // int getLastY() { return  positions[1][nPoints-1] ; }
 }
+
+/*
+LAYOUT SAVED
+N nodes = 2
+  Q: 0
+IN1: 1
+IN2: 1
+IN3: 0
+N nodes = 2
+  Q: 1
+IN1: 2
+IN2: 2
+IN3: 0
+N nodes = 5
+  Q: 2
+IN1: 0
+IN2: 0
+IN3: 0
+N nodes = 4
+  Q: 1
+IN1: 0
+IN2: 0
+IN3: 0
+
+*/

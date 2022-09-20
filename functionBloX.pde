@@ -30,6 +30,7 @@ the number is overwritten. It seems that all blocks share the pin number -_-
 - store and load layout, add buttons.
 - add small sphere to mouse if there is anything to click. perhaps half green and half red to indicate which buttons can be pressed
 - make small nodes along link nodes, so you can see when lines just simply cross
+- may need to refactor to separate classes so it becomes easier to add the new analog items
 
 
 EXTRA
@@ -45,7 +46,9 @@ BACKLOG
 
 CURRENT WORK:
 THE CORE FUNCTIONS SHOULD WORK. IT MUST BE TESTED WITH REAL INPUTS AND OUTPUTS. DELAYS are not yet working
-saving and loading layouts should be implemented next
+- making delay to work!
+(if needed, refactor code to sub classes again
+
 
 
 add pinnumber links for all input and outputs to the arduino program
@@ -137,6 +140,19 @@ void setup()
     inp1    = new FunctionBlock((width-gridSize)/gridSize, 5, INPUT, gridSize ) ;
     outp1   = new FunctionBlock((width-gridSize)/gridSize, 6, OUTPUT, gridSize ) ;
 }
+
+void draw()
+{
+    drawBackground() ;
+    updateCursor() ;
+    checkFunctionBlocks() ;
+    checkLinePoints() ;
+    printTexts() ;
+    drawBlocks() ;
+    drawLinks() ;
+}
+
+
 
 void leftMousePress()
 {
@@ -445,19 +461,6 @@ void printTexts()
     }
 }
 
-
-void draw()
-{
-    drawBackground() ;
-    updateCursor() ;
-    checkFunctionBlocks() ;
-    checkLinePoints() ;
-    printTexts() ;
-    drawBlocks() ;
-    drawLinks() ;
-   
-}
-
 // ASSEMBLE ARDUINO PROGRAM.
 int makeNumber(int _number, int lowerLimit, int upperLimit )
 {
@@ -485,6 +488,21 @@ void keyPressed()
     {
         println("escape pressed");
         key = 0 ;
+    }
+    if( key == 'd')
+    {
+        for( int  i = 0 ; i < links.size() ; i ++ )
+        {
+            Link link = links.get(i) ;
+            int Q = link.getQ() ;
+            int IN1 = link.getIn(0) ;
+            int IN2 = link.getIn(1) ;
+            int IN3 = link.getIn(2) ;
+            println("\r\nQ: " +Q) ;
+            println("IN1: "  + IN1 ) ;
+            println("IN2: "  + IN2 ) ;
+            println("IN3: "  + IN3 ) ;
+        }
     }
     
     if( mode == settingNumber )
@@ -655,6 +673,7 @@ void keyPressed()
 
 void saveLayout()
 {
+    println("LAYOUT SAVED");
 
     output = createWriter("program.csv");
 
@@ -669,7 +688,20 @@ void saveLayout()
     for (int i = 0; i < links.size(); i++ )
     {
         Link link = links.get(i) ;
-        output.print( link.getQ() + "," + link.getIn(0) + "," + link.getIn(1) + "," + link.getIn(2) ) ;
+        println("N nodes = " + (link.getNlinks()-1) ) ;
+
+        int Q    = link.getQ() ;
+        int IN1  = link.getIn(0) ;
+        int IN2  = link.getIn(1) ;
+        int IN3  = link.getIn(2) ;
+
+        println("  Q: " +   Q ) ;
+        println("IN1: " + IN1 ) ;
+        println("IN2: " + IN1 ) ;
+        println("IN3: " + IN2 ) ;
+
+        output.print( Q + "," + IN1 + "," + IN2 + "," +IN3 ) ;
+
         for (int j = 0 ; j < 50 ; j++ ) 
         {
             output.print( "," + link.getPosX(j) + "," + link.getPosY(j) + ","  // store all 50 coordinates
@@ -678,48 +710,91 @@ void saveLayout()
         output.println() ;  // newline
     }  
     output.close();
-    println("LAYOUT SAVED");
 }
 
 
-String line ;
+
 void loadLayout()
 {
+    println("LAYOUT LOADED");
+    String line = "" ;
+
     input = createReader("program.csv");
-    try
-    {
-        line = input.readLine();
-    } 
+    try { line = input.readLine(); } 
     catch (IOException e) {}
     
     int size = Integer.parseInt(line);
     
     for(int j=0; j<size; j++)
     {
-        try
-        {
-            line = input.readLine();
-        } 
-        catch (IOException e)
-        {
-            line = null;
-            println("line = null ERROR EXCEPTION");
-        }
+        try { line = input.readLine(); } 
+        catch (IOException e) {}
         
-        if (line == null)
-        {
-            println("line = null ERROR");
-        } 
-        else {
-            String[] pieces = split(line, ',');
-            int X          = Integer.parseInt( pieces[0] );
-            int Y          = Integer.parseInt( pieces[1] );
-            int type       = Integer.parseInt( pieces[2] );
+        String[] pieces = split(line, ',');
+        int X    = Integer.parseInt( pieces[0] );
+        int Y    = Integer.parseInt( pieces[1] );
+        int type = Integer.parseInt( pieces[2] );
 
-            blocks.add( new FunctionBlock(X, Y, type, gridSize )) ;
-        }
+        blocks.add( new FunctionBlock(X, Y, type, gridSize ) ) ;
     } 
-    //line = input.readLine();
-    //size = Integer.parseInt(line);
+
+    try { line = input.readLine(); } 
+    catch (IOException e) {}
+
+    size = Integer.parseInt(line);
+    println("amount of links: " + size ) ;
+
+    for( int i = 0 ; i < size ; i++ ) 
+    {
+        try { line = input.readLine(); } 
+        catch (IOException e) {}
+         
+        String[] pieces = split(line, ',');
+        println("amount of pieces: " + pieces.length ) ;
+        int Q    = Integer.parseInt( pieces[0] );
+        int IN1  = Integer.parseInt( pieces[1] );
+        int IN2  = Integer.parseInt( pieces[2] );
+        int IN3  = Integer.parseInt( pieces[3] );
+        int x1   = Integer.parseInt( pieces[4] );
+        int y1   = Integer.parseInt( pieces[5] );
+        //int s1   = Integer.parseInt( pieces[6] );
+        //int s2   = Integer.parseInt( pieces[7] );
+
+        println("\r\n Q: " + Integer.parseInt( pieces[0] ) +" "+ Q  ) ;
+        println("IN1: " +    Integer.parseInt( pieces[1] ) +" "+ IN1 ) ;
+        println("IN2: " +    Integer.parseInt( pieces[2] ) +" "+ IN2 ) ;
+        println("IN3: " +    Integer.parseInt( pieces[3] ) +" "+ IN3 ) ;
+
+        links.add( new Link( x1, y1, gridSize, Q ) ) ;
+        Link link = links.get(i) ; // HERE IT MUST GO WRONG
+
+        link.setIn(0,IN1) ;
+        link.setIn(1,IN2) ;
+        link.setIn(2,IN3) ;
+
+        for( int j = 8 ; j < (50*4) ; j += 4 )      // 50 XY coordinates and 50 subX subY coordinates and we start at the 8th byte
+        {      
+            int colX = Integer.parseInt( pieces[  j  ] ) ;
+            int colY = Integer.parseInt( pieces[ j+1 ] ) ;
+            int subX = Integer.parseInt( pieces[ j+2 ] ) ;
+            int subY = Integer.parseInt( pieces[ j+3 ] ) ;
+
+            if( colX == 0 && colY == 0
+            &&  subX == 0 && subY == 0 ) continue ;
+
+            link.updatePoint( colX, colY, subX, subY ) ;
+
+            println("point: " + colX +", "+colY +", "+subX +", "+subY ) ;
+
+            link.storePoint() ;
+        } 
+
+        link.removePoint() ;
+        println("N nodes = " + link.getNlinks() ) ;
+
+        linkIndex ++ ;
+    }
 }
 
+
+//0,0,1,0 0,0,2,1  ,1,1,2,0  ,3,0,0,1,  0,0,0,0,0,0,
