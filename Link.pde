@@ -63,6 +63,7 @@ class Link
             int y2 = yPos * gridSize + ySub * gridSize / 3 + gridSize/6 ;
 
             line( x1, y1, x2, y2 ) ;
+            circle(x1,y1,3) ;
         }
     }
 
@@ -131,40 +132,4 @@ class Link
         if( nPoints == 0 ) { return true ;}
         else                 return false ;
     }
-
-    // void printPoints()
-    // {
-    //     for ( int i = 0 ; i < nPoints ; i ++ )
-    //     {
-    //         print( "(" + positions[0][i] + ", " + positions[1][i] + "), ") ;
-    //     }
-    // }
-
-    // int getLastX() { return  positions[0][nPoints-1] ; }
-    // int getLastY() { return  positions[1][nPoints-1] ; }
 }
-
-/*
-LAYOUT SAVED
-N nodes = 2
-  Q: 0
-IN1: 1
-IN2: 1
-IN3: 0
-N nodes = 2
-  Q: 1
-IN1: 2
-IN2: 2
-IN3: 0
-N nodes = 5
-  Q: 2
-IN1: 0
-IN2: 0
-IN3: 0
-N nodes = 4
-  Q: 1
-IN1: 0
-IN2: 0
-IN3: 0
-
-*/

@@ -22,7 +22,7 @@ public class FunctionBlock
     void draw()
     {
         textAlign( CENTER, CENTER ) ;
-        fill(245);
+        fill(230);
         if( type < 6 ) // if not input or output
         {
             rect( xPos * gridSize + (gridSize/5), yPos * gridSize + 1, 3*gridSize/5, gridSize - 2 ) ; // main box

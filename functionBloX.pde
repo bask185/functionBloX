@@ -31,7 +31,9 @@ the number is overwritten. It seems that all blocks share the pin number -_-
 - add small sphere to mouse if there is anything to click. perhaps half green and half red to indicate which buttons can be pressed
 - make small nodes along link nodes, so you can see when lines just simply cross
 - may need to refactor to separate classes so it becomes easier to add the new analog items
-
+V ID of Function blocks also need to be stored for the input and output blocks
+- add method to update all links' Qs and INs for when a FB is removed or replaced. Currently links will point to the old index
+  and this may or may not be correct...
 
 EXTRA
 - make comperator for usage with analog input
@@ -48,6 +50,7 @@ CURRENT WORK:
 THE CORE FUNCTIONS SHOULD WORK. IT MUST BE TESTED WITH REAL INPUTS AND OUTPUTS. DELAYS are not yet working
 - making delay to work!
 (if needed, refactor code to sub classes again
+- verify links in arduino program
 
 
 
@@ -64,6 +67,7 @@ mousewheel    ==> alter grid size
 PrintWriter     file ;
 PrintWriter     output;
 BufferedReader  input;
+PImage          mouse;
 
 String text1 = "" ;
 String text2 = "" ;
@@ -113,6 +117,7 @@ int         pinNumber;
 
 boolean     hoverOverFB ;
 boolean     hoverOverPoint ;
+boolean     blockMiddle ;
 
 FunctionBlock or1 ;
 FunctionBlock and1 ;
@@ -130,7 +135,7 @@ void setup()
     loadLayout() ;
     size(displayWidth, displayHeight) ;
     textSize( 20 );
-    background(200) ;
+    background(255) ;
     
     and1    = new FunctionBlock((width-gridSize)/gridSize, 0, AND, gridSize ) ;
     or1     = new FunctionBlock((width-gridSize)/gridSize, 1,  OR, gridSize ) ;
@@ -144,10 +149,10 @@ void setup()
 void draw()
 {
     drawBackground() ;
-    updateCursor() ;
     checkFunctionBlocks() ;
     checkLinePoints() ;
     printTexts() ;
+    updateCursor() ;
     drawBlocks() ;
     drawLinks() ;
 }
@@ -174,8 +179,7 @@ void leftMousePress()
     { 
         FunctionBlock block = blocks.get(i);
 
-        if( col == block.getXpos() && subCol == 1
-        &&  row == block.getYpos() && subRow == 1 )
+        if( col == block.getXpos() &&  row == block.getYpos() && blockMiddle == true )
         {
             mode = movingItem ;
             index = i;
@@ -221,7 +225,8 @@ void rightMousePress()
     if( mode == idle 
     && blocks.size() > 0 
     &&  index < blocks.size() 
-    && hoverOverFB == true )
+    && hoverOverFB == true
+    && blockMiddle == true )
     {
         blocks.remove(index);		// DELETE THE OBJECT
         hoverOverFB = false ;
@@ -295,9 +300,9 @@ void mouseWheel(MouseEvent event) {
 
 void drawBackground()
 {
-    background(100) ;
-    fill(130) ;
-    rect(0,0,(width - gridSize) , (height - gridSize) ) ;
+    background(230) ;
+    fill(255) ;
+    rect(0,0,(width - gridSize) - 2 , (height - gridSize) - 2 ) ;
 
     textAlign(CENTER,CENTER);
 
@@ -334,6 +339,7 @@ void checkFunctionBlocks()
 {
     if( mode == movingItem ) return ;
 
+    blockMiddle = false ;
     for (int i = 0; i < blocks.size(); i++)                                     // loop over all function blocks, sets index according and sets or clears 'hoverOverFB'
     { 
         hoverOverFB = false ;
@@ -347,6 +353,9 @@ void checkFunctionBlocks()
             // boolean     hoverOverPoint ;
 
             hoverOverFB = true ;
+
+            if( subCol == 1 && subRow == 1 ) blockMiddle =  true ;
+            
             index = i ;
             return ;
         }
@@ -404,61 +413,74 @@ void updateCursor()
     text("subCol " + subCol,10,130);
     text("subRow " + subRow,10,150);
     if(hoverOverPoint == true ) text("line detected ",10,190);    
-    textAlign(CENTER,TOP);
-
-    textSize(50);  
-    text( text1,   width/3, 0 ) ;
-    text( text2, 2*width/3, 0 ) ;
-    textAlign(CENTER,CENTER);
 }
 
 void printTexts()
 {
+    try { FunctionBlock block = blocks.get(index); }
+    catch (IndexOutOfBoundsException e) {}
+
     if(mouseX > (width-gridSize)  && mode == idle ) // seems to work very well
     {
-        text1 = "LMB = create new Function block" ;
+        text1 = "New function block" ;
         text2 = "" ;
+        mouse = loadImage("images/mouse2.png") ;
     }
     else if(  mode == idle && subCol == 2 && subRow == 1 && hoverOverFB == true )
     {
-        text1 = "LMB = create link" ;
-        text2 = "" ;
+        text1 = "create link" ;
+        text2 = "delete link" ;
+        mouse = loadImage("images/mouse3.png") ;
     }
-    else if( mode == idle && hoverOverFB )
+    else if( mode == idle && hoverOverFB  && blockMiddle == true )
     {
-        text1 = "LMB = move item" ;
-        text2 = "RMB = delete item" ;
+        text1 = "move item" ;
+        text2 = "delete item" ;
+        mouse = loadImage("images/mouse3.png") ;
     }
     else if( mode == idle && hoverOverPoint )
     {
-        text1 = "LMB = move node" ;
-        text2 = "RMB = delete link" ;
+        text1 = "move node" ;
+        text2 = "delete link" ;
+        mouse = loadImage("images/mouse3.png") ;
     }
     else if( mode == addingLinePoints && subCol == 0 && hoverOverFB == true )
     {
-        text1 = "LMB = finish point" ;
+        text1 = "finish point" ;
         text2 = "" ;
+        mouse = loadImage("images/mouse2.png") ;
     }
     else if( mode == addingLinePoints )
     {
-        text1 = "LMB = add point" ;
-        text2 = "RMB = remove last point" ;
+        text1 = "add point" ;
+        text2 = "remove last point" ;
+        mouse = loadImage("images/mouse3.png") ;
     }
     else if( mode == movingItem)
     {
         text1 = "Moving function block" ;
         text2 = "" ;
+        mouse = loadImage("images/mouse2.png") ;
     }
     else if( mode == settingNumber)
     {
         text1 = "SET PIN NUMBER, HIT <ENTER> WHEN READY" ;
         text2 = "" ;
+        mouse = loadImage("images/mouse1.png") ;
     }
     else
     {
         text1 = "" ;
         text2 = "" ;
+        mouse = loadImage("images/mouse1.png") ;
     }
+    image(mouse, width/2-gridSize, gridSize/5,gridSize,gridSize);
+    textSize(gridSize/2);  
+    textAlign(RIGHT,TOP);
+    text( text1,  width/2 - gridSize, 0 ) ;
+    textAlign(LEFT,TOP);
+    text( text2, width/2, 0 ) ;
+    textAlign(CENTER,CENTER);
 }
 
 // ASSEMBLE ARDUINO PROGRAM.
@@ -533,141 +555,7 @@ void keyPressed()
     }
     if( key == 'p' )
     {
-        file = createWriter("arduinoProgram/arduinoProgram.ino");
-
-        file.println("const int nBlocks = " + blocks.size() + " ;" ) ;
-        file.println("") ;
-        file.println("enum blockTypes") ;
-        file.println("{") ;
-        file.println("       AND = 1,") ;
-        file.println("        OR, ") ;
-        file.println("         M, ") ;
-        file.println("       DEL, ") ;
-        file.println("       NOT, ") ;
-        file.println("     INPUT_PIN,") ;
-        file.println("    OUTPUT_PIN,") ;
-        file.println("} ;") ;
-        file.print("const int typeArray[] = {" ) ;
-        for( int i = 0 ; i < blocks.size() ; i ++ )
-        {
-            FunctionBlock block = blocks.get( i ) ;
-            int type  = block.getType() ;
-            if( i % 10 == 0 ) file.print("\r\n\t") ; // for every 10 array elements, add new line
-            file.print(type + ", ");
-        }
-        file.println("} ;") ;
-        file.println("") ;
-        file.println("typedef struct blox") ;
-        file.println("{") ;
-        file.println("    uint8_t  IN1 : 1 ;") ;
-        file.println("    uint8_t  IN2 : 1 ;") ;
-        file.println("    uint8_t  IN3 : 1 ;") ;
-        file.println("    uint8_t    Q : 1 ;") ;
-        file.println("    uint8_t  pin : 5 ;") ;
-        file.println("    uint8_t type : 3 ; // 8 combinations, may not be enough in the future") ;
-        file.println("    //uint32_t        oldTime ;  // bad idea to use this amount of memory per block if only delays need it?") ;
-        file.println("    //const uint32_t  interval ; // perhaps couple a function pointers or obj pointer to it?") ;
-        file.println("} FunctionBlock ;") ;
-        file.println("") ;
-        file.println("FunctionBlock block [ nBlocks ] ;") ;
-        file.println("") ;
-        file.println("void setup()") ;
-        file.println("{") ;
-        for( int i = 0 ; i < blocks.size() ; i ++ )
-        {
-            FunctionBlock block = blocks.get( i ) ;
-            int pin  = block.getPin() ;
-            if( pin > 0 ) { file.println("    block["+i+"].pin = " + pin + " ;" ) ; }
-        }
-        file.println("") ;
-        file.println("    for( int i = 0 ; i < nBlocks ; i ++ )") ;
-        file.println("    {") ;
-        file.println("        block[i].type = typeArray[i] ;") ;
-        file.println("") ;
-        file.println("        switch( block[i].type )") ;
-        file.println("        {") ;
-        file.println("        case AND: ") ;
-        file.println("            block[i].IN1 = block[i].IN2 = block[i].IN3 = 1 ; // force all AND gate INs to be 1 in case of unused things") ;
-        file.println("            break ;") ;
-        file.println("") ;
-        file.println("        case INPUT_PIN:") ;
-        file.println("            pinMode( block[i].pin, INPUT_PULLUP ) ;") ;
-        file.println("            break ;") ;
-        file.println("") ;
-        file.println("        case OUTPUT_PIN:") ;
-        file.println("            pinMode( block[i].pin, OUTPUT ) ;") ;
-        file.println("            break ;") ;
-        file.println("") ;
-        file.println("        case DEL:       // idk do something clever with adding timers or something") ;
-        file.println("            break ;") ;
-        file.println("        }") ;
-        file.println("    }") ;
-        file.println("}") ;
-        file.println("") ;
-        file.println("void loop()") ;
-        file.println("{") ;
-        file.println("/***************** UPDATE FUNCTION BLOCKS *****************/") ;
-        file.println("    for( int i = 0 ; i < nBlocks ; i ++ )") ;
-        file.println("    {") ;
-        file.println("        switch( block[i].type )") ;
-        file.println("        {") ;
-        file.println("        case AND: ") ;
-        file.println("            block[i].Q = block[i].IN1 & block[i].IN2 & block[i].IN3 ;") ;
-        file.println("            break ;") ;
-        file.println("") ;
-        file.println("        case OR: ") ;
-        file.println("            block[i].Q = block[i].IN1 | block[i].IN2 | block[i].IN3 ;") ;
-        file.println("            break ;") ;
-        file.println("") ;
-        file.println("        case M: ") ;
-        file.println("            if(      block[i].IN3 ) block[i].Q = 0 ; // R") ;
-        file.println("            else if( block[i].IN1 ) block[i].Q = 1 ; // S") ;
-        file.println("            break ; ") ;
-        file.println("") ;
-        file.println("        case NOT: ") ;
-        file.println("            block[i].Q = !block[i].IN2 ; ") ;
-        file.println("            break ;") ;
-        file.println("") ;
-        file.println("        case INPUT_PIN: ") ;
-        file.println("            block[i].Q = digitalRead( block[i].pin ) ;") ;
-        file.println("            break ;") ;
-        file.println("") ;
-        file.println("        case OUTPUT_PIN: ") ;
-        file.println("            digitalWrite( block[i].pin, block[i].IN2 ) ;") ;
-        file.println("            break ;") ;
-        file.println("") ;
-        file.println("        // case DEL: for( int i = 0 ; i < n_blocks  ; i ++ )") ;
-        file.println("        //     {") ;
-        file.println("        //         if( block[i].Q != block[i].IN )                                   // if new state changes") ;
-        file.println("        //         {") ;
-        file.println("        //             if( millis() - block[i].oldTime >= block[i].interval )         // keep monitor if interval has expired") ;
-        file.println("        //             {") ;
-        file.println("        //                 block[i].Q = block[i].IN ;                                // if so, adopt the new state") ;
-        file.println("        //             }") ;
-        file.println("        //         }") ;
-        file.println("        //         else") ;
-        file.println("        //         {") ;
-        file.println("        //             block[i].oldTime = millis() ;                                      // if new state does not change, keep setting oldTime") ;
-        file.println("        //         }") ;
-        file.println("        //     }") ;
-        file.println("        //     break ;") ;
-        file.println("        }") ;
-        file.println("    }") ;
-        file.println("") ;
-        file.println("/***************** UPDATE LINKS *****************/") ;
-        // ADD CUSTOM LINKS
-        for ( int i = 0 ; i < links.size() ; i ++ ) 
-        {
-            Link  link = links.get( i ) ;
-            int      Q = link.getQ() ;
-            int subrow = link.getSubrow() ;
-            int     IN = link.getIn( subrow );
-
-            file.println("    block["+IN+"].IN"+(subrow+1)+" = block["+Q+"].Q ;") ;
-        }
-        
-        file.println("} ;") ;
-        file.close() ;
+        assembleProgram() ;
     }
 }
 
@@ -681,7 +569,7 @@ void saveLayout()
     for (int i = 0; i < blocks.size(); i++ )
     {
         FunctionBlock block = blocks.get(i) ;
-        output.println( block.getXpos() + "," + block.getYpos() + "," + block.getType() ) ;
+        output.println( block.getXpos() + "," + block.getYpos() + "," + block.getType() + "," + block.getPin() ) ;
     }
 
     output.println(links.size());           // the amount of links is saved
@@ -690,17 +578,19 @@ void saveLayout()
         Link link = links.get(i) ;
         println("N nodes = " + (link.getNlinks()-1) ) ;
 
-        int Q    = link.getQ() ;
-        int IN1  = link.getIn(0) ;
-        int IN2  = link.getIn(1) ;
-        int IN3  = link.getIn(2) ;
+        int Q       = link.getQ() ;
+        int IN1     = link.getIn(0) ;
+        int IN2     = link.getIn(1) ;
+        int IN3     = link.getIn(2) ;
+        int subrow  = link.getSubrow() ;
 
         println("  Q: " +   Q ) ;
         println("IN1: " + IN1 ) ;
         println("IN2: " + IN1 ) ;
         println("IN3: " + IN2 ) ;
+        println("subrow: " + subrow ) ;
 
-        output.print( Q + "," + IN1 + "," + IN2 + "," +IN3 ) ;
+        output.print( Q + "," + IN1 + "," + IN2 + "," +IN3 + "," + subrow ) ;
 
         for (int j = 0 ; j < 50 ; j++ ) 
         {
@@ -719,30 +609,37 @@ void loadLayout()
     println("LAYOUT LOADED");
     String line = "" ;
 
-    input = createReader("program.csv");
-    try { line = input.readLine(); } 
-    catch (IOException e) {}
+   
+    try {
+        input = createReader("program.csv"); 
+        line = input.readLine();
+    } 
+    catch (IOException e) { return ;}
+    catch (NullPointerException e ) {return ;}
     
     int size = Integer.parseInt(line);
     
-    for(int j=0; j<size; j++)
+    for( int j = 0 ; j < size ; j++ )
     {
         try { line = input.readLine(); } 
-        catch (IOException e) {}
+        catch (IOException e) {return ;}
         
         String[] pieces = split(line, ',');
         int X    = Integer.parseInt( pieces[0] );
         int Y    = Integer.parseInt( pieces[1] );
         int type = Integer.parseInt( pieces[2] );
+        int  pin = Integer.parseInt( pieces[3] );
 
         blocks.add( new FunctionBlock(X, Y, type, gridSize ) ) ;
+        
+        FunctionBlock block = blocks.get(j) ;
+        block.setPin( pin ) ;
     } 
 
     try { line = input.readLine(); } 
     catch (IOException e) {}
 
     size = Integer.parseInt(line);
-    println("amount of links: " + size ) ;
 
     for( int i = 0 ; i < size ; i++ ) 
     {
@@ -750,29 +647,33 @@ void loadLayout()
         catch (IOException e) {}
          
         String[] pieces = split(line, ',');
-        println("amount of pieces: " + pieces.length ) ;
-        int Q    = Integer.parseInt( pieces[0] );
-        int IN1  = Integer.parseInt( pieces[1] );
-        int IN2  = Integer.parseInt( pieces[2] );
-        int IN3  = Integer.parseInt( pieces[3] );
-        int x1   = Integer.parseInt( pieces[4] );
-        int y1   = Integer.parseInt( pieces[5] );
-        //int s1   = Integer.parseInt( pieces[6] );
-        //int s2   = Integer.parseInt( pieces[7] );
-
-        println("\r\n Q: " + Integer.parseInt( pieces[0] ) +" "+ Q  ) ;
-        println("IN1: " +    Integer.parseInt( pieces[1] ) +" "+ IN1 ) ;
-        println("IN2: " +    Integer.parseInt( pieces[2] ) +" "+ IN2 ) ;
-        println("IN3: " +    Integer.parseInt( pieces[3] ) +" "+ IN3 ) ;
+        int Q       = Integer.parseInt( pieces[0] );
+        int IN1     = Integer.parseInt( pieces[1] );
+        int IN2     = Integer.parseInt( pieces[2] );
+        int IN3     = Integer.parseInt( pieces[3] );
+        int subrow  = Integer.parseInt( pieces[4] );
+        int x1      = Integer.parseInt( pieces[5] );
+        int y1      = Integer.parseInt( pieces[6] );
+        //int s1    = Integer.parseInt( pieces[7] );
+        //int s2    = Integer.parseInt( pieces[8] );
 
         links.add( new Link( x1, y1, gridSize, Q ) ) ;
-        Link link = links.get(i) ; // HERE IT MUST GO WRONG
+        Link link = links.get(i) ;
 
-        link.setIn(0,IN1) ;
-        link.setIn(1,IN2) ;
-        link.setIn(2,IN3) ;
+        switch( subrow )
+        {
+            case 0 : link.setIn(subrow,IN1) ; break ;
+            case 1 : link.setIn(subrow,IN2) ; break ;
+            case 2 : link.setIn(subrow,IN3) ; break ;
+        }
 
-        for( int j = 8 ; j < (50*4) ; j += 4 )      // 50 XY coordinates and 50 subX subY coordinates and we start at the 8th byte
+        println("\r\nTWO Q: " +  Q  ) ;
+        println("IN1:    " +    IN1 ) ;
+        println("IN2:    " +    IN2 ) ;
+        println("IN3:    " +    IN3 ) ;
+        println("subrow: " + subrow ) ;
+
+        for( int j = 9 ; j < (50*4) + 1 ; j += 4 )      // 50 XY coordinates and 50 subX subY coordinates and we start at the 8th byte
         {      
             int colX = Integer.parseInt( pieces[  j  ] ) ;
             int colY = Integer.parseInt( pieces[ j+1 ] ) ;
@@ -780,21 +681,159 @@ void loadLayout()
             int subY = Integer.parseInt( pieces[ j+3 ] ) ;
 
             if( colX == 0 && colY == 0
-            &&  subX == 0 && subY == 0 ) continue ;
+            &&  subX == 0 && subY == 0 ) break ;
 
             link.updatePoint( colX, colY, subX, subY ) ;
-
-            println("point: " + colX +", "+colY +", "+subX +", "+subY ) ;
-
             link.storePoint() ;
         } 
 
         link.removePoint() ;
-        println("N nodes = " + link.getNlinks() ) ;
-
         linkIndex ++ ;
     }
 }
 
+void assembleProgram() 
+{
+    file = createWriter("arduinoProgram/arduinoProgram.ino");
 
-//0,0,1,0 0,0,2,1  ,1,1,2,0  ,3,0,0,1,  0,0,0,0,0,0,
+    file.println("const int nBlocks = " + blocks.size() + " ;" ) ;
+    file.println("") ;
+    file.println("enum blockTypes") ;
+    file.println("{") ;
+    file.println("       AND = 1,") ;
+    file.println("        OR, ") ;
+    file.println("         M, ") ;
+    file.println("       DEL, ") ;
+    file.println("       NOT, ") ;
+    file.println("     INPUT_PIN,") ;
+    file.println("    OUTPUT_PIN,") ;
+    file.println("} ;") ;
+    file.print("const int typeArray[] = {" ) ;
+    for( int i = 0 ; i < blocks.size() ; i ++ )
+    {
+        FunctionBlock block = blocks.get( i ) ;
+        int type  = block.getType() ;
+        if( i % 10 == 0 ) file.print("\r\n\t") ; // for every 10 array elements, add new line
+        file.print(type + ", ");
+    }
+    file.println("} ;") ;
+    file.println("") ;
+    file.println("typedef struct blox") ;
+    file.println("{") ;
+    file.println("    uint8_t  IN1 : 1 ;") ;
+    file.println("    uint8_t  IN2 : 1 ;") ;
+    file.println("    uint8_t  IN3 : 1 ;") ;
+    file.println("    uint8_t    Q : 1 ;") ;
+    file.println("    uint8_t  pin : 5 ;") ;
+    file.println("    uint8_t type : 3 ; // 8 combinations, may not be enough in the future") ;
+    file.println("    //uint32_t        oldTime ;  // bad idea to use this amount of memory per block if only delays need it?") ;
+    file.println("    //const uint32_t  interval ; // perhaps couple a function pointers or obj pointer to it?") ;
+    file.println("} FunctionBlock ;") ;
+    file.println("") ;
+    file.println("FunctionBlock block [ nBlocks ] ;") ;
+    file.println("") ;
+    file.println("void setup()") ;
+    file.println("{") ;
+    for( int i = 0 ; i < blocks.size() ; i ++ )
+    {
+        FunctionBlock block = blocks.get( i ) ;
+        int pin  = block.getPin() ;
+        if( pin > 0 ) { file.println("    block["+i+"].pin = " + pin + " ;" ) ; }
+    }
+    file.println("") ;
+    file.println("    for( int i = 0 ; i < nBlocks ; i ++ )") ;
+    file.println("    {") ;
+    file.println("        block[i].type = typeArray[i] ;") ;
+    file.println("") ;
+    file.println("        switch( block[i].type )") ;
+    file.println("        {") ;
+    file.println("        case AND: ") ;
+    file.println("            block[i].IN1 = block[i].IN2 = block[i].IN3 = 1 ; // force all AND gate INs to be 1 in case of unused things") ;
+    file.println("            break ;") ;
+    file.println("") ;
+    file.println("        case INPUT_PIN:") ;
+    file.println("            pinMode( block[i].pin, INPUT_PULLUP ) ;") ;
+    file.println("            break ;") ;
+    file.println("") ;
+    file.println("        case OUTPUT_PIN:") ;
+    file.println("            pinMode( block[i].pin, OUTPUT ) ;") ;
+    file.println("            break ;") ;
+    file.println("") ;
+    file.println("        case DEL:       // idk do something clever with adding timers or something") ;
+    file.println("            break ;") ;
+    file.println("        }") ;
+    file.println("    }") ;
+    file.println("}") ;
+    file.println("") ;
+    file.println("void loop()") ;
+    file.println("{") ;
+    file.println("/***************** UPDATE FUNCTION BLOCKS *****************/") ;
+    file.println("    for( int i = 0 ; i < nBlocks ; i ++ )") ;
+    file.println("    {") ;
+    file.println("        switch( block[i].type )") ;
+    file.println("        {") ;
+    file.println("        case AND: ") ;
+    file.println("            block[i].Q = block[i].IN1 & block[i].IN2 & block[i].IN3 ;") ;
+    file.println("            break ;") ;
+    file.println("") ;
+    file.println("        case OR: ") ;
+    file.println("            block[i].Q = block[i].IN1 | block[i].IN2 | block[i].IN3 ;") ;
+    file.println("            break ;") ;
+    file.println("") ;
+    file.println("        case M: ") ;
+    file.println("            if(      block[i].IN3 ) block[i].Q = 0 ; // R") ;
+    file.println("            else if( block[i].IN1 ) block[i].Q = 1 ; // S") ;
+    file.println("            break ; ") ;
+    file.println("") ;
+    file.println("        case NOT: ") ;
+    file.println("            block[i].Q = !block[i].IN2 ; ") ;
+    file.println("            break ;") ;
+    file.println("") ;
+    file.println("        case INPUT_PIN: ") ;
+    file.println("            block[i].Q = digitalRead( block[i].pin ) ;") ;
+    file.println("            break ;") ;
+    file.println("") ;
+    file.println("        case OUTPUT_PIN: ") ;
+    file.println("            digitalWrite( block[i].pin, block[i].IN2 ) ;") ;
+    file.println("            break ;") ;
+    file.println("") ;
+    file.println("        // case DEL: for( int i = 0 ; i < n_blocks  ; i ++ )") ;
+    file.println("        //     {") ;
+    file.println("        //         if( block[i].Q != block[i].IN )                                   // if new state changes") ;
+    file.println("        //         {") ;
+    file.println("        //             if( millis() - block[i].oldTime >= block[i].interval )         // keep monitor if interval has expired") ;
+    file.println("        //             {") ;
+    file.println("        //                 block[i].Q = block[i].IN ;                                // if so, adopt the new state") ;
+    file.println("        //             }") ;
+    file.println("        //         }") ;
+    file.println("        //         else") ;
+    file.println("        //         {") ;
+    file.println("        //             block[i].oldTime = millis() ;                                      // if new state does not change, keep setting oldTime") ;
+    file.println("        //         }") ;
+    file.println("        //     }") ;
+    file.println("        //     break ;") ;
+    file.println("        }") ;
+    file.println("    }") ;
+    file.println("") ;
+    file.println("/***************** UPDATE LINKS *****************/") ;
+    // ADD CUSTOM LINKS
+
+    println("MAKING LINKS") ;
+    for ( int i = 0 ; i < links.size() ; i ++ ) 
+    {
+        Link  link = links.get( i ) ;
+
+        int      Q = link.getQ() ;
+        int subrow = link.getSubrow() ;
+        int     IN = link.getIn( subrow );
+
+        println("Q: "   +  Q  ) ;
+        println("IN: " +    IN ) ;
+        println("subrow: " + subrow ) ;
+
+        file.println("    block["+IN+"].IN"+(subrow+1)+" = block["+Q+"].Q ;") ;
+    }
+    
+    file.println("} ;") ;
+    file.close() ;
+}
