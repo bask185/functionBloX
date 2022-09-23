@@ -47,9 +47,7 @@ BACKLOG
 - for the analog stuff, make a map block
 
 CURRENT WORK:
-THE CORE FUNCTIONS SHOULD WORK. IT MUST BE TESTED WITH REAL INPUTS AND OUTPUTS. DELAYS are not yet working
-- making delay to work!
-(if needed, refactor code to sub classes again
+- adding method to enter a number in a delay block
 
 add pinnumber links for all input and outputs to the arduino program
 
@@ -72,12 +70,13 @@ String text2 = "" ;
 ArrayList <FunctionBlock> blocks = new ArrayList() ;
 ArrayList <Link>          links  = new ArrayList() ;
 
-final int   idle = 0 ;
-final int   movingItem = 1 ;
-final int   deletingItem = 2 ;
-final int   makingLinks  = 3 ;
+final int   idle             = 0 ;
+final int   movingItem       = 1 ;
+final int   deletingItem     = 2 ;
+final int   makingLinks      = 3 ;
 final int   addingLinePoints = 4 ;
-final int   settingNumber = 5 ;
+final int   settingNumber    = 5 ;
+final int   settingDelayTime = 6 ;
 
 int         gridSize = 60 ;
 
@@ -110,7 +109,8 @@ int         mode = idle ;
 int         linkIndex = 0 ;
 int         foundLinkIndex ;
 int         currentType ;
-int         pinNumber;
+int         pinNumber ;
+int         delayTime ;
 
 boolean     hoverOverFB ;
 boolean     hoverOverPoint ;
@@ -158,7 +158,8 @@ void draw()
 
 void leftMousePress()
 {
-    if( mode == settingNumber ) return ;                                        // as long as a number is set, LMB nor RMB must do anything
+    if( mode == settingNumber || mode == settingDelayTime ) return ;                               // as long as a number is set, LMB nor RMB must do anything
+
 
     if((mouseX > (width-gridSize)) && mode == idle )
     {
@@ -174,9 +175,9 @@ void leftMousePress()
 
     else if( mode == idle ) for (int i = 0; i < blocks.size(); i++)
     { 
-        FunctionBlock block = blocks.get(i);
+        FunctionBlock block1 = blocks.get(i);
 
-        if( col == block.getXpos() &&  row == block.getYpos() && blockMiddle == true )
+        if( col == block1.getXpos() &&  row == block1.getYpos() && blockMiddle == true )
         {
             mode = movingItem ;
             index = i;
@@ -184,12 +185,22 @@ void leftMousePress()
         }
         //else index = 0 ;
     }
-    
+    if ( mode == idle && subCol == 1 && subRow == 2 && hoverOverFB == true )
+    {
+        try
+        {
+            FunctionBlock block = blocks.get( index ) ;
+            int type = block.getType() ;
+            if( type == DEL ) mode = settingDelayTime ;
+            if( type ==  INPUT
+            ||  type == OUTPUT ) mode = settingNumber ;
+        } catch (IndexOutOfBoundsException e) {}
+    }
     // CREATE LINK
-    if(  mode == idle && subCol == 2 && subRow == 1 && hoverOverFB == true )  // if not doing anything and we click on a connection node, create a line.
+    else if( mode == idle && subCol == 2 && subRow == 1 && hoverOverFB == true )  // if not doing anything and we click on a connection node, create a line.
     {
         mode = addingLinePoints ;
-       
+    
         links.add( new Link( col, row, gridSize, index ) ) ;
         Link link = links.get( linkIndex ) ;
         link.updatePoint( col, row, subCol, subRow  ) ;
@@ -282,8 +293,7 @@ void mouseReleased()
 {
     if( mode == movingItem )
     { 
-        if( currentType == INPUT || currentType == OUTPUT ) mode = settingNumber ;
-        else mode = idle ; 
+        mode = idle ; 
     }
 }
 
@@ -414,70 +424,95 @@ void updateCursor()
 
 void printTexts()
 {
-    try { FunctionBlock block = blocks.get(index); }
-    catch (IndexOutOfBoundsException e) {}
+    try
+    { 
+        FunctionBlock block = blocks.get(index);
 
-    if(mouseX > (width-gridSize)  && mode == idle ) // seems to work very well
-    {
-        text1 = "New function block" ;
-        text2 = "" ;
-        mouse = loadImage("images/mouse2.png") ;
+        int type = block.getType() ;
+
+        if(mouseX > (width-gridSize)  && mode == idle ) // seems to work very well
+        {
+            text1 = "New function block" ;
+            text2 = "" ;
+            mouse = loadImage("images/mouse2.png") ;
+        }
+        else if(  mode == idle && subCol == 2 && subRow == 1 && hoverOverFB == true )
+        {
+            text1 = "create link" ;
+            text2 = "delete link" ;
+            mouse = loadImage("images/mouse3.png") ;
+        }
+        else if( mode == idle && hoverOverFB  && blockMiddle == true )
+        {
+            text1 = "move item" ;
+            text2 = "delete item" ;
+            mouse = loadImage("images/mouse3.png") ;
+        }
+        else if( mode == idle && hoverOverPoint )
+        {
+            text1 = "move node" ;
+            text2 = "delete link" ;
+            mouse = loadImage("images/mouse3.png") ;
+        }
+        else if( mode == addingLinePoints && subCol == 0 && hoverOverFB == true )
+        {
+            text1 = "finish point" ;
+            text2 = "" ;
+            mouse = loadImage("images/mouse2.png") ;
+        }
+        else if( mode == addingLinePoints )
+        {
+            text1 = "add point" ;
+            text2 = "remove last point" ;
+            mouse = loadImage("images/mouse3.png") ;
+        }
+        else if( mode == movingItem)
+        {
+            text1 = "Moving function block" ;
+            text2 = "" ;
+            mouse = loadImage("images/mouse2.png") ;
+        }
+        else if( mode == settingNumber )
+        {
+            text1 = "SET PIN NUMBER" ;
+            text2 = "PRESS <ENTER> WHEN READY" ;
+            mouse = loadImage("images/mouse1.png") ;
+        }
+        else if((   type == INPUT  ||    type == OUTPUT ) 
+        &&        subCol ==     1  &&  subRow ==      2  
+        &&   hoverOverFB == true )
+        {
+            text1 = "SET PIN NUMBER" ;
+            text2 = "" ;
+            mouse = loadImage("images/mouse2.png") ;
+        }
+        else if( mode == settingDelayTime )
+        {
+            text1 = "ENTER DELAY TIME" ;
+            text2 = "PRESS <ENTER> WHEN READY" ;
+            mouse = loadImage("images/mouse1.png") ;
+        }
+        else if( type == DEL && subCol == 1 && subRow == 2 && hoverOverFB == true )
+        {
+            text1 = "SET DELAY TIME" ;
+            text2 = "" ;
+            mouse = loadImage("images/mouse2.png") ;
+        }
+        else
+        {
+            text1 = "" ;
+            text2 = "" ;
+            mouse = loadImage("images/mouse1.png") ;
+        }
+        image(mouse, width/2-gridSize, gridSize/5,gridSize,gridSize);
+        textSize(gridSize/2);  
+        textAlign(RIGHT,TOP);
+        text( text1,  width/2 - gridSize, 0 ) ;
+        textAlign(LEFT,TOP);
+        text( text2, width/2, 0 ) ;
+        textAlign(CENTER,CENTER);
     }
-    else if(  mode == idle && subCol == 2 && subRow == 1 && hoverOverFB == true )
-    {
-        text1 = "create link" ;
-        text2 = "delete link" ;
-        mouse = loadImage("images/mouse3.png") ;
-    }
-    else if( mode == idle && hoverOverFB  && blockMiddle == true )
-    {
-        text1 = "move item" ;
-        text2 = "delete item" ;
-        mouse = loadImage("images/mouse3.png") ;
-    }
-    else if( mode == idle && hoverOverPoint )
-    {
-        text1 = "move node" ;
-        text2 = "delete link" ;
-        mouse = loadImage("images/mouse3.png") ;
-    }
-    else if( mode == addingLinePoints && subCol == 0 && hoverOverFB == true )
-    {
-        text1 = "finish point" ;
-        text2 = "" ;
-        mouse = loadImage("images/mouse2.png") ;
-    }
-    else if( mode == addingLinePoints )
-    {
-        text1 = "add point" ;
-        text2 = "remove last point" ;
-        mouse = loadImage("images/mouse3.png") ;
-    }
-    else if( mode == movingItem)
-    {
-        text1 = "Moving function block" ;
-        text2 = "" ;
-        mouse = loadImage("images/mouse2.png") ;
-    }
-    else if( mode == settingNumber)
-    {
-        text1 = "SET PIN NUMBER, HIT <ENTER> WHEN READY" ;
-        text2 = "" ;
-        mouse = loadImage("images/mouse1.png") ;
-    }
-    else
-    {
-        text1 = "" ;
-        text2 = "" ;
-        mouse = loadImage("images/mouse1.png") ;
-    }
-    image(mouse, width/2-gridSize, gridSize/5,gridSize,gridSize);
-    textSize(gridSize/2);  
-    textAlign(RIGHT,TOP);
-    text( text1,  width/2 - gridSize, 0 ) ;
-    textAlign(LEFT,TOP);
-    text( text2, width/2, 0 ) ;
-    textAlign(CENTER,CENTER);
+    catch (IndexOutOfBoundsException e) {}
 }
 
 // ASSEMBLE ARDUINO PROGRAM.
@@ -524,7 +559,7 @@ void keyPressed()
         }
     }
     
-    if( mode == settingNumber )
+    if( mode == settingNumber || mode == settingDelayTime )
     {
         if( keyCode == ENTER )
         {
@@ -533,10 +568,17 @@ void keyPressed()
         }
         else
         {
-            pinNumber = makeNumber( pinNumber, 0, 31) ;
-
             FunctionBlock block = blocks.get( index ) ;
-            block.setPin( pinNumber ) ;
+            if( mode == settingNumber )
+            {
+                pinNumber = makeNumber( pinNumber, 0, 31) ;
+                block.setPin( pinNumber ) ;
+            }
+            else
+            {
+                delayTime = makeNumber( delayTime, 0, 60000 ) ;
+                block.setDelay( delayTime ) ;
+            }
         }
     }
     if( key == 's') saveLayout() ;
@@ -566,7 +608,7 @@ void saveLayout()
     for (int i = 0; i < blocks.size(); i++ )
     {
         FunctionBlock block = blocks.get(i) ;
-        output.println( block.getXpos() + "," + block.getYpos() + "," + block.getType() + "," + block.getPin() ) ;
+        output.println( block.getXpos() + "," + block.getYpos() + "," + block.getType() + "," + block.getPin() + "," + block.getDelay() ) ;
     }
 
     output.println(links.size());           // the amount of links is saved
@@ -698,7 +740,7 @@ void assembleProgram()
     {
         FunctionBlock block = blocks.get( i ) ;
         int type  = block.getType() ;
-        int time  = 1 ; //block.get
+        int time  = block.getDelay() ;
         int  pin  = block.getPin() ;
         switch( type )
         {

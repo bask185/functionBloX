@@ -10,6 +10,7 @@ public class FunctionBlock
     int IN3 ;
     int Q ;
     int pin ;
+    int delayTime ;
 
     FunctionBlock(int xPos, int yPos, int type, int gridSize )
     {
@@ -55,10 +56,10 @@ public class FunctionBlock
             case 1: txt =  "AND" ;  box = 0x0F ; break ;
             case 2: txt =   "OR" ;  box = 0x0F ; break ;
             case 3: txt =   " M" ;  box = 0x0D ; break ;
-            case 4: txt ="DELAY" ;  box = 0x0A ; break ;
+            case 4: txt ="DELAY\r\n\r\n" + delayTime ;  box = 0x0A ; break ;
             case 5: txt =  "NOT" ;  box = 0x0A ; break ; // text replaced by clock symbol
-            case 6: txt =   "IN " + pin;  box = 0x08 ; break ;
-            case 7: txt =  "OUT " + pin;  box = 0x02 ; break ;
+            case 6: txt =   "IN\r\n" + pin;  box = 0x08 ; break ;
+            case 7: txt =  "OUT\r\n" + pin;  box = 0x02 ; break ;
         }
 
         int x1 = xPos * gridSize ;
@@ -77,7 +78,7 @@ public class FunctionBlock
         line(x1, y2, x2, y2) ;                          // line of Q
         fill(0);
 
-        textSize( gridSize / 5 ) ; 
+        textSize( gridSize / 6 ) ; 
         
         int x = xPos * gridSize + gridSize/2 ;
         int y = yPos * gridSize + gridSize/2 ;
@@ -102,6 +103,8 @@ public class FunctionBlock
         this.xPos = xPos ;
         this.yPos = yPos ;
     }
+    int  getXpos() { return xPos ; }
+    int  getYpos() { return yPos ; }
 
     void setGridSize( int gridSize )
     {
@@ -109,8 +112,10 @@ public class FunctionBlock
     }
     
     void setPin( int pin ) { this.pin = pin ; }
-    int  getXpos() { return xPos ; }
-    int  getYpos() { return yPos ; }
-    int  getType() { return type ; }
     int  getPin()  { return pin  ; }
+
+    void setDelay( int delayTime ) { this.delayTime = delayTime ; }
+    int  getDelay( ) { return delayTime ; }
+
+    int  getType() { return type ; }
 }
