@@ -50,9 +50,6 @@ CURRENT WORK:
 THE CORE FUNCTIONS SHOULD WORK. IT MUST BE TESTED WITH REAL INPUTS AND OUTPUTS. DELAYS are not yet working
 - making delay to work!
 (if needed, refactor code to sub classes again
-- verify links in arduino program
-
-
 
 add pinnumber links for all input and outputs to the arduino program
 
@@ -695,130 +692,41 @@ void loadLayout()
 void assembleProgram() 
 {
     file = createWriter("arduinoProgram/arduinoProgram.ino");
-
-    file.println("const int nBlocks = " + blocks.size() + " ;" ) ;
+    file.println("#include \"functionBlocks.h\"") ;
     file.println("") ;
-    file.println("enum blockTypes") ;
-    file.println("{") ;
-    file.println("       AND = 1,") ;
-    file.println("        OR, ") ;
-    file.println("         M, ") ;
-    file.println("       DEL, ") ;
-    file.println("       NOT, ") ;
-    file.println("     INPUT_PIN,") ;
-    file.println("    OUTPUT_PIN,") ;
-    file.println("} ;") ;
-    file.print("const int typeArray[] = {" ) ;
     for( int i = 0 ; i < blocks.size() ; i ++ )
     {
         FunctionBlock block = blocks.get( i ) ;
         int type  = block.getType() ;
-        if( i % 10 == 0 ) file.print("\r\n\t") ; // for every 10 array elements, add new line
-        file.print(type + ", ");
+        int time  = 1 ; //block.get
+        int  pin  = block.getPin() ;
+        switch( type )
+        {
+            case    AND: file.println("static    And b"+(i+1)+" =    And() ;") ;            break ;
+            case     OR: file.println("static     Or b"+(i+1)+" =     Or() ;") ;            break ;
+            case      M: file.println("static Memory b"+(i+1)+" = Memory() ;") ;            break ;
+            case    DEL: file.println("static  Delay b"+(i+1)+" =  Delay("+ time +") ;") ;  break ;
+            case    NOT: file.println("static    Not b"+(i+1)+" =    Not() ;") ;            break ;
+            case  INPUT: file.println("static  Input b"+(i+1)+" =  Input("+ pin +") ;") ;   break ;
+            case OUTPUT: file.println("static Output b"+(i+1)+" = Output("+ pin +") ;") ;   break ;
+        }
     }
+    file.println("") ;
+    file.println("FunctionBlock *block[] = {") ;
+    for( int i = 0 ; i < blocks.size() ; i ++ ) file.println("    &b"+ (i+1)+" ,") ;
     file.println("} ;") ;
-    file.println("") ;
-    file.println("typedef struct blox") ;
-    file.println("{") ;
-    file.println("    uint8_t  IN1 : 1 ;") ;
-    file.println("    uint8_t  IN2 : 1 ;") ;
-    file.println("    uint8_t  IN3 : 1 ;") ;
-    file.println("    uint8_t    Q : 1 ;") ;
-    file.println("    uint8_t  pin : 5 ;") ;
-    file.println("    uint8_t type : 3 ; // 8 combinations, may not be enough in the future") ;
-    file.println("    //uint32_t        oldTime ;  // bad idea to use this amount of memory per block if only delays need it?") ;
-    file.println("    //const uint32_t  interval ; // perhaps couple a function pointers or obj pointer to it?") ;
-    file.println("} FunctionBlock ;") ;
-    file.println("") ;
-    file.println("FunctionBlock block [ nBlocks ] ;") ;
+    file.println("const int nBlocks = " + blocks.size() + " ;" ) ;
     file.println("") ;
     file.println("void setup()") ;
     file.println("{") ;
-    for( int i = 0 ; i < blocks.size() ; i ++ )
-    {
-        FunctionBlock block = blocks.get( i ) ;
-        int pin  = block.getPin() ;
-        if( pin > 0 ) { file.println("    block["+i+"].pin = " + pin + " ;" ) ; }
-    }
-    file.println("") ;
-    file.println("    for( int i = 0 ; i < nBlocks ; i ++ )") ;
-    file.println("    {") ;
-    file.println("        block[i].type = typeArray[i] ;") ;
-    file.println("") ;
-    file.println("        switch( block[i].type )") ;
-    file.println("        {") ;
-    file.println("        case AND: ") ;
-    file.println("            block[i].IN1 = block[i].IN2 = block[i].IN3 = 1 ; // force all AND gate INs to be 1 in case of unused things") ;
-    file.println("            break ;") ;
-    file.println("") ;
-    file.println("        case INPUT_PIN:") ;
-    file.println("            pinMode( block[i].pin, INPUT_PULLUP ) ;") ;
-    file.println("            break ;") ;
-    file.println("") ;
-    file.println("        case OUTPUT_PIN:") ;
-    file.println("            pinMode( block[i].pin, OUTPUT ) ;") ;
-    file.println("            break ;") ;
-    file.println("") ;
-    file.println("        case DEL:       // idk do something clever with adding timers or something") ;
-    file.println("            break ;") ;
-    file.println("        }") ;
-    file.println("    }") ;
     file.println("}") ;
     file.println("") ;
     file.println("void loop()") ;
     file.println("{") ;
     file.println("/***************** UPDATE FUNCTION BLOCKS *****************/") ;
-    file.println("    for( int i = 0 ; i < nBlocks ; i ++ )") ;
-    file.println("    {") ;
-    file.println("        switch( block[i].type )") ;
-    file.println("        {") ;
-    file.println("        case AND: ") ;
-    file.println("            block[i].Q = block[i].IN1 & block[i].IN2 & block[i].IN3 ;") ;
-    file.println("            break ;") ;
-    file.println("") ;
-    file.println("        case OR: ") ;
-    file.println("            block[i].Q = block[i].IN1 | block[i].IN2 | block[i].IN3 ;") ;
-    file.println("            break ;") ;
-    file.println("") ;
-    file.println("        case M: ") ;
-    file.println("            if(      block[i].IN3 ) block[i].Q = 0 ; // R") ;
-    file.println("            else if( block[i].IN1 ) block[i].Q = 1 ; // S") ;
-    file.println("            break ; ") ;
-    file.println("") ;
-    file.println("        case NOT: ") ;
-    file.println("            block[i].Q = !block[i].IN2 ; ") ;
-    file.println("            break ;") ;
-    file.println("") ;
-    file.println("        case INPUT_PIN: ") ;
-    file.println("            block[i].Q = digitalRead( block[i].pin ) ;") ;
-    file.println("            break ;") ;
-    file.println("") ;
-    file.println("        case OUTPUT_PIN: ") ;
-    file.println("            digitalWrite( block[i].pin, block[i].IN2 ) ;") ;
-    file.println("            break ;") ;
-    file.println("") ;
-    file.println("        // case DEL: for( int i = 0 ; i < n_blocks  ; i ++ )") ;
-    file.println("        //     {") ;
-    file.println("        //         if( block[i].Q != block[i].IN )                                   // if new state changes") ;
-    file.println("        //         {") ;
-    file.println("        //             if( millis() - block[i].oldTime >= block[i].interval )         // keep monitor if interval has expired") ;
-    file.println("        //             {") ;
-    file.println("        //                 block[i].Q = block[i].IN ;                                // if so, adopt the new state") ;
-    file.println("        //             }") ;
-    file.println("        //         }") ;
-    file.println("        //         else") ;
-    file.println("        //         {") ;
-    file.println("        //             block[i].oldTime = millis() ;                                      // if new state does not change, keep setting oldTime") ;
-    file.println("        //         }") ;
-    file.println("        //     }") ;
-    file.println("        //     break ;") ;
-    file.println("        }") ;
-    file.println("    }") ;
+    file.println("    for( int i = 0 ; i < nBlocks ; i ++ ) block[i] -> run() ;") ;
     file.println("") ;
     file.println("/***************** UPDATE LINKS *****************/") ;
-    // ADD CUSTOM LINKS
-
-    println("MAKING LINKS") ;
     for ( int i = 0 ; i < links.size() ; i ++ ) 
     {
         Link  link = links.get( i ) ;
@@ -827,13 +735,12 @@ void assembleProgram()
         int subrow = link.getSubrow() ;
         int     IN = link.getIn( subrow );
 
-        println("Q: "   +  Q  ) ;
+        println("Q: "   +  Q  ) ; // DELETE ME
         println("IN: " +    IN ) ;
         println("subrow: " + subrow ) ;
 
-        file.println("    block["+IN+"].IN"+(subrow+1)+" = block["+Q+"].Q ;") ;
+        file.println("    block["+IN+"] -> IN"+(subrow+1)+" = block["+Q+"] -> Q ;") ;
     }
-    
     file.println("} ;") ;
     file.close() ;
 }

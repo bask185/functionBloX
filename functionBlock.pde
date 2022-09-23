@@ -84,9 +84,10 @@ public class FunctionBlock
 
         text( txt, x , y ) ;
         textSize( gridSize / 5 ) ; 
-        if( type == 3 ) text( "S\n\nR", x-(gridSize/5) , y ) ; // draw S and R for memory
-        if( type == 4 )
+        if( type ==   M ) text( "S\n\nR", x-(gridSize/5) , y ) ; // draw S and R for memory
+        if( type == DEL ) // delay
         {
+            // ... is this not for that small diagonal line for the NOT gates?
             fill(255);            
             x1 = xPos * gridSize + gridSize / 2 ;   
             y1 = yPos * gridSize + gridSize / 2 ;
