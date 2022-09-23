@@ -24,26 +24,33 @@ public class FunctionBlock
     {
         textAlign( CENTER, CENTER ) ;
         fill(230);
-        if( type < 6 ) // if not input or output
+
+        switch( type )
         {
+        case    AND:
+        case     OR:
+        case      M:
+        case    DEL:
+        case    NOT:
+        case     JK:
             rect( xPos * gridSize + (gridSize/5), yPos * gridSize + 1, 3*gridSize/5, gridSize - 2 ) ; // main box
-        }
-        else if( type == 6 )
-        {
+            break ;
+
+        case  INPUT:
             stroke(245);
             rect( xPos * gridSize, yPos * gridSize +(gridSize/4), gridSize/2, gridSize/2 ) ; // input
             triangle(xPos * gridSize + (gridSize/2),   yPos * gridSize +(gridSize/4),
                      xPos * gridSize +  gridSize,      yPos * gridSize +(gridSize/2),
                      xPos * gridSize + (gridSize/2),   yPos * gridSize + 3*gridSize/4) ;
-        }
-        else if( type == 7)
-        {
+            break ;
+                     
+        case OUTPUT:
             stroke(245);
             rect( xPos * gridSize +(gridSize/2), yPos * gridSize+(gridSize/4), gridSize/2, gridSize/2 ) ; // output
             triangle(xPos * gridSize + (gridSize/2),   yPos * gridSize + (gridSize/4),
                      xPos * gridSize,                  yPos * gridSize + (gridSize/2),
                      xPos * gridSize + (gridSize/2),   yPos * gridSize + 3*gridSize/4) ;
-            
+            break ;            
         }
         stroke(0);
         fill(255);
@@ -60,6 +67,7 @@ public class FunctionBlock
             case 5: txt =  "NOT" ;  box = 0x0A ; break ; // text replaced by clock symbol
             case 6: txt =   "IN\r\n" + pin;  box = 0x08 ; break ;
             case 7: txt =  "OUT\r\n" + pin;  box = 0x02 ; break ;
+            case 8: txt =  "J    \r\nK    \r\nLatch"; box = 0x0F ; break ;
         }
 
         int x1 = xPos * gridSize ;

@@ -87,6 +87,7 @@ final int    DEL = 4 ;
 final int    NOT = 5 ;
 final int  INPUT = 6 ;
 final int OUTPUT = 7 ;
+final int     JK = 8 ;
 
 
 // digital input
@@ -97,6 +98,20 @@ final int OUTPUT = 7 ;
 // occupanceDetector
 // DCC accessory article,
 // DCC loco function
+
+/*
+checklist adding new block
+Add one to the final ints,
+declare the single demo object
+initialize the single demo object
+draw the demo object
+alter the draw method in the class
+add redundant items, like dedicated numbers
+add device to the arduino code
+
+
+
+*/
 
 int         col ;
 int         row ;
@@ -123,6 +138,7 @@ FunctionBlock delay1 ;
 FunctionBlock not1 ;
 FunctionBlock inp1 ;
 FunctionBlock outp1 ;
+FunctionBlock jk1 ;
 
 
 void setup()
@@ -134,13 +150,14 @@ void setup()
     textSize( 20 );
     background(255) ;
     
-    and1    = new FunctionBlock((width-gridSize)/gridSize, 0, AND, gridSize ) ;
-    or1     = new FunctionBlock((width-gridSize)/gridSize, 1,  OR, gridSize ) ;
-    sr1     = new FunctionBlock((width-gridSize)/gridSize, 2,   M, gridSize ) ;
-    delay1  = new FunctionBlock((width-gridSize)/gridSize, 3, DEL, gridSize ) ;
-    not1    = new FunctionBlock((width-gridSize)/gridSize, 4, NOT, gridSize ) ;
+    and1    = new FunctionBlock((width-gridSize)/gridSize, 0,   AND, gridSize ) ;
+    or1     = new FunctionBlock((width-gridSize)/gridSize, 1,    OR, gridSize ) ;
+    sr1     = new FunctionBlock((width-gridSize)/gridSize, 2,     M, gridSize ) ;
+    delay1  = new FunctionBlock((width-gridSize)/gridSize, 3,   DEL, gridSize ) ;
+    not1    = new FunctionBlock((width-gridSize)/gridSize, 4,   NOT, gridSize ) ;
     inp1    = new FunctionBlock((width-gridSize)/gridSize, 5, INPUT, gridSize ) ;
     outp1   = new FunctionBlock((width-gridSize)/gridSize, 6, OUTPUT, gridSize ) ;
+    jk1     = new FunctionBlock((width-gridSize)/gridSize, 7,     JK, gridSize ) ;
 }
 
 void draw()
@@ -320,6 +337,7 @@ void drawBackground()
     not1.draw() ;
     inp1.draw() ;
     outp1.draw() ;
+    jk1.draw() ;
 }
 
 void drawLinks()
@@ -730,7 +748,10 @@ void loadLayout()
         linkIndex ++ ;
     }
 }
+/* adding item checklist
+ add line in the first switch-case
 
+*/
 void assembleProgram() 
 {
     file = createWriter("arduinoProgram/arduinoProgram.ino");
@@ -747,10 +768,11 @@ void assembleProgram()
             case    AND: file.println("static    And b"+(i+1)+" =    And() ;") ;            break ;
             case     OR: file.println("static     Or b"+(i+1)+" =     Or() ;") ;            break ;
             case      M: file.println("static Memory b"+(i+1)+" = Memory() ;") ;            break ;
-            case    DEL: file.println("static  Delay b"+(i+1)+" =  Delay("+ time +") ;") ;  break ;
             case    NOT: file.println("static    Not b"+(i+1)+" =    Not() ;") ;            break ;
-            case  INPUT: file.println("static  Input b"+(i+1)+" =  Input("+ pin +") ;") ;   break ;
-            case OUTPUT: file.println("static Output b"+(i+1)+" = Output("+ pin +") ;") ;   break ;
+            case     JK: file.println("static     Jk b"+(i+1)+" =     Jk() ;") ;            break ;
+            case    DEL: file.println("static  Delay b"+(i+1)+" =  Delay("+ time +") ;") ;  break ;
+            case  INPUT: file.println("static  Input b"+(i+1)+" =  Input("+  pin +") ;") ;  break ;
+            case OUTPUT: file.println("static Output b"+(i+1)+" = Output("+  pin +") ;") ;  break ;
         }
     }
     file.println("") ;
@@ -776,10 +798,6 @@ void assembleProgram()
         int      Q = link.getQ() ;
         int subrow = link.getSubrow() ;
         int     IN = link.getIn( subrow );
-
-        println("Q: "   +  Q  ) ; // DELETE ME
-        println("IN: " +    IN ) ;
-        println("subrow: " + subrow ) ;
 
         file.println("    block["+IN+"] -> IN"+(subrow+1)+" = block["+Q+"] -> Q ;") ;
     }

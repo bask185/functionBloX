@@ -31,6 +31,56 @@ public:
     }
 } ;
 
+class Jk : public FunctionBlock
+{
+public:
+    Jk()
+    {
+        IN1 = IN2 = 1 ;         // init both J and K to '1'
+        IN3 = prevLatch = 0 ;
+    }
+
+    void run()
+    {
+        if( prevLatch != IN3 )
+        {   prevLatch  = IN3 ;
+
+            if( IN3 )                               // if rising flank
+            {
+                if( IN1 & IN2 ) Q = !Q ;            // if both J and K are '1' -> toggle Q
+                else if( IN1 )  Q =  1 ;            // if only J is true, set Q
+                else            Q =  0 ;            // if only K is true, clear Q
+
+            }
+        }
+    }
+
+private:
+    uint8_t prevLatch : 1 ;
+} ;
+
+class PulseGenerator : public FunctionBlock
+{
+public:
+    PulseGenerator(int x) : toggleTime( x )                       // initialize the constant
+    {
+    }
+
+    void run()
+    {
+        if( millis() - prevTime >= toggleTime )
+        {       prevTime = millis() ;
+
+            Q = !Q ;
+        }
+    }
+
+private:
+    const uint32_t  toggleTime ;
+    uint32_t        prevTime ;
+} ;
+
+
 class Or : public FunctionBlock
 {
 public:
