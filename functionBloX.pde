@@ -236,8 +236,15 @@ void leftMousePress()
     else if( mode == idle && subCol == 2 && subRow == 1 && hoverOverFB == true )  // if not doing anything and we click on a connection node, create a line.
     {
         mode = addingLinePoints ;
-    
-        links.add( new Link( col, row, gridSize, index ) ) ;
+
+        int analogIO = 0 ;
+
+        FunctionBlock block = blocks.get( index ) ;
+        int type = block.getType() ;
+
+        if( type == ANA_IN || type == ANA_OUT ) { analogIO = 1 ; println("ANALOG LINK MADE BRUH!!") ; }
+
+        links.add( new Link( col, row, gridSize, index, analogIO ) ) ;
         Link link = links.get( linkIndex ) ;
         link.updatePoint( col, row, subCol, subRow  ) ;
     }
@@ -670,17 +677,12 @@ void saveLayout()
         Link link = links.get(i) ;
         println("N nodes = " + (link.getNlinks()-1) ) ;
 
-        int Q       = link.getQ() ;
-        int IN1     = link.getIn(0) ;
-        int IN2     = link.getIn(1) ;
-        int IN3     = link.getIn(2) ;
-        int subrow  = link.getSubrow() ;
-
-        println("  Q: " +   Q ) ;
-        println("IN1: " + IN1 ) ;
-        println("IN2: " + IN1 ) ;
-        println("IN3: " + IN2 ) ;
-        println("subrow: " + subrow ) ;
+        int Q        = link.getQ() ;
+        int IN1      = link.getIn(0) ;
+        int IN2      = link.getIn(1) ;
+        int subrow   = link.getSubrow() ;
+        int IN3      = link.getIn(2) ;
+        int isAnalog = link.isAnalogIO() ;
 
         output.print( Q + "," + IN1 + "," + IN2 + "," +IN3 + "," + subrow ) ;
 
@@ -689,7 +691,8 @@ void saveLayout()
             output.print( "," + link.getPosX(j) + "," + link.getPosY(j) + ","  // store all 50 coordinates
                               + link.getSubX(j) + "," + link.getSubY(j) ) ;
         }
-        output.println() ;  // newline
+        output.println( isAnalog ) ;
+        //output.println() ;  // newline
     }  
     output.close();
 }
@@ -742,15 +745,16 @@ void loadLayout()
         catch (IOException e) {}
          
         String[] pieces = split(line, ',');
-        int Q       = Integer.parseInt( pieces[0] );
-        int IN1     = Integer.parseInt( pieces[1] );
-        int IN2     = Integer.parseInt( pieces[2] );
-        int IN3     = Integer.parseInt( pieces[3] );
-        int subrow  = Integer.parseInt( pieces[4] );
-        int x1      = Integer.parseInt( pieces[5] );
-        int y1      = Integer.parseInt( pieces[6] );
-        //int s1    = Integer.parseInt( pieces[7] );
-        //int s2    = Integer.parseInt( pieces[8] );
+        int Q        = Integer.parseInt( pieces[0] );
+        int IN1      = Integer.parseInt( pieces[1] );
+        int IN2      = Integer.parseInt( pieces[2] );
+        int IN3      = Integer.parseInt( pieces[3] );
+        int subrow   = Integer.parseInt( pieces[4] );
+        int x1       = Integer.parseInt( pieces[5] );
+        int y1       = Integer.parseInt( pieces[6] );
+        //int s1     = Integer.parseInt( pieces[7] );
+        //int s2     = Integer.parseInt( pieces[8] );
+        int isAnalog = Integer.parseInt( pieces[8]
 
         links.add( new Link( x1, y1, gridSize, Q ) ) ;
         Link link = links.get(i) ;

@@ -2,7 +2,7 @@ class Link
 {
     final int maxPos = 50 ;
 
-    boolean isAnalog ;                      // this flag is used to use analog values instead of Q and IN
+    int isAnalog ;                      // this flag is used to use analog values instead of Q and IN
 
     int[][] positions = new int[2][maxPos];
     int nPoints = 0 ;
@@ -22,9 +22,10 @@ class Link
     int subRow ;
 
 
-    Link( int x, int y, int gridSize, int Q )   // creates the first
+    Link( int x, int y, int gridSize, int Q, int isAnalog )   // creates the first
     { 
         this.gridSize = gridSize ;
+        this.isAnalog = isAnalog ;
         this.Q = Q ;
 
         IN1 = 0 ;
@@ -132,7 +133,9 @@ class Link
 
         println(nPoints) ;
 
-        if( nPoints == 0 ) { return true ;}
+        if( nPoints == 0 ) { return  true ; }
         else                 return false ;
     }
+
+    int isAnalogIO() { return isAnalog ; }
 }
