@@ -2,6 +2,8 @@ class Link
 {
     final int maxPos = 50 ;
 
+    boolean isAnalog ;                      // this flag is used to use analog values instead of Q and IN
+
     int[][] positions = new int[2][maxPos];
     int nPoints = 0 ;
 
@@ -64,6 +66,7 @@ class Link
 
             line( x1, y1, x2, y2 ) ;
             circle(x1,y1,3) ;
+            circle(x2,y2,3) ;
         }
     }
 

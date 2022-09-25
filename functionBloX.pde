@@ -29,11 +29,14 @@ the number is overwritten. It seems that all blocks share the pin number -_-
 - make variable gridsize workable
 - store and load layout, add buttons.
 - add small sphere to mouse if there is anything to click. perhaps half green and half red to indicate which buttons can be pressed
-- make small nodes along link nodes, so you can see when lines just simply cross
+V make small nodes along link nodes, so you can see when lines just simply cross
 - may need to refactor to separate classes so it becomes easier to add the new analog items
 V ID of Function blocks also need to be stored for the input and output blocks
 - add method to update all links' Qs and INs for when a FB is removed or replaced. Currently links will point to the old index
   and this may or may not be correct...
+- if mouse is clicked to alter pin/time number, the number should be initialized to the first pressed number. To work from the current value does not
+  work as intuitive as I imagined.
+- ditch the triangles for input/output and make them square like the others
 
 EXTRA
 - make comperator for usage with analog input
@@ -47,7 +50,9 @@ BACKLOG
 - for the analog stuff, make a map block
 
 CURRENT WORK:
-- adding method to enter a number in a delay block
+- adding analog IO. 
+- Find way to link Q to 'dacValue' instead: NOTE. set an isAnalog boolean, if a link is used between analogBlocks
+- add the map() and find a method to enter the constants...
 
 add pinnumber links for all input and outputs to the arduino program
 
@@ -77,17 +82,21 @@ final int   makingLinks      = 3 ;
 final int   addingLinePoints = 4 ;
 final int   settingNumber    = 5 ;
 final int   settingDelayTime = 6 ;
+final int   settingPulseTime = 7 ;
 
 int         gridSize = 60 ;
 
-final int    AND = 1 ;
-final int     OR = 2 ;
-final int      M = 3 ;
-final int    DEL = 4 ;
-final int    NOT = 5 ;
-final int  INPUT = 6 ;
-final int OUTPUT = 7 ;
-final int     JK = 8 ;
+final int     AND =  1 ;
+final int      OR =  2 ;
+final int       M =  3 ;
+final int     DEL =  4 ;
+final int     NOT =  5 ;
+final int   INPUT =  6 ;
+final int  OUTPUT =  7 ;
+final int      JK =  8 ;
+final int   PULSE =  9 ;
+final int  ANA_IN = 10 ;
+final int ANA_OUT = 11 ;
 
 
 // digital input
@@ -101,13 +110,14 @@ final int     JK = 8 ;
 
 /*
 checklist adding new block
-Add one to the final ints,
-declare the single demo object
-initialize the single demo object
-draw the demo object
-alter the draw method in the class
-add redundant items, like dedicated numbers
-add device to the arduino code
+- Add one to the final ints
+- declare the single demo object
+- initialize the single demo object
+- draw the demo object
+- alter the draw method in the class
+- add redundant items, like dedicated numbers, 
+- add control texts
+- add device to the arduino code
 
 
 
@@ -139,6 +149,9 @@ FunctionBlock not1 ;
 FunctionBlock inp1 ;
 FunctionBlock outp1 ;
 FunctionBlock jk1 ;
+FunctionBlock gen1 ;
+FunctionBlock ana_in1 ;
+FunctionBlock ana_out1 ;
 
 
 void setup()
@@ -150,14 +163,17 @@ void setup()
     textSize( 20 );
     background(255) ;
     
-    and1    = new FunctionBlock((width-gridSize)/gridSize, 0,   AND, gridSize ) ;
-    or1     = new FunctionBlock((width-gridSize)/gridSize, 1,    OR, gridSize ) ;
-    sr1     = new FunctionBlock((width-gridSize)/gridSize, 2,     M, gridSize ) ;
-    delay1  = new FunctionBlock((width-gridSize)/gridSize, 3,   DEL, gridSize ) ;
-    not1    = new FunctionBlock((width-gridSize)/gridSize, 4,   NOT, gridSize ) ;
-    inp1    = new FunctionBlock((width-gridSize)/gridSize, 5, INPUT, gridSize ) ;
-    outp1   = new FunctionBlock((width-gridSize)/gridSize, 6, OUTPUT, gridSize ) ;
-    jk1     = new FunctionBlock((width-gridSize)/gridSize, 7,     JK, gridSize ) ;
+    and1     = new FunctionBlock((width-gridSize)/gridSize,  0,     AND, gridSize ) ;
+    or1      = new FunctionBlock((width-gridSize)/gridSize,  1,      OR, gridSize ) ;
+    sr1      = new FunctionBlock((width-gridSize)/gridSize,  2,       M, gridSize ) ;
+    delay1   = new FunctionBlock((width-gridSize)/gridSize,  3,     DEL, gridSize ) ;
+    not1     = new FunctionBlock((width-gridSize)/gridSize,  4,     NOT, gridSize ) ;
+    inp1     = new FunctionBlock((width-gridSize)/gridSize,  5,   INPUT, gridSize ) ;
+    outp1    = new FunctionBlock((width-gridSize)/gridSize,  6,  OUTPUT, gridSize ) ;
+    jk1      = new FunctionBlock((width-gridSize)/gridSize,  7,      JK, gridSize ) ;
+    gen1     = new FunctionBlock((width-gridSize)/gridSize,  8,   PULSE, gridSize ) ;
+    ana_in1  = new FunctionBlock((width-gridSize)/gridSize,  9,  ANA_IN, gridSize ) ;
+    ana_out1 = new FunctionBlock((width-gridSize)/gridSize, 10, ANA_OUT, gridSize ) ;
 }
 
 void draw()
@@ -175,7 +191,7 @@ void draw()
 
 void leftMousePress()
 {
-    if( mode == settingNumber || mode == settingDelayTime ) return ;                               // as long as a number is set, LMB nor RMB must do anything
+    if( mode == settingNumber || mode == settingDelayTime || mode == settingPulseTime ) return ;                               // as long as a number is set, LMB nor RMB must do anything
 
 
     if((mouseX > (width-gridSize)) && mode == idle )
@@ -208,9 +224,12 @@ void leftMousePress()
         {
             FunctionBlock block = blocks.get( index ) ;
             int type = block.getType() ;
-            if( type == DEL ) mode = settingDelayTime ;
-            if( type ==  INPUT
-            ||  type == OUTPUT ) mode = settingNumber ;
+            if( type ==     DEL ) mode = settingDelayTime ;
+            if( type ==   PULSE ) mode = settingPulseTime ;
+            if( type ==   INPUT
+            ||  type ==  OUTPUT
+            ||  type ==  ANA_IN
+            ||  type == ANA_OUT ) mode = settingNumber ;
         } catch (IndexOutOfBoundsException e) {}
     }
     // CREATE LINK
@@ -338,6 +357,9 @@ void drawBackground()
     inp1.draw() ;
     outp1.draw() ;
     jk1.draw() ;
+    gen1.draw() ;
+    ana_in1.draw() ;
+    ana_out1.draw() ;
 }
 
 void drawLinks()
@@ -496,7 +518,8 @@ void printTexts()
             text2 = "PRESS <ENTER> WHEN READY" ;
             mouse = loadImage("images/mouse1.png") ;
         }
-        else if((   type == INPUT  ||    type == OUTPUT ) 
+        else if((   type == INPUT  ||    type == OUTPUT 
+        ||          type == ANA_IN ||    type == ANA_OUT ) 
         &&        subCol ==     1  &&  subRow ==      2  
         &&   hoverOverFB == true )
         {
@@ -513,6 +536,18 @@ void printTexts()
         else if( type == DEL && subCol == 1 && subRow == 2 && hoverOverFB == true )
         {
             text1 = "SET DELAY TIME" ;
+            text2 = "" ;
+            mouse = loadImage("images/mouse2.png") ;
+        }
+        else if( mode == settingPulseTime )
+        {
+            text1 = "ENTER PULSE SWITCH TIME" ;
+            text2 = "PRESS <ENTER> WHEN READY" ;
+            mouse = loadImage("images/mouse1.png") ;
+        }
+        else if( type == PULSE && subCol == 1 && subRow == 2 && hoverOverFB == true )
+        {
+            text1 = "SET PULSE TIME" ;
             text2 = "" ;
             mouse = loadImage("images/mouse2.png") ;
         }
@@ -577,7 +612,7 @@ void keyPressed()
         }
     }
     
-    if( mode == settingNumber || mode == settingDelayTime )
+    if( mode == settingNumber || mode == settingDelayTime || mode == settingPulseTime )
     {
         if( keyCode == ENTER )
         {
@@ -595,7 +630,7 @@ void keyPressed()
             else
             {
                 delayTime = makeNumber( delayTime, 0, 60000 ) ;
-                block.setDelay( delayTime ) ;
+                block.setDelay( delayTime ) ; // used for delay and pulse generator
             }
         }
     }
@@ -686,11 +721,14 @@ void loadLayout()
         int Y    = Integer.parseInt( pieces[1] );
         int type = Integer.parseInt( pieces[2] );
         int  pin = Integer.parseInt( pieces[3] );
+        int time = Integer.parseInt( pieces[4] );
+
 
         blocks.add( new FunctionBlock(X, Y, type, gridSize ) ) ;
         
         FunctionBlock block = blocks.get(j) ;
         block.setPin( pin ) ;
+        block.setDelay( time ) ;
     } 
 
     try { line = input.readLine(); } 
@@ -748,10 +786,7 @@ void loadLayout()
         linkIndex ++ ;
     }
 }
-/* adding item checklist
- add line in the first switch-case
 
-*/
 void assembleProgram() 
 {
     file = createWriter("arduinoProgram/arduinoProgram.ino");
@@ -765,14 +800,17 @@ void assembleProgram()
         int  pin  = block.getPin() ;
         switch( type )
         {
-            case    AND: file.println("static    And b"+(i+1)+" =    And() ;") ;            break ;
-            case     OR: file.println("static     Or b"+(i+1)+" =     Or() ;") ;            break ;
-            case      M: file.println("static Memory b"+(i+1)+" = Memory() ;") ;            break ;
-            case    NOT: file.println("static    Not b"+(i+1)+" =    Not() ;") ;            break ;
-            case     JK: file.println("static     Jk b"+(i+1)+" =     Jk() ;") ;            break ;
-            case    DEL: file.println("static  Delay b"+(i+1)+" =  Delay("+ time +") ;") ;  break ;
-            case  INPUT: file.println("static  Input b"+(i+1)+" =  Input("+  pin +") ;") ;  break ;
-            case OUTPUT: file.println("static Output b"+(i+1)+" = Output("+  pin +") ;") ;  break ;
+            case     AND: file.println("static          And b"+(i+1)+" =          And() ;") ;            break ;
+            case      OR: file.println("static           Or b"+(i+1)+" =           Or() ;") ;            break ;
+            case       M: file.println("static       Memory b"+(i+1)+" =       Memory() ;") ;            break ;
+            case     NOT: file.println("static          Not b"+(i+1)+" =          Not() ;") ;            break ;
+            case      JK: file.println("static           Jk b"+(i+1)+" =           Jk() ;") ;            break ;
+            case     DEL: file.println("static        Delay b"+(i+1)+" =        Delay("+ time +") ;") ;  break ;
+            case   INPUT: file.println("static        Input b"+(i+1)+" =        Input("+  pin +") ;") ;  break ;
+            case  OUTPUT: file.println("static       Output b"+(i+1)+" =       Output("+  pin +") ;") ;  break ;
+            case   PULSE: file.println("static        Pulse b"+(i+1)+" =        Pulse("+ time +") ;") ;  break ;
+            case  ANA_IN: file.println("static  AnalogInput b"+(i+1)+" =  AnalogInput("+  pin +") ;") ;  break ;
+            case ANA_OUT: file.println("static AnalogOutput b"+(i+1)+" = AnalogOutput("+  pin +") ;") ;  break ;
         }
     }
     file.println("") ;

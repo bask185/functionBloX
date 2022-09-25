@@ -1,19 +1,22 @@
-#define REPEAT_MS(x)    { \
+/*#define REPEAT_MS(x)    { \ // NOT NEEDED
                             static uint32_t previousTime ;\
                             uint32_t currentTime = millis() ;\
                             if( currentTime  - previousTime >= x ) {\
                                 previousTime = currentTime ;
                                 // code to be repeated goes between these 2 macros
 #define END_REPEAT          } \
-                        }
+                        }*/
+
+const int ANALOG_SAMPLE_TIME = 20 ;
 
 class FunctionBlock
 {
 public:
-    uint8_t  IN1 : 1 ;
-    uint8_t  IN2 : 1 ;
-    uint8_t  IN3 : 1 ;
-    uint8_t    Q : 1 ;
+    uint8_t    IN1 : 1 ;
+    uint8_t    IN2 : 1 ;
+    uint8_t    IN3 : 1 ;
+    uint8_t      Q : 1 ;
+    uint8_t  Q_NOT : 1 ; // not yet in use, all blocks should get a Q not.. for the sake of simplicity
 
     virtual void run() ;
 } ; 
@@ -59,10 +62,10 @@ private:
     uint8_t prevLatch : 1 ;
 } ;
 
-class PulseGenerator : public FunctionBlock
+class Pulse : public FunctionBlock
 {
 public:
-    PulseGenerator(int x) : toggleTime( x )                       // initialize the constant
+    Pulse(int x) : toggleTime( x )                       // initialize the constant
     {
     }
 
@@ -149,6 +152,57 @@ public:
     {
         digitalWrite( pin, IN2 ) ;
     }
+} ;
+
+class AnalogInput : public FunctionBlock
+{
+public:
+
+    AnalogInput( uint8_t _pin )
+    {
+        pin = _pin ;
+        sampleRate = ANALOG_SAMPLE_TIME ;
+    }
+
+    uint8_t pin ;
+
+    void run()
+    {
+        if( millis() - prevTime >= sampleRate ) 
+        {     prevTime = millis() ;
+
+            ana_Q = analogRead( pin ) ;
+        }
+    }
+
+    int ana_Q ;
+
+private:
+    const uint32_t sampleRate ;
+    uint32_t       prevTime ;
+} ;
+
+class AnalogOutput : public FunctionBlock
+{
+public:
+
+    AnalogOutput( uint8_t _pin )
+    {
+        pin = _pin ;
+    }
+
+    uint8_t pin ;
+
+    void run()
+    {
+        if( IN2 != Q )
+        {     Q  = IN2 ;                // if incomming change, update PWM level
+
+            analogWrite( pin, ana_IN ) ;
+        }
+    }
+
+    uint8_t ana_IN ;
 } ;
 
 class Delay : public FunctionBlock

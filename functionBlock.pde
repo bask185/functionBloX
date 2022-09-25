@@ -27,12 +27,14 @@ public class FunctionBlock
 
         switch( type )
         {
-        case    AND:
-        case     OR:
-        case      M:
-        case    DEL:
-        case    NOT:
-        case     JK:
+        case     AND:
+        case      OR:
+        case       M:
+        case     DEL:
+        case     NOT:
+        case      JK:
+        case  ANA_IN:
+        case ANA_OUT:
             rect( xPos * gridSize + (gridSize/5), yPos * gridSize + 1, 3*gridSize/5, gridSize - 2 ) ; // main box
             break ;
 
@@ -50,7 +52,28 @@ public class FunctionBlock
             triangle(xPos * gridSize + (gridSize/2),   yPos * gridSize + (gridSize/4),
                      xPos * gridSize,                  yPos * gridSize + (gridSize/2),
                      xPos * gridSize + (gridSize/2),   yPos * gridSize + 3*gridSize/4) ;
-            break ;            
+            break ;
+
+        case PULSE:  
+            ellipse( xPos * gridSize + (gridSize/2), yPos * gridSize + (gridSize/2), 3*gridSize/5, 3*gridSize/5 ) ;
+            int x1 = xPos*gridSize + 3*gridSize/9;
+            int y1 = yPos*gridSize+ gridSize/2;
+            int x2 = xPos*gridSize + 4*gridSize/9;
+            int y2 = y1 ;
+            int x3 = x2 ;
+            int y3 = yPos*gridSize + 3*gridSize/9;
+            int x4 = xPos*gridSize + 5*gridSize/9;
+            int y4 = y3 ;
+            int x5 = x4 ;
+            int y5 = y1 ;
+            int x6 = xPos*gridSize + 6*gridSize/9;
+            int y6 = y1 ;
+            line(x1,y1,x2,y2);
+            line(x2,y2,x3,y3);
+            line(x3,y3,x4,y4);
+            line(x4,y4,x5,y5);
+            line(x5,y5,x6,y6);
+            break ;
         }
         stroke(0);
         fill(255);
@@ -58,16 +81,20 @@ public class FunctionBlock
         byte box = 0 ;
         String txt = "" ;
 
+        // draw the input and output connection lines
         switch( type )
-        {                         // in1, in2, in3,
-            case 1: txt =  "AND" ;  box = 0x0F ; break ;
-            case 2: txt =   "OR" ;  box = 0x0F ; break ;
-            case 3: txt =   " M" ;  box = 0x0D ; break ;
-            case 4: txt ="DELAY\r\n\r\n" + delayTime ;  box = 0x0A ; break ;
-            case 5: txt =  "NOT" ;  box = 0x0A ; break ; // text replaced by clock symbol
-            case 6: txt =   "IN\r\n" + pin;  box = 0x08 ; break ;
-            case 7: txt =  "OUT\r\n" + pin;  box = 0x02 ; break ;
-            case 8: txt =  "J    \r\nK    \r\nLatch"; box = 0x0F ; break ;
+        {                                       // box bits: Q, in1, in2, in3,
+            case     AND: txt =  "AND" ;                     box = 0x0F ; break ;
+            case      OR: txt =   "OR" ;                     box = 0x0F ; break ;
+            case       M: txt =   " M" ;                     box = 0x0D ; break ;
+            case     DEL: txt ="DELAY\r\n\r\n" + delayTime ; box = 0x0A ; break ;
+            case     NOT: txt =  "NOT" ;                     box = 0x0A ; break ; // text replaced by clock symbol
+            case   INPUT: txt =   "IN\r\n" + pin;            box = 0x08 ; break ;
+            case  OUTPUT: txt =  "OUT\r\n" + pin;            box = 0x02 ; break ;
+            case      JK: txt =  "J    \r\nK    \r\nCLK";    box = 0x0F ; break ;
+            case   PULSE: txt= "\r\n" +  delayTime;          box = 0x08 ; break ;
+            case  ANA_IN: txt= "ADC\r\n\r\nA" + pin;         box = 0x08 ; break ;
+            case ANA_OUT: txt= "PWM\r\n\r\n~" + pin;         box = 0x02 ; break ;
         }
 
         int x1 = xPos * gridSize ;
