@@ -35,27 +35,13 @@ public class FunctionBlock
         case      JK:
         case  ANA_IN:
         case ANA_OUT:
+        case  OUTPUT:
+        case   INPUT:
             rect( xPos * gridSize + (gridSize/5), yPos * gridSize + 1, 3*gridSize/5, gridSize - 2 ) ; // main box
             break ;
 
-        case  INPUT:
-            stroke(245);
-            rect( xPos * gridSize, yPos * gridSize +(gridSize/4), gridSize/2, gridSize/2 ) ; // input
-            triangle(xPos * gridSize + (gridSize/2),   yPos * gridSize +(gridSize/4),
-                     xPos * gridSize +  gridSize,      yPos * gridSize +(gridSize/2),
-                     xPos * gridSize + (gridSize/2),   yPos * gridSize + 3*gridSize/4) ;
-            break ;
-                     
-        case OUTPUT:
-            stroke(245);
-            rect( xPos * gridSize +(gridSize/2), yPos * gridSize+(gridSize/4), gridSize/2, gridSize/2 ) ; // output
-            triangle(xPos * gridSize + (gridSize/2),   yPos * gridSize + (gridSize/4),
-                     xPos * gridSize,                  yPos * gridSize + (gridSize/2),
-                     xPos * gridSize + (gridSize/2),   yPos * gridSize + 3*gridSize/4) ;
-            break ;
-
         case PULSE:  
-            ellipse( xPos * gridSize + (gridSize/2), yPos * gridSize + (gridSize/2), 3*gridSize/5, 3*gridSize/5 ) ;
+            ellipse( xPos * gridSize + (gridSize/2), yPos * gridSize + (gridSize/2), 3*gridSize/5, 3*gridSize/5 ) ; // perhaps replace by image?
             int x1 = xPos*gridSize + 3*gridSize/9;
             int y1 = yPos*gridSize+ gridSize/2;
             int x2 = xPos*gridSize + 4*gridSize/9;
@@ -89,12 +75,12 @@ public class FunctionBlock
             case       M: txt =   " M" ;                     box = 0x0D ; break ;
             case     DEL: txt ="DELAY\r\n\r\n" + delayTime ; box = 0x0A ; break ;
             case     NOT: txt =  "NOT" ;                     box = 0x0A ; break ; // text replaced by clock symbol
-            case   INPUT: txt =   "IN\r\n" + pin;            box = 0x08 ; break ;
-            case  OUTPUT: txt =  "OUT\r\n" + pin;            box = 0x02 ; break ;
+            case   INPUT: txt = "INPUT\r\nD" + pin;          box = 0x08 ; break ;
+            case  OUTPUT: txt ="OUTPUT\r\nD" + pin;          box = 0x02 ; break ;
             case      JK: txt =  "J    \r\nK    \r\nCLK";    box = 0x0F ; break ;
             case   PULSE: txt= "\r\n" +  delayTime;          box = 0x08 ; break ;
             case  ANA_IN: txt= "ADC\r\n\r\nA" + pin;         box = 0x08 ; break ;
-            case ANA_OUT: txt= "PWM\r\n\r\n~" + pin;         box = 0x02 ; break ;
+            case ANA_OUT: txt= "PWM\r\n\r\nD" + pin;         box = 0x02 ; break ;
         }
 
         int x1 = xPos * gridSize ;
@@ -113,7 +99,7 @@ public class FunctionBlock
         line(x1, y2, x2, y2) ;                          // line of Q
         fill(0);
 
-        textSize( gridSize / 6 ) ; 
+        textSize( gridSize / 7 ) ; 
         
         int x = xPos * gridSize + gridSize/2 ;
         int y = yPos * gridSize + gridSize/2 ;

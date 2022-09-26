@@ -30,13 +30,17 @@ the number is overwritten. It seems that all blocks share the pin number -_-
 - store and load layout, add buttons.
 - add small sphere to mouse if there is anything to click. perhaps half green and half red to indicate which buttons can be pressed
 V make small nodes along link nodes, so you can see when lines just simply cross
-- may need to refactor to separate classes so it becomes easier to add the new analog items
+// NOTE. Added different baseclass. This works well for the arduino, but I have the problem that the links and indices are screwed up.
+// I think I also need to to add analog base class for
+V may need to refactor to separate classes so it becomes easier to add the new analog items
 V ID of Function blocks also need to be stored for the input and output blocks
 - add method to update all links' Qs and INs for when a FB is removed or replaced. Currently links will point to the old index
   and this may or may not be correct...
-- if mouse is clicked to alter pin/time number, the number should be initialized to the first pressed number. To work from the current value does not
+V if mouse is clicked to alter pin/time number, the number should be initialized to 0. To work from the current value does not
   work as intuitive as I imagined.
-- ditch the triangles for input/output and make them square like the others
+V ditch the triangles for input/output and make them square like the others
+- add serial input and serial output blocks, to send and receive messages over the serial port
+V add D for all digital Pin numbers
 
 EXTRA
 - make comperator for usage with analog input
@@ -50,9 +54,36 @@ BACKLOG
 - for the analog stuff, make a map block
 
 CURRENT WORK:
-- adding analog IO. 
-- Find way to link Q to 'dacValue' instead: NOTE. set an isAnalog boolean, if a link is used between analogBlocks
-- add the map() and find a method to enter the constants...
+- fix the problem that links are out of synch with new digital and analog IO.
+possible solutions:
+- store indices in the function blocks themselfes and keep track of separate indices
+  for analog and digital IO.
+- pass indices to the arduino, and figure that out.
+
+notes:
+- We do know when a link is digital or analog.
+
+description of problem.
+
+analog blocks need more bits for Q and IN. This needs special analog class for the arduino.
+The arduino now has 2 types of blocks and 2 separated arrays for analog and digital. The links for analog is also
+altered. The problem is that the indices of both analog as digital blocks can be in random order of processing.
+
+This order cannot be maintained on the arduino because of the two separate arrays. 
+The hard coded links still hace the random order in processing.
+
+I really do not want to split the code for digital/analog in processing, despite that that will
+fix the problem at hand.
+
+One alternative I can think of, is to re-calculate the links' indices when the arduino
+program is assembled. This can propably be done but I am not yet sure how yet.
+
+during 'play' time I may be able to keep track of the amount of digital and analog 
+components. Of I create a link on Q of block 13 and block 13 may be the 2nd analog one
+I can set the link correctly to 1 instead of 12. 
+
+I think this is the most viable fix with a relative least amount of work
+ 
 
 add pinnumber links for all input and outputs to the arduino program
 
@@ -194,7 +225,7 @@ void leftMousePress()
     if( mode == settingNumber || mode == settingDelayTime || mode == settingPulseTime ) return ;                               // as long as a number is set, LMB nor RMB must do anything
 
 
-    if((mouseX > (width-gridSize)) && mode == idle )
+    if((mouseX > (width-gridSize)) && mode == idle )                            // add function block
     {
         mode = movingItem ;         
         currentType = row + 1 ;
@@ -206,7 +237,7 @@ void leftMousePress()
         return ;
     }
 
-    else if( mode == idle ) for (int i = 0; i < blocks.size(); i++)
+    else if( mode == idle ) for (int i = 0; i < blocks.size(); i++)             // drag item around
     { 
         FunctionBlock block1 = blocks.get(i);
 
@@ -218,10 +249,13 @@ void leftMousePress()
         }
         //else index = 0 ;
     }
-    if ( mode == idle && subCol == 1 && subRow == 2 && hoverOverFB == true )
+    if ( mode == idle && subCol == 1 && subRow == 2 && hoverOverFB == true )    // alter number
     {
         try
         {
+            pinNumber = 0 ;
+            delayTime = 0 ;
+
             FunctionBlock block = blocks.get( index ) ;
             int type = block.getType() ;
             if( type ==     DEL ) mode = settingDelayTime ;
@@ -233,7 +267,7 @@ void leftMousePress()
         } catch (IndexOutOfBoundsException e) {}
     }
     // CREATE LINK
-    else if( mode == idle && subCol == 2 && subRow == 1 && hoverOverFB == true )  // if not doing anything and we click on a connection node, create a line.
+    else if( mode == idle && subCol == 2 && subRow == 1 && hoverOverFB == true )  // create a link.
     {
         mode = addingLinePoints ;
 
@@ -250,7 +284,7 @@ void leftMousePress()
     }
 
     // FINISH LINK
-    else if( mode == addingLinePoints && subCol == 0 && hoverOverFB == true )
+    else if( mode == addingLinePoints && subCol == 0 && hoverOverFB == true )   // finish link
     {
         mode = idle ;
         
@@ -260,7 +294,7 @@ void leftMousePress()
     }
 
     // ADD NODE TO LINK
-    else if( mode == addingLinePoints )
+    else if( mode == addingLinePoints )                                         // add node to link
     {
         Link link = links.get( linkIndex ) ;
         link.addPoint( ) ;
@@ -481,49 +515,49 @@ void printTexts()
         {
             text1 = "New function block" ;
             text2 = "" ;
-            mouse = loadImage("images/mouse2.png") ;
+            // mouse = loadImage("images/mouse2.png") ;
         }
         else if(  mode == idle && subCol == 2 && subRow == 1 && hoverOverFB == true )
         {
             text1 = "create link" ;
             text2 = "delete link" ;
-            mouse = loadImage("images/mouse3.png") ;
+            // mouse = loadImage("images/mouse3.png") ;
         }
         else if( mode == idle && hoverOverFB  && blockMiddle == true )
         {
             text1 = "move item" ;
             text2 = "delete item" ;
-            mouse = loadImage("images/mouse3.png") ;
+            // mouse = loadImage("images/mouse3.png") ;
         }
         else if( mode == idle && hoverOverPoint )
         {
             text1 = "move node" ;
             text2 = "delete link" ;
-            mouse = loadImage("images/mouse3.png") ;
+            // mouse = loadImage("images/mouse3.png") ;
         }
         else if( mode == addingLinePoints && subCol == 0 && hoverOverFB == true )
         {
             text1 = "finish point" ;
             text2 = "" ;
-            mouse = loadImage("images/mouse2.png") ;
+            // mouse = loadImage("images/mouse2.png") ;
         }
         else if( mode == addingLinePoints )
         {
             text1 = "add point" ;
             text2 = "remove last point" ;
-            mouse = loadImage("images/mouse3.png") ;
+            // mouse = loadImage("images/mouse3.png") ;
         }
         else if( mode == movingItem)
         {
             text1 = "Moving function block" ;
             text2 = "" ;
-            mouse = loadImage("images/mouse2.png") ;
+            // mouse = loadImage("images/mouse2.png") ;
         }
         else if( mode == settingNumber )
         {
             text1 = "SET PIN NUMBER" ;
             text2 = "PRESS <ENTER> WHEN READY" ;
-            mouse = loadImage("images/mouse1.png") ;
+            // mouse = loadImage("images/mouse1.png") ;
         }
         else if((   type == INPUT  ||    type == OUTPUT 
         ||          type == ANA_IN ||    type == ANA_OUT ) 
@@ -532,39 +566,39 @@ void printTexts()
         {
             text1 = "SET PIN NUMBER" ;
             text2 = "" ;
-            mouse = loadImage("images/mouse2.png") ;
+            // mouse = loadImage("images/mouse2.png") ;
         }
         else if( mode == settingDelayTime )
         {
             text1 = "ENTER DELAY TIME" ;
             text2 = "PRESS <ENTER> WHEN READY" ;
-            mouse = loadImage("images/mouse1.png") ;
+            // mouse = loadImage("images/mouse1.png") ;
         }
         else if( type == DEL && subCol == 1 && subRow == 2 && hoverOverFB == true )
         {
             text1 = "SET DELAY TIME" ;
             text2 = "" ;
-            mouse = loadImage("images/mouse2.png") ;
+            // mouse = loadImage("images/mouse2.png") ;
         }
         else if( mode == settingPulseTime )
         {
             text1 = "ENTER PULSE SWITCH TIME" ;
             text2 = "PRESS <ENTER> WHEN READY" ;
-            mouse = loadImage("images/mouse1.png") ;
+            // mouse = loadImage("images/mouse1.png") ;
         }
         else if( type == PULSE && subCol == 1 && subRow == 2 && hoverOverFB == true )
         {
             text1 = "SET PULSE TIME" ;
             text2 = "" ;
-            mouse = loadImage("images/mouse2.png") ;
+            // mouse = loadImage("images/mouse2.png") ;
         }
         else
         {
             text1 = "" ;
             text2 = "" ;
-            mouse = loadImage("images/mouse1.png") ;
+            // mouse = loadImage("images/mouse1.png") ;
         }
-        image(mouse, width/2-gridSize, gridSize/5,gridSize,gridSize);
+        //image(mouse, width/2-gridSize, gridSize/5,gridSize,gridSize);
         textSize(gridSize/2);  
         textAlign(RIGHT,TOP);
         text( text1,  width/2 - gridSize, 0 ) ;
@@ -691,7 +725,9 @@ void saveLayout()
             output.print( "," + link.getPosX(j) + "," + link.getPosY(j) + ","  // store all 50 coordinates
                               + link.getSubX(j) + "," + link.getSubY(j) ) ;
         }
-        output.println( isAnalog ) ;
+        output.println( "," + isAnalog ) ;
+        if( isAnalog > 0 ) { println("ANALOG LINK stored BRUH!!") ; }
+        
         //output.println() ;  // newline
     }  
     output.close();
@@ -754,9 +790,11 @@ void loadLayout()
         int y1       = Integer.parseInt( pieces[6] );
         //int s1     = Integer.parseInt( pieces[7] );
         //int s2     = Integer.parseInt( pieces[8] );
-        int isAnalog = Integer.parseInt( pieces[8]
+        int isAnalog = Integer.parseInt( pieces[205] ) ;
 
-        links.add( new Link( x1, y1, gridSize, Q ) ) ;
+        if( isAnalog > 0 ) { println("ANALOG LINK loaded BRUH!!") ; }
+
+        links.add( new Link( x1, y1, gridSize, Q, isAnalog ) ) ;
         Link link = links.get(i) ;
 
         switch( subrow )
@@ -765,12 +803,6 @@ void loadLayout()
             case 1 : link.setIn(subrow,IN2) ; break ;
             case 2 : link.setIn(subrow,IN3) ; break ;
         }
-
-        println("\r\nTWO Q: " +  Q  ) ;
-        println("IN1:    " +    IN1 ) ;
-        println("IN2:    " +    IN2 ) ;
-        println("IN3:    " +    IN3 ) ;
-        println("subrow: " + subrow ) ;
 
         for( int j = 9 ; j < (50*4) + 1 ; j += 4 )      // 50 XY coordinates and 50 subX subY coordinates and we start at the 8th byte
         {      
@@ -796,32 +828,64 @@ void assembleProgram()
     file = createWriter("arduinoProgram/arduinoProgram.ino");
     file.println("#include \"functionBlocks.h\"") ;
     file.println("") ;
-    for( int i = 0 ; i < blocks.size() ; i ++ )
+    int index = 0 ;
+
+    int nDigitalBlocks ;
+    int nAnalogBlocks ;
+
+    for( int i = 0 ; i < blocks.size() ; i ++ )     // store digital components
     {
         FunctionBlock block = blocks.get( i ) ;
         int type  = block.getType() ;
         int time  = block.getDelay() ;
         int  pin  = block.getPin() ;
+        
         switch( type )
-        {
-            case     AND: file.println("static          And b"+(i+1)+" =          And() ;") ;            break ;
-            case      OR: file.println("static           Or b"+(i+1)+" =           Or() ;") ;            break ;
-            case       M: file.println("static       Memory b"+(i+1)+" =       Memory() ;") ;            break ;
-            case     NOT: file.println("static          Not b"+(i+1)+" =          Not() ;") ;            break ;
-            case      JK: file.println("static           Jk b"+(i+1)+" =           Jk() ;") ;            break ;
-            case     DEL: file.println("static        Delay b"+(i+1)+" =        Delay("+ time +") ;") ;  break ;
-            case   INPUT: file.println("static        Input b"+(i+1)+" =        Input("+  pin +") ;") ;  break ;
-            case  OUTPUT: file.println("static       Output b"+(i+1)+" =       Output("+  pin +") ;") ;  break ;
-            case   PULSE: file.println("static        Pulse b"+(i+1)+" =        Pulse("+ time +") ;") ;  break ;
-            case  ANA_IN: file.println("static  AnalogInput b"+(i+1)+" =  AnalogInput("+  pin +") ;") ;  break ;
-            case ANA_OUT: file.println("static AnalogOutput b"+(i+1)+" = AnalogOutput("+  pin +") ;") ;  break ;
+        {   // digital types
+            case     AND: file.println("static          And d"+(index+1)+" =          And() ;") ;           index++ ; break ;
+            case      OR: file.println("static           Or d"+(index+1)+" =           Or() ;") ;           index++ ; break ;
+            case       M: file.println("static       Memory d"+(index+1)+" =       Memory() ;") ;           index++ ; break ;
+            case     NOT: file.println("static          Not d"+(index+1)+" =          Not() ;") ;           index++ ; break ;
+            case      JK: file.println("static           Jk d"+(index+1)+" =           Jk() ;") ;           index++ ; break ;
+            case     DEL: file.println("static        Delay d"+(index+1)+" =        Delay("+ time +") ;") ; index++ ; break ;
+            case   INPUT: file.println("static        Input d"+(index+1)+" =        Input("+  pin +") ;") ; index++ ; break ;
+            case  OUTPUT: file.println("static       Output d"+(index+1)+" =       Output("+  pin +") ;") ; index++ ; break ;
+            case   PULSE: file.println("static        Pulse d"+(index+1)+" =        Pulse("+ time +") ;") ; index++ ; break ;  
         }
     }
+    nDigitalBlocks = index ; 
+
+    index = 0 ;
+    for( int i = 0 ; i < blocks.size() ; i ++ )  // store analog components
+    {
+        FunctionBlock block = blocks.get( i ) ;
+        int type  = block.getType() ;
+        int time  = block.getDelay() ;
+        int  pin  = block.getPin() ;
+        
+        switch( type )
+        {   // analog types
+            case  ANA_IN: file.println("static  AnalogInput a"+(i+1)+" =  AnalogInput("+  pin +") ;") ; index++ ; break ;
+            case ANA_OUT: file.println("static AnalogOutput a"+(i+1)+" = AnalogOutput("+  pin +") ;") ; index++ ; break ;
+            // case COMPERATOR
+            // case SERVO_MOTOR
+            // case MAP
+        }
+    }
+    nAnalogBlocks = index ;
+
     file.println("") ;
-    file.println("FunctionBlock *block[] = {") ;
-    for( int i = 0 ; i < blocks.size() ; i ++ ) file.println("    &b"+ (i+1)+" ,") ;
+    file.println("DigitalBlock *digitalBlock[] = {") ;
+    for( int i = 0 ; i < nDigitalBlocks ; i ++ ) file.println("    &d"+ (i+1)+" ,") ;
     file.println("} ;") ;
-    file.println("const int nBlocks = " + blocks.size() + " ;" ) ;
+    file.println("const int nDigitalBlocks = " + nDigitalBlocks + " ;" ) ;
+
+    file.println("") ;
+    file.println("AnalogBlock *analogBlock[] = {") ;
+    for( int i = 0 ; i < nAnalogBlocks ; i ++ ) file.println("    &a"+ (i+1)+" ,") ;
+    file.println("} ;") ;
+    file.println("const int nAnalogBlocks = " + nAnalogBlocks + " ;" ) ;
+
     file.println("") ;
     file.println("void setup()") ;
     file.println("{") ;
@@ -830,19 +894,22 @@ void assembleProgram()
     file.println("void loop()") ;
     file.println("{") ;
     file.println("/***************** UPDATE FUNCTION BLOCKS *****************/") ;
-    file.println("    for( int i = 0 ; i < nBlocks ; i ++ ) block[i] -> run() ;") ;
+    file.println("    for( int i = 0 ; i < nDigitalBlocks ; i ++ ) digitalBlock[i] -> run() ;") ;
+    file.println("    for( int i = 0 ; i <  nAnalogBlocks ; i ++ )  analogBlock[i] -> run() ;") ;
     file.println("") ;
     file.println("/***************** UPDATE LINKS *****************/") ;
     for ( int i = 0 ; i < links.size() ; i ++ ) 
     {
         Link  link = links.get( i ) ;
 
-        int      Q = link.getQ() ;
-        int subrow = link.getSubrow() ;
-        int     IN = link.getIn( subrow );
+        int        Q = link.getQ() ;
+        int   subrow = link.getSubrow() ;
+        int       IN = link.getIn( subrow ) ;
+        int isAnalog = link.isAnalogIO() ;
 
-        file.println("    block["+IN+"] -> IN"+(subrow+1)+" = block["+Q+"] -> Q ;") ;
+        if( isAnalog > 0 )  file.println("    digitalBlock["+IN+"] -> IN" +(subrow+1)+" = digitalBlock["+Q+"] -> Q ;") ;
+        else                file.println("     analogBlock["+IN+"] -> IN" +(subrow+1)+" =  analogBlock["+Q+"] -> Q ;") ;
     }
-    file.println("} ;") ;
+    file.println("}") ;
     file.close() ;
 }

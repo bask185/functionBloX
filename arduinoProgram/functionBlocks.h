@@ -1,27 +1,21 @@
-/*#define REPEAT_MS(x)    { \ // NOT NEEDED
-                            static uint32_t previousTime ;\
-                            uint32_t currentTime = millis() ;\
-                            if( currentTime  - previousTime >= x ) {\
-                                previousTime = currentTime ;
-                                // code to be repeated goes between these 2 macros
-#define END_REPEAT          } \
-                        }*/
+#include <Arduino.h>
+#include <Servo.h>
 
 const int ANALOG_SAMPLE_TIME = 20 ;
 
-class FunctionBlock
+class DigitalBlock
 {
 public:
     uint8_t    IN1 : 1 ;
     uint8_t    IN2 : 1 ;
     uint8_t    IN3 : 1 ;
     uint8_t      Q : 1 ;
-    uint8_t  Q_NOT : 1 ; // not yet in use, all blocks should get a Q not.. for the sake of simplicity
+    uint8_t  Q_NOT : 1 ;
 
     virtual void run() ;
-} ; 
+} ;
 
-class And : public FunctionBlock
+class And : public DigitalBlock
 {
 public:
     And()
@@ -34,7 +28,7 @@ public:
     }
 } ;
 
-class Jk : public FunctionBlock
+class Jk : public DigitalBlock
 {
 public:
     Jk()
@@ -62,7 +56,7 @@ private:
     uint8_t prevLatch : 1 ;
 } ;
 
-class Pulse : public FunctionBlock
+class Pulse : public DigitalBlock
 {
 public:
     Pulse(int x) : toggleTime( x )                       // initialize the constant
@@ -84,7 +78,7 @@ private:
 } ;
 
 
-class Or : public FunctionBlock
+class Or : public DigitalBlock
 {
 public:
     Or()
@@ -98,7 +92,7 @@ public:
     }
 } ;
 
-class Memory : public FunctionBlock
+class Memory : public DigitalBlock
 {
 public:
 
@@ -109,7 +103,7 @@ public:
     }
 } ;
 
-class Not : public FunctionBlock
+class Not : public DigitalBlock
 {
 public:
 
@@ -119,25 +113,39 @@ public:
     }
 } ;
 
-class Input : public FunctionBlock
+class Input : public DigitalBlock
 {
 public:
-
     Input( uint8_t _pin )
     {
         pin = _pin ;
         pinMode( pin, INPUT_PULLUP ) ;
     }
 
-    uint8_t pin ;
-
     void run()
     {
-        Q = digitalRead( pin ) ;
+        uint8_t state = digitalRead( pin ) ;
+
+        if( Q != state )                                 // if new state differs with old state
+        {
+            if( millis() - prevTime >= debounceTime )       // keep monitor if interval has expired
+            {
+                Q = state ;
+            }
+        }
+        else
+        {
+            prevTime = millis() ;
+        }        
     }
+
+private:
+    const uint32_t  debounceTime = 20 ;
+    uint32_t        prevTime ;
+    uint8_t         pin ;
 } ;
 
-class Output : public FunctionBlock
+class Output : public DigitalBlock
 {
 public:
     Output ( uint8_t _pin )
@@ -154,58 +162,7 @@ public:
     }
 } ;
 
-class AnalogInput : public FunctionBlock
-{
-public:
-
-    AnalogInput( uint8_t _pin )
-    {
-        pin = _pin ;
-        sampleRate = ANALOG_SAMPLE_TIME ;
-    }
-
-    uint8_t pin ;
-
-    void run()
-    {
-        if( millis() - prevTime >= sampleRate ) 
-        {     prevTime = millis() ;
-
-            ana_Q = analogRead( pin ) ;
-        }
-    }
-
-    int ana_Q ;
-
-private:
-    const uint32_t sampleRate ;
-    uint32_t       prevTime ;
-} ;
-
-class AnalogOutput : public FunctionBlock
-{
-public:
-
-    AnalogOutput( uint8_t _pin )
-    {
-        pin = _pin ;
-    }
-
-    uint8_t pin ;
-
-    void run()
-    {
-        if( IN2 != Q )
-        {     Q  = IN2 ;                // if incomming change, update PWM level
-
-            analogWrite( pin, ana_IN ) ;
-        }
-    }
-
-    uint8_t ana_IN ;
-} ;
-
-class Delay : public FunctionBlock
+class Delay : public DigitalBlock
 {
 public:
     Delay(int x) : delayTime( x )                       // initialize the constant
@@ -232,7 +189,105 @@ private:
     uint32_t       prevTime ;
 } ;
 
-class MAP : public FunctionBlock
+
+class AnalogBlock
+{
+public:
+    uint16_t    IN1 ;
+    uint16_t    IN2 ;
+    uint16_t    IN3 ;
+    uint16_t      Q ;
+
+    virtual void run() ;
+} ;
+
+class AnalogInput : public AnalogBlock
+{
+public:
+
+    AnalogInput( uint8_t _pin )
+    {
+        pin = _pin ;
+    }
+
+    uint8_t pin ;
+
+    void run()
+    {
+        if( millis() - prevTime >= sampleRate ) 
+        {     prevTime = millis() ;
+
+            analogQ = analogRead( pin ) ;
+        }
+    }
+
+    int analogQ ;
+
+private:
+    const uint32_t sampleRate = ANALOG_SAMPLE_TIME ;
+    uint32_t       prevTime ;
+} ;
+
+class AnalogOutput : public AnalogBlock
+{
+public:
+
+    AnalogOutput( uint8_t _pin )
+    {
+        pin = _pin ;
+    }
+
+    uint8_t pin ;
+
+    void run()
+    {
+        if( analogIN2 != prevIn )
+        {   prevIn  = analogIN2 ;                // if incomming change, update PWM level
+
+            analogWrite( pin, analogIN2 ) ;
+            // Serial.println( analogIN2 ) ; // DEBUG just testing if it... actually works
+        }
+    }
+
+    uint8_t analogIN2 ;
+
+private:
+    uint8_t prevIn ;
+} ;
+
+class ServoMotor : public AnalogBlock
+{
+public:
+    ServoMotor( uint8_t _pin ;) 
+    {
+        pin = _pin ;
+    }
+
+    void initMotor()
+    {
+        motor.attach(pin) ;
+    }
+
+    void run()
+    {
+        if( servoPos != analogIN2 )
+        {   servoPos  = analogIN2 ;
+        
+            servoPos = constrain( servoPos, 0, 180 ) ;
+            motor.write(servoPos) ;
+        }
+    }
+
+    uint8_t analogIN2 ;
+
+private:
+    Servo motor ;
+    uint8_t servoPos
+    uint8_t pin ;
+}
+
+
+class MAP : public AnalogBlock
 {
     int32_t var ;   // result = map( var, in1, in2, out1, out2 ) ;
     int32_t result ;
