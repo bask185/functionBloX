@@ -217,11 +217,9 @@ public:
         if( millis() - prevTime >= sampleRate ) 
         {     prevTime = millis() ;
 
-            analogQ = analogRead( pin ) ;
+            Q = analogRead( pin ) ;
         }
     }
-
-    int analogQ ;
 
 private:
     const uint32_t sampleRate = ANALOG_SAMPLE_TIME ;
@@ -241,15 +239,13 @@ public:
 
     void run()
     {
-        if( analogIN2 != prevIn )
-        {   prevIn  = analogIN2 ;                // if incomming change, update PWM level
+        if( IN2 != prevIn )
+        {   prevIn  = IN2 ;                // if incomming change, update PWM level
 
-            analogWrite( pin, analogIN2 ) ;
-            Serial.println( analogIN2 ) ; // DEBUG just testing if it... actually works
+            Serial.println( IN2 ) ; // DEBUG just testing if it... actually works
+            analogWrite( pin, IN2 ) ;
         }
     }
-
-    uint8_t analogIN2 ;
 
 private:
     uint8_t prevIn ;

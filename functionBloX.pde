@@ -25,25 +25,27 @@ V you can 'finish' a link on every row, as long as the column is ok...
 I think over over FB is always true?
 V entering a number works, but as soon as you touch a new function block
 the number is overwritten. It seems that all blocks share the pin number -_-
-- create special items like servo motors, blinking lights (auto toggling IO)
+V create special items like servo motors, blinking lights (auto toggling IO): servo exists but only in arduino. Blinking lights can be done via pulse generator
 - make variable gridsize workable
 - store and load layout, add buttons.
 - add small sphere to mouse if there is anything to click. perhaps half green and half red to indicate which buttons can be pressed
 V make small nodes along link nodes, so you can see when lines just simply cross
-// NOTE. Added different baseclass. This works well for the arduino, but I have the problem that the links and indices are screwed up.
-// I think I also need to to add analog base class for
 V may need to refactor to separate classes so it becomes easier to add the new analog items
 V ID of Function blocks also need to be stored for the input and output blocks
-- add method to update all links' Qs and INs for when a FB is removed or replaced. Currently links will point to the old index
+V add method to update all links' Qs and INs for when a FB is removed or replaced. Currently links will point to the old index
   and this may or may not be correct...
 V if mouse is clicked to alter pin/time number, the number should be initialized to 0. To work from the current value does not
   work as intuitive as I imagined.
 V ditch the triangles for input/output and make them square like the others
 - add serial input and serial output blocks, to send and receive messages over the serial port
 V add D for all digital Pin numbers
+- split the 2 columns on the right, 1 for analog, 1 for digital.
+- make a list for the things to add
+- find a way to let a digital Q set an IN of an analog block. 0-1 can be remapped to lets say 0-180..
+- similarly a comperator must be able to set a digital IN
+- remove obsolete debug texts
 
 EXTRA
-- make comperator for usage with analog input
 - make separate arrays for AND, NOR and MEMORIES. , unsure if actually needed, it may help with generating organized source code.
 - also add NAND or NOR gates or implement inverted outputs !Q
 - let textSize change appropiate with gridSize for all function blox
@@ -54,59 +56,26 @@ BACKLOG
 - for the analog stuff, make a map block
 
 CURRENT WORK:
-- The mouse functions have been refactored
-- test the new link updates
-- store the first and final coordinates directly
-- fix the problem that links are out of synch with new digital and analog IO.
+- The links and function block indices seem to work well
+- I must add that the link updating must be tested thoroughly. With the saving and all.. it cannot possibly work..
+   Stop_x and stop_y are not even saved I believe..
+- the analog value can now be transferred from input to output. The next step is to add the map function
 
+- ALso want to start with digital controlled serial commands for both input as output.
 
-possible solutions:
-- store indices in the function blocks themselfes and keep track of separate indices
-  for analog and digital IO.
-- pass indices to the arduino, and figure that out.
+STUFF TO ADD
 
-notes:
-- We do know when a link is digital or analog.
+ANALOG:
+    SERVO 
+    MAP
+    SERIAL PRINT A NUMBER
+    CONSTANTS (as input)
+    COMPARATOR
+    ANALOG DELAY (increments or decrements an IN with 1 at the time)
 
-description of problem.
-
-analog blocks need more bits for Q and IN. This needs special analog class for the arduino.
-The arduino now has 2 types of blocks and 2 separated arrays for analog and digital. The links for analog is also
-altered. The problem is that the indices of both analog as digital blocks can be in random order of processing.
-
-This order cannot be maintained on the arduino because of the two separate arrays. 
-The hard coded links still hace the random order in processing.
-
-I really do not want to split the code for digital/analog in processing, despite that that will
-fix the problem at hand.
-
-One alternative I can think of, is to re-calculate the links' indices when the arduino
-program is assembled. This can propably be done but I am not yet sure how yet.
-
-during 'play' time I may be able to keep track of the amount of digital and analog 
-components. Of I create a link on Q of block 13 and block 13 may be the 2nd analog one
-I can set the link correctly to 1 instead of 12. 
-
-I think this is the most viable fix with a relative least amount of work
-
-I added counters for the amount of analog and digital blocks. These counters are used to store
-the appriopiate index for every FB. The next step is use the new index variable to set the Q and IN
-for links
-
-Ok, storing the indices per block works but contains design flaws. If you remove blocks and add new ones
-you may get screwed up numbers in the link arrays.
-
-It is vital that links are continously updates at all times. Similarly, it is not needed to store the indices
-per block. To update the links, one most cross reference XY coordinates of the first and last points to
-the XY coordinates of the blocks. This will enforce correct values also when you replace function blocks
-
-To to the above it is usefull to store X, Y subX, subY of the first and the last point. Currently the last point is the last 
-in the point array.
-
-The update link function should work. But it needs to be tested. Setting Q and IN happens at all times. For every
-links, the begin and stop coordinates are fetched and than are crossreferenced with all present Function Blocks. 
-
-add pinnumber links for all input and outputs to the arduino program
+DIGITAL
+    Serial read and print messages
+    check if a D latch or D flip flop is at all usefull considering that we already have a JK FF
 
 3 events:
 mouse pressed ==> create line object and store initial X/Y coordinates. Inc point index
@@ -187,6 +156,7 @@ int         foundLinkIndex ;
 int         currentType ;
 int         pinNumber ;
 int         delayTime ;
+int         indexOfBlock ;
 
 int             nAnalogBlocks ;
 int             nDigitalBlocks ;
@@ -239,6 +209,7 @@ void draw()
     checkLinePoints() ;
     printTexts() ;
     updateCursor() ;
+    updateBlocks() ;
     drawBlocks() ;
     updateLinks() ;
     drawLinks() ;
@@ -260,15 +231,12 @@ void addFunctionBlock()
 
 void moveItem()
 {
-    FunctionBlock block = blocks.get( index );
+    FunctionBlock block = blocks.get( index ); // DEBUG NEED A TRY N CATCH..
 
     if( col == block.getXpos() &&  row == block.getYpos() && blockMiddle == true )
     {
         mode = movingItem ;
-        //index = i;
-        return ;
     }
-    //else index = 0 ;
 }
 
 void alterNumber()
@@ -327,6 +295,7 @@ void deleteObject()
 
     blocks.remove(index);		                                            // DELETE THE OBJECT
     hoverOverFB = false ;
+    updateBlocks() ;        // ensure all blocks have correct indices
 }
 
 void removeNode()
@@ -435,6 +404,20 @@ void drawBackground()
     ana_out1.draw() ;
 }
 
+void updateBlocks()
+{
+    int analogIndex  = 0 ;
+    int digitalIndex = 0 ;
+    for( int i = 0 ; i < blocks.size() ; i++ ) 
+    {
+        FunctionBlock block = blocks.get(i) ;
+        int type = block.getType() ;
+
+        if( type >= ANA_IN ) { block.setIndex(  analogIndex ++ ) ; }
+        else                 { block.setIndex( digitalIndex ++ ) ; }
+    }
+}
+
 void updateLinks()
 {
     for( int i = 0 ; i < links.size() ; i++ )  // get connected Q of the link
@@ -460,23 +443,26 @@ void updateLinks()
             int block_x    = block.getXpos() ;
             int block_y    = block.getYpos() ;
             int isAnalog   = block.isAnalog() ;
+            int index      = block.getIndex() ;
 
             if( start_x == block_x && start_y == block_y
             &&  start_subX == 2    && start_subY == 1 
             && Qfound == false )
             {
-                link.setQ( j ) ;
+                link.setQ( index ) ;
                 link.setAnalog( isAnalog ) ;
                 Qfound = true ;
             }
+            else if( Qfound == false ) link.setQ( 255 ) ;
 
             if( stop_x == block_x && stop_y == block_y 
             &&  stop_subX == 0 
             &&  INfound   == false ) 
             {
-                link.setIn( stop_subY, j ) ;
+                link.setIn( stop_subY, index ) ;
                 INfound = true ;
             }
+            else if( INfound == false ) link.setIn( stop_subY, 255 ) ;
             
             if( INfound && Qfound ) break ;                                     // if both connections are found, break out of this for loop and go to the next link/
         }
@@ -519,6 +505,7 @@ void checkFunctionBlocks()
             hoverOverFB = true ;
             if( subCol == 1 && subRow == 1 ) blockMiddle =  true ;
             index = i ;
+            indexOfBlock = block.getIndex() ;
             return ;
         }
     }
@@ -571,8 +558,8 @@ void updateCursor()
     textSize(20);    
     text("X: " + col,10,50);                                                         // row and col on screen.
     text("Y: " + row,10,70);
-    //if(hoverOverFB==true)text("ITEM TRUE",10,90);
-    text("index: "+ index,10,90);
+   // if(hoverOverFB==true)text("ITEM TRUE",10,90);
+    text("index: "+ index,10,90);  text("index2: "+ indexOfBlock,200,90);
     text("mode " + mode,10,110);
     text("subCol " + subCol,10,130);
     text("subRow " + subRow,10,150);
@@ -841,6 +828,8 @@ void loadLayout()
         int time     = Integer.parseInt( pieces[4] );
 
         blocks.add( new FunctionBlock(X, Y, type, gridSize ) ) ;
+        updateBlocks() ;                    // ensure all blocks have correct indices
+
         if( type >= ANA_IN )  nAnalogBlocks ++ ;
         else                 nDigitalBlocks ++ ;
         
@@ -980,8 +969,8 @@ void assembleProgram()
         int       IN = link.getIn( subrow ) ;
         int isAnalog = link.isAnalogIO() ;
 
-        if( isAnalog > 0 )  file.println("    digitalBlock["+IN+"] -> IN" +(subrow+1)+" = digitalBlock["+Q+"] -> Q ;") ;
-        else                file.println("     analogBlock["+IN+"] -> IN" +(subrow+1)+" =  analogBlock["+Q+"] -> Q ;") ;
+        if( isAnalog > 0 )  file.println("     analogBlock["+IN+"] -> IN" +(subrow+1)+" =  analogBlock["+Q+"] -> Q ;") ;
+        else                file.println("    digitalBlock["+IN+"] -> IN" +(subrow+1)+" = digitalBlock["+Q+"] -> Q ;") ; 
     }
     file.println("}") ;
     file.close() ;

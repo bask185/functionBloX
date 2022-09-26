@@ -11,6 +11,7 @@ public class FunctionBlock
     int Q ;
     int pin ;
     int delayTime ;
+    int index ;
 
     int isAnalog ;
 
@@ -145,4 +146,7 @@ public class FunctionBlock
 
     int  getType() { return  type ; }
     int isAnalog() { return isAnalog ; }
+
+    void setIndex( int index ) { this.index = index ; }
+    int  getIndex() { return index ; }
 }
