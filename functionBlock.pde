@@ -12,12 +12,17 @@ public class FunctionBlock
     int pin ;
     int delayTime ;
 
+    int isAnalog ;
+
     FunctionBlock(int xPos, int yPos, int type, int gridSize )
     {
         this.xPos       = xPos ;
         this.yPos       = yPos ;
         this.type       = type ;
         this.gridSize   = gridSize ;
+        isAnalog        = 0 ;
+
+        if( type == ANA_IN || type == ANA_OUT ) isAnalog = 1 ;
     }
 
     void draw()
@@ -138,5 +143,6 @@ public class FunctionBlock
     void setDelay( int delayTime ) { this.delayTime = delayTime ; }
     int  getDelay( ) { return delayTime ; }
 
-    int  getType() { return type ; }
+    int  getType() { return  type ; }
+    int isAnalog() { return isAnalog ; }
 }

@@ -14,26 +14,35 @@ class Link
 
     int gridSize ;
 
+    int startPosX ;
+    int startPosY ;
+    int startSubX ;
+    int startSubY ;
+
+    int stopPosX ;
+    int stopPosY ;
+    int stopSubX ;
+    int stopSubY ;
+
+    int subRow ;
     int posX ;
     int posY ;
     int subX ;
     int subY ;
 
-    int subRow ;
-
-
-    Link( int x, int y, int gridSize, int Q, int isAnalog )   // creates the first
+    Link( int x, int y, int gridSize )   // creates the first point
     { 
         this.gridSize = gridSize ;
-        this.isAnalog = isAnalog ;
-        this.Q = Q ;
 
+        Q   = 0 ;
         IN1 = 0 ;
         IN2 = 0 ;
         IN3 = 0 ;
 
-        subX = 2 ;
-        subY = 1 ;
+        startPosX = x ;
+        startPosY = y ;
+        startSubX = subX = 2 ;
+        startSubY = subY = 1 ;
 
         nPoints = 0 ;
 
@@ -71,19 +80,16 @@ class Link
         }
     }
 
+    void setQ( int Q ) { this.Q = Q ; }
+    int  getQ()        {   return Q ; }
+
     void setIn( int subRow, int IN)
     {
         this.subRow = subRow ;
         if( subRow == 0 )  this.IN1 = IN ;
         if( subRow == 1 )  this.IN2 = IN ;
         if( subRow == 2 )  this.IN3 = IN ;
-    }
-
-    int getQ()
-    {
-        return Q ;
-    }
-    
+    }    
     int getIn( int idx )
     {
         if( idx == 0 )  return IN1 ;
@@ -99,20 +105,16 @@ class Link
 
     void updatePoint( int x, int y, int subX, int subY )
     {
-        this.posX = x ;
-        this.posY = y ;
-        this.subX = subX ;
-        this.subY = subY ;
+        stopPosX = this.posX = x ;
+        stopPosY = this.posY = y ;
+        stopSubX = this.subX = subX ;
+        stopSubY = this.subY = subY ;
 
-        positions[0][nPoints] = posX << 8 | ( subX & 0x00FF ) ;                 // verified!
+        positions[0][nPoints] = posX << 8 | ( subX & 0x00FF ) ;
         positions[1][nPoints] = posY << 8 | ( subY & 0x00FF ) ;
     }
 
-    void addPoint( )
-    {   
-        //updatePoint( column, row, subX, subY ) ;
-        nPoints ++ ;
-    }
+    void addPoint( ) { nPoints ++ ; }
 
     void storePoint()
     {
@@ -121,12 +123,33 @@ class Link
     }
 
     int getNlinks()  { return nPoints ; }
-    int getPosX( int index ) { return positions[0][index] >> 8 ;   }
-    int getPosY( int index ) { return positions[1][index] >> 8 ;   }
-    int getSubX( int index ) { return positions[0][index] & 0xFF ; }
-    int getSubY( int index ) { return positions[1][index] & 0xFF ; }
- 
 
+    void setStartPos( int startPosX, int startPosY,
+                      int startSubX, int startSubY )
+    {
+        this.startPosX = startPosX ;
+        this.startPosY = startPosY ;
+        this.startSubX = startSubX ;
+        this.startSubY = startSubY ;
+    }
+    int getStartPosX() { return startPosX ; }
+    int getStartPosY() { return startPosY ; }
+    int getStartSubX() { return startSubX ; }
+    int getStartSubY() { return startSubY ; }
+    
+    void setStopPos( int stopPosX, int stopPosY,
+                     int stopSubX, int stopSubY )
+    {
+        this.stopPosX = stopPosX ;
+        this.stopPosY = stopPosY ;
+        this.stopSubX = stopSubX ;
+        this.stopSubY = stopSubY ;
+    }
+    int getStopPosX() { return stopPosX ; }
+    int getStopPosY() { return stopPosY ; }
+    int getStopSubX() { return stopSubX ; }
+    int getStopSubY() { return stopSubY ; }
+    
     boolean removePoint()
     {
         if( nPoints >  0 ) nPoints -- ;
@@ -137,5 +160,11 @@ class Link
         else                 return false ;
     }
 
+    void setAnalog( int val ) { isAnalog = val ; }
     int isAnalogIO() { return isAnalog ; }
+
+    int getPosX( int index ) { return positions[0][index] >> 8 ;   }
+    int getPosY( int index ) { return positions[1][index] >> 8 ;   }
+    int getSubX( int index ) { return positions[0][index] & 0xFF ; }
+    int getSubY( int index ) { return positions[1][index] & 0xFF ; }
 }

@@ -245,7 +245,7 @@ public:
         {   prevIn  = analogIN2 ;                // if incomming change, update PWM level
 
             analogWrite( pin, analogIN2 ) ;
-            // Serial.println( analogIN2 ) ; // DEBUG just testing if it... actually works
+            Serial.println( analogIN2 ) ; // DEBUG just testing if it... actually works
         }
     }
 
@@ -258,7 +258,7 @@ private:
 class ServoMotor : public AnalogBlock
 {
 public:
-    ServoMotor( uint8_t _pin ;) 
+    ServoMotor( uint8_t _pin ) 
     {
         pin = _pin ;
     }
@@ -282,9 +282,9 @@ public:
 
 private:
     Servo motor ;
-    uint8_t servoPos
+    uint8_t servoPos ;
     uint8_t pin ;
-}
+} ;
 
 
 class MAP : public AnalogBlock

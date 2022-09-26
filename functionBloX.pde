@@ -54,7 +54,12 @@ BACKLOG
 - for the analog stuff, make a map block
 
 CURRENT WORK:
+- The mouse functions have been refactored
+- test the new link updates
+- store the first and final coordinates directly
 - fix the problem that links are out of synch with new digital and analog IO.
+
+
 possible solutions:
 - store indices in the function blocks themselfes and keep track of separate indices
   for analog and digital IO.
@@ -83,7 +88,23 @@ components. Of I create a link on Q of block 13 and block 13 may be the 2nd anal
 I can set the link correctly to 1 instead of 12. 
 
 I think this is the most viable fix with a relative least amount of work
- 
+
+I added counters for the amount of analog and digital blocks. These counters are used to store
+the appriopiate index for every FB. The next step is use the new index variable to set the Q and IN
+for links
+
+Ok, storing the indices per block works but contains design flaws. If you remove blocks and add new ones
+you may get screwed up numbers in the link arrays.
+
+It is vital that links are continously updates at all times. Similarly, it is not needed to store the indices
+per block. To update the links, one most cross reference XY coordinates of the first and last points to
+the XY coordinates of the blocks. This will enforce correct values also when you replace function blocks
+
+To to the above it is usefull to store X, Y subX, subY of the first and the last point. Currently the last point is the last 
+in the point array.
+
+The update link function should work. But it needs to be tested. Setting Q and IN happens at all times. For every
+links, the begin and stop coordinates are fetched and than are crossreferenced with all present Function Blocks. 
 
 add pinnumber links for all input and outputs to the arduino program
 
@@ -126,6 +147,7 @@ final int   INPUT =  6 ;
 final int  OUTPUT =  7 ;
 final int      JK =  8 ;
 final int   PULSE =  9 ;
+
 final int  ANA_IN = 10 ;
 final int ANA_OUT = 11 ;
 
@@ -150,8 +172,6 @@ checklist adding new block
 - add control texts
 - add device to the arduino code
 
-
-
 */
 
 int         col ;
@@ -168,9 +188,12 @@ int         currentType ;
 int         pinNumber ;
 int         delayTime ;
 
-boolean     hoverOverFB ;
-boolean     hoverOverPoint ;
-boolean     blockMiddle ;
+int             nAnalogBlocks ;
+int             nDigitalBlocks ;
+
+boolean         hoverOverFB ;
+boolean         hoverOverPoint ;
+boolean         blockMiddle ;
 
 FunctionBlock or1 ;
 FunctionBlock and1 ;
@@ -203,6 +226,8 @@ void setup()
     outp1    = new FunctionBlock((width-gridSize)/gridSize,  6,  OUTPUT, gridSize ) ;
     jk1      = new FunctionBlock((width-gridSize)/gridSize,  7,      JK, gridSize ) ;
     gen1     = new FunctionBlock((width-gridSize)/gridSize,  8,   PULSE, gridSize ) ;
+
+
     ana_in1  = new FunctionBlock((width-gridSize)/gridSize,  9,  ANA_IN, gridSize ) ;
     ana_out1 = new FunctionBlock((width-gridSize)/gridSize, 10, ANA_OUT, gridSize ) ;
 }
@@ -215,163 +240,170 @@ void draw()
     printTexts() ;
     updateCursor() ;
     drawBlocks() ;
+    updateLinks() ;
     drawLinks() ;
 }
 
+
+// MOUSE PRESSED FUNCTIONS
+void addFunctionBlock()
+{
+    mode = movingItem ;         
+    currentType = row + 1 ;
+    pinNumber = 0 ;
+
+    blocks.add( new FunctionBlock(( width- 2*gridSize) / gridSize, row, currentType, gridSize )) ;    
+
+    index = blocks.size() - 1 ;
+    return ;
+}
+
+void moveItem()
+{
+    FunctionBlock block = blocks.get( index );
+
+    if( col == block.getXpos() &&  row == block.getYpos() && blockMiddle == true )
+    {
+        mode = movingItem ;
+        //index = i;
+        return ;
+    }
+    //else index = 0 ;
+}
+
+void alterNumber()
+{
+    try
+    {
+        pinNumber = 0 ;
+        delayTime = 0 ;
+
+        FunctionBlock block = blocks.get( index ) ;
+        int type = block.getType() ;
+        if( type ==     DEL ) mode = settingDelayTime ;
+        if( type ==   PULSE ) mode = settingPulseTime ;
+        if( type ==   INPUT
+        ||  type ==  OUTPUT
+        ||  type ==  ANA_IN
+        ||  type == ANA_OUT ) mode = settingNumber ;
+    } catch (IndexOutOfBoundsException e) {}
+}
+
+void createLink()
+{
+    mode = addingLinePoints ;
+
+    int analogIO = 0 ;
+
+    FunctionBlock block = blocks.get( index ) ;
+    int type = block.getType() ;
+
+    links.add( new Link( col, row, gridSize ) ) ;
+    Link link = links.get( linkIndex ) ;
+    link.updatePoint( col, row, subCol, subRow  ) ;
+}
+
+void finishLink()
+{
+    mode = idle ; 
+    Link link = links.get( linkIndex ) ;
+    linkIndex ++ ;
+}
+
+void addNodeToLink()
+{
+    Link link = links.get( linkIndex ) ;
+    link.addPoint( ) ;
+    link.updatePoint( col, row, subCol, subRow  ) ;
+}
+
+void deleteObject()
+{
+    FunctionBlock block = blocks.get( index ) ;
+    int type = block.getType() ;
+
+    if( type >= ANA_IN )  nAnalogBlocks -- ;
+    else                 nDigitalBlocks -- ;
+
+    blocks.remove(index);		                                            // DELETE THE OBJECT
+    hoverOverFB = false ;
+}
+
+void removeNode()
+{
+    Link link =links.get( linkIndex ) ;
+    if( link.removePoint( ) )
+    {
+        mode = idle ;
+        links.remove(linkIndex) ;
+    }
+    else
+    {
+        link.updatePoint( col, row, subCol, subRow  ) ;
+    }
+}
+
+void removeLink()
+{
+    println("foundLinkIndex: " + foundLinkIndex) ;
+    links.remove( foundLinkIndex ) ;
+    linkIndex -- ;
+}
+
+void dragItem() 
+{
+    FunctionBlock block = blocks.get(index);
+    block.setPos(col,row);
+}
+
+void dragLine()
+{
+    Link link = links.get( linkIndex ) ;
+    link.updatePoint( col, row, subCol, subRow  ) ;
+}
+// helper functions
 
 
 void leftMousePress()
 {
     if( mode == settingNumber || mode == settingDelayTime || mode == settingPulseTime ) return ;                               // as long as a number is set, LMB nor RMB must do anything
 
-
-    if((mouseX > (width-gridSize)) && mode == idle )                            // add function block
-    {
-        mode = movingItem ;         
-        currentType = row + 1 ;
-        pinNumber = 0 ;
-
-        blocks.add( new FunctionBlock(( width- 2*gridSize) / gridSize, row, currentType, gridSize )) ;
-
-        index = blocks.size() - 1 ;
-        return ;
-    }
-
-    else if( mode == idle ) for (int i = 0; i < blocks.size(); i++)             // drag item around
-    { 
-        FunctionBlock block1 = blocks.get(i);
-
-        if( col == block1.getXpos() &&  row == block1.getYpos() && blockMiddle == true )
-        {
-            mode = movingItem ;
-            index = i;
-            return ;
-        }
-        //else index = 0 ;
-    }
-    if ( mode == idle && subCol == 1 && subRow == 2 && hoverOverFB == true )    // alter number
-    {
-        try
-        {
-            pinNumber = 0 ;
-            delayTime = 0 ;
-
-            FunctionBlock block = blocks.get( index ) ;
-            int type = block.getType() ;
-            if( type ==     DEL ) mode = settingDelayTime ;
-            if( type ==   PULSE ) mode = settingPulseTime ;
-            if( type ==   INPUT
-            ||  type ==  OUTPUT
-            ||  type ==  ANA_IN
-            ||  type == ANA_OUT ) mode = settingNumber ;
-        } catch (IndexOutOfBoundsException e) {}
-    }
-    // CREATE LINK
-    else if( mode == idle && subCol == 2 && subRow == 1 && hoverOverFB == true )  // create a link.
-    {
-        mode = addingLinePoints ;
-
-        int analogIO = 0 ;
-
-        FunctionBlock block = blocks.get( index ) ;
-        int type = block.getType() ;
-
-        if( type == ANA_IN || type == ANA_OUT ) { analogIO = 1 ; println("ANALOG LINK MADE BRUH!!") ; }
-
-        links.add( new Link( col, row, gridSize, index, analogIO ) ) ;
-        Link link = links.get( linkIndex ) ;
-        link.updatePoint( col, row, subCol, subRow  ) ;
-    }
-
-    // FINISH LINK
-    else if( mode == addingLinePoints && subCol == 0 && hoverOverFB == true )   // finish link
-    {
-        mode = idle ;
-        
-        Link link = links.get( linkIndex ) ;
-        link.setIn( subRow, index ) ;
-        linkIndex ++ ;
-    }
-
-    // ADD NODE TO LINK
-    else if( mode == addingLinePoints )                                         // add node to link
-    {
-        Link link = links.get( linkIndex ) ;
-        link.addPoint( ) ;
-        link.updatePoint( col, row, subCol, subRow  ) ;
-    }
+    if(      mode == idle && (mouseX > (width-gridSize)) )                       addFunctionBlock() ;
+    else if( mode == idle ) for (int i = 0; i < blocks.size(); i++)              moveItem() ;
+    if (     mode == idle && subCol == 1 && subRow == 2 && hoverOverFB == true ) alterNumber() ;
+    else if( mode == idle && subCol == 2 && subRow == 1 && hoverOverFB == true ) createLink() ;
+    else if( mode == addingLinePoints && subCol == 0    && hoverOverFB == true ) finishLink() ;
+    else if( mode == addingLinePoints )                                          addNodeToLink() ; 
 }
 
 void rightMousePress()
 {
     if( mode == settingNumber ) return ;                                        // as long as a number is set, LMB nor RMB must do anything
 
-    /* if hover about a FB, delete it */
     if( mode == idle 
     && blocks.size() > 0 
     &&  index < blocks.size() 
     && hoverOverFB == true
-    && blockMiddle == true )
-    {
-        blocks.remove(index);		// DELETE THE OBJECT
-        hoverOverFB = false ;
-    }
-
-    // REMOVE PREVIOUS ADDED NODE OR ENTIRE LINK
-    else if( mode == addingLinePoints )
-    {
-        Link link =links.get( linkIndex ) ;
-        if( link.removePoint( ) )
-        {
-            mode = idle ;
-            links.remove(linkIndex) ;
-        }
-        else
-        {
-            link.updatePoint( col, row, subCol, subRow  ) ;
-        }
-    }
-
-    // REMOVE LINK
-    else if( hoverOverPoint )
-    {
-        println("foundLinkIndex: " + foundLinkIndex) ;
-        links.remove( foundLinkIndex ) ;
-        linkIndex -- ;
-    }
+    && blockMiddle == true )                deleteObject() ;  
+    else if( mode == addingLinePoints )     removeNode() ;
+    else if( hoverOverPoint )               removeLink() ;
 }
-
-
 void mousePressed()
 {	
-    if( mouseButton ==  LEFT )  leftMousePress() ;
-    if( mouseButton == RIGHT ) rightMousePress() ;
+    if( mouseButton ==  LEFT )              leftMousePress() ;
+    if( mouseButton == RIGHT )              rightMousePress() ;
 }
-
 void mouseDragged()
 {
-    if( mode == movingItem )
-    {
-        FunctionBlock block = blocks.get(index);
-        block.setPos(col,row);
-    } 
+    if( mode == movingItem )                dragItem() ;
 }
-
 void mouseMoved()
 {
-    if( mode == addingLinePoints )
-    {
-        Link link = links.get( linkIndex ) ;
-        link.updatePoint( col, row, subCol, subRow  ) ;
-    }
+    if( mode == addingLinePoints )          dragLine() ;
 }
-
 void mouseReleased()
 {
-    if( mode == movingItem )
-    { 
-        mode = idle ; 
-    }
+    if( mode == movingItem )                mode = idle ;
 }
 
 /***   <-- use this function to adjust gridsize icm 
@@ -386,7 +418,7 @@ void drawBackground()
 {
     background(230) ;
     fill(255) ;
-    rect(0,0,(width - gridSize) - 2 , (height - gridSize) - 2 ) ;
+    rect(0,0,(width - 2*gridSize) - 2 , (height - gridSize) - 2 ) ;
 
     textAlign(CENTER,CENTER);
 
@@ -403,13 +435,60 @@ void drawBackground()
     ana_out1.draw() ;
 }
 
+void updateLinks()
+{
+    for( int i = 0 ; i < links.size() ; i++ )  // get connected Q of the link
+    {
+        Link link = links.get(i) ;
+
+        int start_x    = link.getStartPosX() ;
+        int start_y    = link.getStartPosY() ;
+        int start_subX = link.getStartSubX() ;
+        int start_subY = link.getStartSubY() ;
+
+        int stop_x     = link.getStopPosX() ;
+        int stop_y     = link.getStopPosY() ;
+        int stop_subX  = link.getStopSubX() ;
+        int stop_subY  = link.getStopSubY() ;
+
+        boolean Qfound  = false ;
+        boolean INfound = false ;
+
+        for( int j = 0 ; j < blocks.size() ; j++ )                              // this loops finds who's Q is attached to this link
+        {
+            FunctionBlock block = blocks.get(j);
+            int block_x    = block.getXpos() ;
+            int block_y    = block.getYpos() ;
+            int isAnalog   = block.isAnalog() ;
+
+            if( start_x == block_x && start_y == block_y
+            &&  start_subX == 2    && start_subY == 1 
+            && Qfound == false )
+            {
+                link.setQ( j ) ;
+                link.setAnalog( isAnalog ) ;
+                Qfound = true ;
+            }
+
+            if( stop_x == block_x && stop_y == block_y 
+            &&  stop_subX == 0 
+            &&  INfound   == false ) 
+            {
+                link.setIn( stop_subY, j ) ;
+                INfound = true ;
+            }
+            
+            if( INfound && Qfound ) break ;                                     // if both connections are found, break out of this for loop and go to the next link/
+        }
+    }
+}
+
 void drawLinks()
 {
     for (int i = 0; i < links.size(); i++) 
     {
         Link link = links.get(i) ;
         link.draw() ;
-
     }
 }
 
@@ -437,13 +516,8 @@ void checkFunctionBlocks()
         if( col == block.getXpos() 
         &&  row == block.getYpos() )
         {
-            // TODO
-            // boolean     hoverOverPoint ;
-
             hoverOverFB = true ;
-
             if( subCol == 1 && subRow == 1 ) blockMiddle =  true ;
-            
             index = i ;
             return ;
         }
@@ -491,6 +565,8 @@ void updateCursor()
         subRow = mouseY / (gridSize/3) % 3 ;
     }  
 
+    
+
     textAlign(LEFT,TOP);
     textSize(20);    
     text("X: " + col,10,50);                                                         // row and col on screen.
@@ -500,7 +576,9 @@ void updateCursor()
     text("mode " + mode,10,110);
     text("subCol " + subCol,10,130);
     text("subRow " + subRow,10,150);
-    if(hoverOverPoint == true ) text("line detected ",10,190);    
+    if(hoverOverPoint == true ) text("line detected ",10,170);
+    text("N analog  " + nAnalogBlocks, 10, 190);
+    text("N digital " + nDigitalBlocks, 10, 210);
 }
 
 void printTexts()
@@ -515,49 +593,49 @@ void printTexts()
         {
             text1 = "New function block" ;
             text2 = "" ;
-            // mouse = loadImage("images/mouse2.png") ;
+            mouse = loadImage("images/mouse2.png") ;
         }
         else if(  mode == idle && subCol == 2 && subRow == 1 && hoverOverFB == true )
         {
             text1 = "create link" ;
             text2 = "delete link" ;
-            // mouse = loadImage("images/mouse3.png") ;
+            mouse = loadImage("images/mouse3.png") ;
         }
         else if( mode == idle && hoverOverFB  && blockMiddle == true )
         {
             text1 = "move item" ;
             text2 = "delete item" ;
-            // mouse = loadImage("images/mouse3.png") ;
+            mouse = loadImage("images/mouse3.png") ;
         }
         else if( mode == idle && hoverOverPoint )
         {
             text1 = "move node" ;
             text2 = "delete link" ;
-            // mouse = loadImage("images/mouse3.png") ;
+            mouse = loadImage("images/mouse3.png") ;
         }
         else if( mode == addingLinePoints && subCol == 0 && hoverOverFB == true )
         {
             text1 = "finish point" ;
             text2 = "" ;
-            // mouse = loadImage("images/mouse2.png") ;
+            mouse = loadImage("images/mouse2.png") ;
         }
         else if( mode == addingLinePoints )
         {
             text1 = "add point" ;
             text2 = "remove last point" ;
-            // mouse = loadImage("images/mouse3.png") ;
+            mouse = loadImage("images/mouse3.png") ;
         }
         else if( mode == movingItem)
         {
             text1 = "Moving function block" ;
             text2 = "" ;
-            // mouse = loadImage("images/mouse2.png") ;
+            mouse = loadImage("images/mouse2.png") ;
         }
         else if( mode == settingNumber )
         {
             text1 = "SET PIN NUMBER" ;
             text2 = "PRESS <ENTER> WHEN READY" ;
-            // mouse = loadImage("images/mouse1.png") ;
+            mouse = loadImage("images/mouse1.png") ;
         }
         else if((   type == INPUT  ||    type == OUTPUT 
         ||          type == ANA_IN ||    type == ANA_OUT ) 
@@ -566,39 +644,39 @@ void printTexts()
         {
             text1 = "SET PIN NUMBER" ;
             text2 = "" ;
-            // mouse = loadImage("images/mouse2.png") ;
+            mouse = loadImage("images/mouse2.png") ;
         }
         else if( mode == settingDelayTime )
         {
             text1 = "ENTER DELAY TIME" ;
             text2 = "PRESS <ENTER> WHEN READY" ;
-            // mouse = loadImage("images/mouse1.png") ;
+            mouse = loadImage("images/mouse1.png") ;
         }
         else if( type == DEL && subCol == 1 && subRow == 2 && hoverOverFB == true )
         {
             text1 = "SET DELAY TIME" ;
             text2 = "" ;
-            // mouse = loadImage("images/mouse2.png") ;
+            mouse = loadImage("images/mouse2.png") ;
         }
         else if( mode == settingPulseTime )
         {
             text1 = "ENTER PULSE SWITCH TIME" ;
             text2 = "PRESS <ENTER> WHEN READY" ;
-            // mouse = loadImage("images/mouse1.png") ;
+            mouse = loadImage("images/mouse1.png") ;
         }
         else if( type == PULSE && subCol == 1 && subRow == 2 && hoverOverFB == true )
         {
             text1 = "SET PULSE TIME" ;
             text2 = "" ;
-            // mouse = loadImage("images/mouse2.png") ;
+            mouse = loadImage("images/mouse2.png") ;
         }
         else
         {
             text1 = "" ;
             text2 = "" ;
-            // mouse = loadImage("images/mouse1.png") ;
+            mouse = loadImage("images/mouse1.png") ;
         }
-        //image(mouse, width/2-gridSize, gridSize/5,gridSize,gridSize);
+        image(mouse, width/2-gridSize, gridSize/5,gridSize,gridSize);
         textSize(gridSize/2);  
         textAlign(RIGHT,TOP);
         text( text1,  width/2 - gridSize, 0 ) ;
@@ -714,8 +792,8 @@ void saveLayout()
         int Q        = link.getQ() ;
         int IN1      = link.getIn(0) ;
         int IN2      = link.getIn(1) ;
-        int subrow   = link.getSubrow() ;
         int IN3      = link.getIn(2) ;
+        int subrow   = link.getSubrow() ;
         int isAnalog = link.isAnalogIO() ;
 
         output.print( Q + "," + IN1 + "," + IN2 + "," +IN3 + "," + subrow ) ;
@@ -756,14 +834,15 @@ void loadLayout()
         catch (IOException e) {return ;}
         
         String[] pieces = split(line, ',');
-        int X    = Integer.parseInt( pieces[0] );
-        int Y    = Integer.parseInt( pieces[1] );
-        int type = Integer.parseInt( pieces[2] );
-        int  pin = Integer.parseInt( pieces[3] );
-        int time = Integer.parseInt( pieces[4] );
-
+        int X        = Integer.parseInt( pieces[0] );
+        int Y        = Integer.parseInt( pieces[1] );
+        int type     = Integer.parseInt( pieces[2] );
+        int  pin     = Integer.parseInt( pieces[3] );
+        int time     = Integer.parseInt( pieces[4] );
 
         blocks.add( new FunctionBlock(X, Y, type, gridSize ) ) ;
+        if( type >= ANA_IN )  nAnalogBlocks ++ ;
+        else                 nDigitalBlocks ++ ;
         
         FunctionBlock block = blocks.get(j) ;
         block.setPin( pin ) ;
@@ -772,6 +851,7 @@ void loadLayout()
 
     try { line = input.readLine(); } 
     catch (IOException e) {}
+    println(line)  ;
 
     size = Integer.parseInt(line);
 
@@ -794,15 +874,8 @@ void loadLayout()
 
         if( isAnalog > 0 ) { println("ANALOG LINK loaded BRUH!!") ; }
 
-        links.add( new Link( x1, y1, gridSize, Q, isAnalog ) ) ;
+        links.add( new Link( x1, y1, gridSize ) ) ;
         Link link = links.get(i) ;
-
-        switch( subrow )
-        {
-            case 0 : link.setIn(subrow,IN1) ; break ;
-            case 1 : link.setIn(subrow,IN2) ; break ;
-            case 2 : link.setIn(subrow,IN3) ; break ;
-        }
 
         for( int j = 9 ; j < (50*4) + 1 ; j += 4 )      // 50 XY coordinates and 50 subX subY coordinates and we start at the 8th byte
         {      
@@ -836,9 +909,9 @@ void assembleProgram()
     for( int i = 0 ; i < blocks.size() ; i ++ )     // store digital components
     {
         FunctionBlock block = blocks.get( i ) ;
-        int type  = block.getType() ;
-        int time  = block.getDelay() ;
-        int  pin  = block.getPin() ;
+        int  type = block.getType() ;
+        int  time = block.getDelay() ;
+        int   pin = block.getPin() ;
         
         switch( type )
         {   // digital types
@@ -865,8 +938,8 @@ void assembleProgram()
         
         switch( type )
         {   // analog types
-            case  ANA_IN: file.println("static  AnalogInput a"+(i+1)+" =  AnalogInput("+  pin +") ;") ; index++ ; break ;
-            case ANA_OUT: file.println("static AnalogOutput a"+(i+1)+" = AnalogOutput("+  pin +") ;") ; index++ ; break ;
+            case  ANA_IN: file.println("static  AnalogInput a"+(index+1)+" =  AnalogInput("+  pin +") ;") ; index++ ; break ;
+            case ANA_OUT: file.println("static AnalogOutput a"+(index+1)+" = AnalogOutput("+  pin +") ;") ; index++ ; break ;
             // case COMPERATOR
             // case SERVO_MOTOR
             // case MAP
