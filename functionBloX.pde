@@ -157,8 +157,8 @@ final int      INPUT =  6 ;
 final int     OUTPUT =  7 ;
 final int         JK =  8 ;
 final int      PULSE =  9 ;
-final int  SER_IN = 10 ;
-final int SER_OUT = 11 ;
+final int     SER_IN = 10 ;
+final int    SER_OUT = 11 ;
 
 
 final int     ANA_IN = 21 ;
@@ -249,7 +249,7 @@ void setup()
     jk1       = new FunctionBlock((width-2*gridSize)/gridSize,  7,      JK, gridSize ) ;
     gen1      = new FunctionBlock((width-2*gridSize)/gridSize,  8,   PULSE, gridSize ) ;
     ser_in1   = new FunctionBlock((width-2*gridSize)/gridSize,  9,  SER_IN, gridSize ) ;
-    ser_out1  = new FunctionBlock((width-2*gridSize)/gridSize,  10,SER_OUT, gridSize ) ;
+    ser_out1  = new FunctionBlock((width-2*gridSize)/gridSize, 10, SER_OUT, gridSize ) ;
 
     // RIGHT COLUMNS DIGITAL STUFFS
     ana_in1  = new FunctionBlock((width-gridSize)/gridSize,    0,  ANA_IN, gridSize ) ;
@@ -956,15 +956,15 @@ void assembleProgram()
         
         switch( type )
         {   // digital types
-            case        AND: file.println("static       And D"+(index+1)+" =        And() ;") ;           index++ ; break ;
-            case         OR: file.println("static        Or D"+(index+1)+" =         Or() ;") ;           index++ ; break ;
-            case          M: file.println("static    Memory D"+(index+1)+" =     Memory() ;") ;           index++ ; break ;
-            case        NOT: file.println("static       Not D"+(index+1)+" =        Not() ;") ;           index++ ; break ;
-            case         JK: file.println("static        Jk D"+(index+1)+" =         Jk() ;") ;           index++ ; break ;
-            case        DEL: file.println("static     Delay D"+(index+1)+" =      Delay("+ time +") ;") ; index++ ; break ;
-            case      INPUT: file.println("static     Input D"+(index+1)+" =      Input("+  pin +") ;") ; index++ ; break ;
-            case     OUTPUT: file.println("static    Output D"+(index+1)+" =     Output("+  pin +") ;") ; index++ ; break ;
-            case      PULSE: file.println("static     Pulse D"+(index+1)+" =      Pulse("+ time +") ;") ; index++ ; break ;  
+            case     AND: file.println("static       And D"+(index+1)+" =        And() ;") ;           index++ ; break ;
+            case      OR: file.println("static        Or D"+(index+1)+" =         Or() ;") ;           index++ ; break ;
+            case       M: file.println("static    Memory D"+(index+1)+" =     Memory() ;") ;           index++ ; break ;
+            case     NOT: file.println("static       Not D"+(index+1)+" =        Not() ;") ;           index++ ; break ;
+            case      JK: file.println("static        Jk D"+(index+1)+" =         Jk() ;") ;           index++ ; break ;
+            case     DEL: file.println("static     Delay D"+(index+1)+" =      Delay("+ time +") ;") ; index++ ; break ;
+            case   INPUT: file.println("static     Input D"+(index+1)+" =      Input("+  pin +") ;") ; index++ ; break ;
+            case  OUTPUT: file.println("static    Output D"+(index+1)+" =     Output("+  pin +") ;") ; index++ ; break ;
+            case   PULSE: file.println("static     Pulse D"+(index+1)+" =      Pulse("+ time +") ;") ; index++ ; break ;  
             case  SER_IN: file.println("static  SerialIn D"+(index+1)+" =   SerialIn("+ time +") ;") ; index++ ; break ;  
             case SER_OUT: file.println("static SerialOut D"+(index+1)+" =  SerialOut("+ time +") ;") ; index++ ; break ;  
         }
