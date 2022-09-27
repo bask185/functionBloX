@@ -254,6 +254,21 @@ public:
     }
 } ;
 
+class Constant : public AnalogBlock
+{
+public:
+    Constant( uint16_t val )
+    {
+        Q = val ;
+    }
+
+    void run()
+    {
+
+    }
+} ;
+
+
 class AnalogInput : public AnalogBlock
 {
 public:
@@ -288,15 +303,15 @@ public:
 
     AnalogOutput( uint8_t _pin ) : pin( _pin )
     {        
-        static_assert
-        ( 
-                pin ==  3 
-            ||  pin ==  5
-            ||  pin ==  6
-            ||  pin ==  9
-            ||  pin == 10
-            ||  pin == 11 , "INVALID PWM PIN USED" 
-        ) ;
+        // static_assert
+        // ( 
+        //         pin ==  3 
+        //     ||  pin ==  5
+        //     ||  pin ==  6
+        //     ||  pin ==  9
+        //     ||  pin == 10
+        //     ||  pin == 11 , "INVALID PWM PIN USED" 
+        // ) ;
     }
 
     void run()

@@ -88,15 +88,15 @@ public class FunctionBlock
             case       M: txt =   " M" ;                     box = 0x0D ; break ;
             case     DEL: txt ="DELAY\r\n\r\n" + delayTime ; box = 0x0A ; break ;
             case     NOT: txt =  "NOT" ;                     box = 0x0A ; break ; // text replaced by clock symbol
-            case   INPUT: txt = "INPUT\r\nD" + pin;          box = 0x08 ; break ;
-            case  OUTPUT: txt ="OUTPUT\r\nD" + pin;          box = 0x02 ; break ;
+            case   INPUT: txt = "IN-\r\nPUT\r\nD" + pin;     box = 0x08 ; break ;
+            case  OUTPUT: txt ="OUT-\r\nPUT\r\nD" + pin;     box = 0x02 ; break ;
             case      JK: txt =  "J    \r\nK    \r\nCLK";    box = 0x0F ; break ;
             case   PULSE: txt= "\r\n" +  delayTime;          box = 0x08 ; break ;
             case  ANA_IN: txt= "ADC\r\n\r\nA" + pin;         box = 0x08 ; break ;
             case ANA_OUT: txt= "PWM\r\n\r\nD" + pin;         box = 0x02 ; break ;
             case   SERVO: txt= "SERVO" ;                     box = 0x02 ; break ;
-            case  SER_IN: txt= "mess  INr\n\r\n" ;           box = 0x08 ; break ;
-            case SER_OUT: txt= "mess OUT\r\n\r\n" ;          box = 0x02 ; break ;
+            case  SER_IN: txt= "MESS\r\nIN" ;                box = 0x08 ; break ;
+            case SER_OUT: txt= "MESS\r\nOUT" ;               box = 0x02 ; break ;
             case     MAP: txt= "MAP" ;                       box = 0x0A ; break ;
         }
 
@@ -116,7 +116,7 @@ public class FunctionBlock
         line(x1, y2, x2, y2) ;                          // line of Q
         fill(0);
 
-        textSize( gridSize / 7 ) ; 
+        textSize( gridSize / 5 ) ; 
         
         int x = xPos * gridSize + gridSize/2 ;
         int y = yPos * gridSize + gridSize/2 ;

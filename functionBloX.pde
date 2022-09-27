@@ -43,6 +43,7 @@ V add serial input and serial output blocks, to send and receive messages over t
 V add D for all digital Pin numbers
 V check if #error can be used to test the PWM pins for being an actual PWM pin note: it can be done
   but the syntax behind it is abysmal. I need like 3 helper function with vague c++ syntax to get it done
+- add mouse images to git
 
 
 
@@ -64,6 +65,9 @@ CURRENT WORK:
 - test the new link updates
 - store the first and final coordinates directly
 - fix the problem that links are out of synch with new digital and analog IO.
+- adjusting gridSize, both FB and links work, but the subcoordinates of the mouse
+  seems off, with different zoom levels it can be difficult to move an item or create a link..
+  
 
 
 possible solutions:
@@ -244,8 +248,8 @@ void setup()
     outp1     = new FunctionBlock((width-2*gridSize)/gridSize,  6,  OUTPUT, gridSize ) ;
     jk1       = new FunctionBlock((width-2*gridSize)/gridSize,  7,      JK, gridSize ) ;
     gen1      = new FunctionBlock((width-2*gridSize)/gridSize,  8,   PULSE, gridSize ) ;
-    ser_in1   = new FunctionBlock((width-2*gridSize)/gridSize,  9,    SER_IN, gridSize ) ;
-    ser_out1  = new FunctionBlock((width-2*gridSize)/gridSize,  10,   SER_OUT, gridSize ) ;
+    ser_in1   = new FunctionBlock((width-2*gridSize)/gridSize,  9,  SER_IN, gridSize ) ;
+    ser_out1  = new FunctionBlock((width-2*gridSize)/gridSize,  10,SER_OUT, gridSize ) ;
 
     // RIGHT COLUMNS DIGITAL STUFFS
     ana_in1  = new FunctionBlock((width-gridSize)/gridSize,    0,  ANA_IN, gridSize ) ;
@@ -433,19 +437,20 @@ void mouseReleased()
     if( mode == movingItem )                mode = idle ;
 }
 
-/***   <-- use this function to adjust gridsize icm 
-void mouseWheel(MouseEvent event) {
-  float e = event.getCount();
-  println(e);
+void mouseWheel(MouseEvent event)
+{
+    float e = event.getCount();
+    if( e > 0 && gridSize < 40 ) return ;
+    gridSize -= 5* (int) e ;
+    println( gridSize ) ;
 }
--*********/
 
 
 void drawBackground()
 {
-    background(230) ;
+    background(180) ;
     fill(255) ;
-    rect(0,0,(width - 2*gridSize) - 2 , (height - gridSize) - 2 ) ;
+    rect(0,0,(width - 120) - 2 , (height - 120) - 2 ) ;
 
     textAlign(CENTER,CENTER);
 
@@ -462,7 +467,7 @@ void drawBackground()
     ana_out1.draw() ;
     servo1.draw() ;
     map1.draw() ;
-    comp1.draw() ;
+    comp1.draw() ; 
     ser_in1.draw() ;
     ser_out1.draw() ;
 }
@@ -520,6 +525,7 @@ void drawLinks()
     for (int i = 0; i < links.size(); i++) 
     {
         Link link = links.get(i) ;
+        link.setGridSize( gridSize ) ;
         link.draw() ;
     }
 }

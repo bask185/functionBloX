@@ -80,6 +80,11 @@ class Link
         }
     }
 
+    void setGridSize( int gridSize )
+    {
+        this.gridSize = gridSize ;
+    }
+
     void setQ( int Q ) { this.Q = Q ; }
     int  getQ()        {   return Q ; }
 
