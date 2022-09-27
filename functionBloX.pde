@@ -43,6 +43,10 @@ V ditch the triangles for input/output and make them square like the others
 V add D for all digital Pin numbers
 - check if #error can be used to test the PWM pins for being an actual PWM pin
 
+
+
+- add method to insert constants for a map block
+
 EXTRA
 - make comperator for usage with analog input
 - make separate arrays for AND, NOR and MEMORIES. , unsure if actually needed, it may help with generating organized source code.
@@ -148,12 +152,15 @@ final int      INPUT =  6 ;
 final int     OUTPUT =  7 ;
 final int         JK =  8 ;
 final int      PULSE =  9 ;
+final int  SER_IN = 10 ;
+final int SER_OUT = 11 ;
 
-final int     ANA_IN = 20 ;
-final int    ANA_OUT = 21 ;
-final int      SERVO = 22 ;
-final int        MAP = 23 ;
-final int       COMP = 24 ;
+
+final int     ANA_IN = 21 ;
+final int    ANA_OUT = 22 ;
+final int      SERVO = 23 ;
+final int        MAP = 24 ;
+final int       COMP = 25 ;
 
 
 // digital input
@@ -213,6 +220,8 @@ FunctionBlock ana_out1 ;
 FunctionBlock servo1 ;
 FunctionBlock map1 ;
 FunctionBlock comp1 ;
+FunctionBlock ser_in1 ;
+FunctionBlock ser_out1 ;
 
 
 void setup()
@@ -225,15 +234,17 @@ void setup()
     background(255) ;
     
     // LEFT COLUMN  ANALOG STUFFS
-    and1     = new FunctionBlock((width-2*gridSize)/gridSize,  0,     AND, gridSize ) ;
-    or1      = new FunctionBlock((width-2*gridSize)/gridSize,  1,      OR, gridSize ) ;
-    sr1      = new FunctionBlock((width-2*gridSize)/gridSize,  2,       M, gridSize ) ;
-    delay1   = new FunctionBlock((width-2*gridSize)/gridSize,  3,     DEL, gridSize ) ;
-    not1     = new FunctionBlock((width-2*gridSize)/gridSize,  4,     NOT, gridSize ) ;
-    inp1     = new FunctionBlock((width-2*gridSize)/gridSize,  5,   INPUT, gridSize ) ;
-    outp1    = new FunctionBlock((width-2*gridSize)/gridSize,  6,  OUTPUT, gridSize ) ;
-    jk1      = new FunctionBlock((width-2*gridSize)/gridSize,  7,      JK, gridSize ) ;
-    gen1     = new FunctionBlock((width-2*gridSize)/gridSize,  8,   PULSE, gridSize ) ;
+    and1      = new FunctionBlock((width-2*gridSize)/gridSize,  0,     AND, gridSize ) ;
+    or1       = new FunctionBlock((width-2*gridSize)/gridSize,  1,      OR, gridSize ) ;
+    sr1       = new FunctionBlock((width-2*gridSize)/gridSize,  2,       M, gridSize ) ;
+    delay1    = new FunctionBlock((width-2*gridSize)/gridSize,  3,     DEL, gridSize ) ;
+    not1      = new FunctionBlock((width-2*gridSize)/gridSize,  4,     NOT, gridSize ) ;
+    inp1      = new FunctionBlock((width-2*gridSize)/gridSize,  5,   INPUT, gridSize ) ;
+    outp1     = new FunctionBlock((width-2*gridSize)/gridSize,  6,  OUTPUT, gridSize ) ;
+    jk1       = new FunctionBlock((width-2*gridSize)/gridSize,  7,      JK, gridSize ) ;
+    gen1      = new FunctionBlock((width-2*gridSize)/gridSize,  8,   PULSE, gridSize ) ;
+    ser_in1   = new FunctionBlock((width-2*gridSize)/gridSize,  9,    SER_IN, gridSize ) ;
+    ser_out1  = new FunctionBlock((width-2*gridSize)/gridSize,  10,   SER_OUT, gridSize ) ;
 
     // RIGHT COLUMNS DIGITAL STUFFS
     ana_in1  = new FunctionBlock((width-gridSize)/gridSize,    0,  ANA_IN, gridSize ) ;
@@ -262,8 +273,8 @@ void addFunctionBlock()
 {
     mode = movingItem ;
 
-    if( mouseX > (width-gridSize)) currentType = row + 1 + 20 ;
-    else                           currentType = row + 1 ;
+    if( mouseX > (width-gridSize)) currentType = row + 21 ; // hover over analog things
+    else                           currentType = row +  1 ; // hover over digital things
 
     pinNumber = 0 ;
 
@@ -451,6 +462,8 @@ void drawBackground()
     servo1.draw() ;
     map1.draw() ;
     comp1.draw() ;
+    ser_in1.draw() ;
+    ser_out1.draw() ;
 }
 
 void updateLinks()
@@ -611,49 +624,49 @@ void printTexts()
         {
             text1 = "New function block" ;
             text2 = "" ;
-            mouse = loadImage("images/mouse2.png") ;
+            // mouse = loadImage("images/mouse2.png") ;
         }
         else if(  mode == idle && subCol == 2 && subRow == 1 && hoverOverFB == true )
         {
             text1 = "create link" ;
             text2 = "delete link" ;
-            mouse = loadImage("images/mouse3.png") ;
+            // mouse = loadImage("images/mouse3.png") ;
         }
         else if( mode == idle && hoverOverFB  && blockMiddle == true )
         {
             text1 = "move item" ;
             text2 = "delete item" ;
-            mouse = loadImage("images/mouse3.png") ;
+            // mouse = loadImage("images/mouse3.png") ;
         }
         else if( mode == idle && hoverOverPoint )
         {
             text1 = "move node" ;
             text2 = "delete link" ;
-            mouse = loadImage("images/mouse3.png") ;
+            // mouse = loadImage("images/mouse3.png") ;
         }
         else if( mode == addingLinePoints && subCol == 0 && hoverOverFB == true )
         {
             text1 = "finish point" ;
             text2 = "" ;
-            mouse = loadImage("images/mouse2.png") ;
+            // mouse = loadImage("images/mouse2.png") ;
         }
         else if( mode == addingLinePoints )
         {
             text1 = "add point" ;
             text2 = "remove last point" ;
-            mouse = loadImage("images/mouse3.png") ;
+            // mouse = loadImage("images/mouse3.png") ;
         }
         else if( mode == movingItem)
         {
             text1 = "Moving function block" ;
             text2 = "" ;
-            mouse = loadImage("images/mouse2.png") ;
+            // mouse = loadImage("images/mouse2.png") ;
         }
         else if( mode == settingNumber )
         {
             text1 = "SET PIN NUMBER" ;
             text2 = "PRESS <ENTER> WHEN READY" ;
-            mouse = loadImage("images/mouse1.png") ;
+            // mouse = loadImage("images/mouse1.png") ;
         }
         else if((   type == INPUT  ||    type == OUTPUT 
         ||          type == ANA_IN ||    type == ANA_OUT ) 
@@ -662,39 +675,39 @@ void printTexts()
         {
             text1 = "SET PIN NUMBER" ;
             text2 = "" ;
-            mouse = loadImage("images/mouse2.png") ;
+            // mouse = loadImage("images/mouse2.png") ;
         }
         else if( mode == settingDelayTime )
         {
             text1 = "ENTER DELAY TIME" ;
             text2 = "PRESS <ENTER> WHEN READY" ;
-            mouse = loadImage("images/mouse1.png") ;
+            // mouse = loadImage("images/mouse1.png") ;
         }
         else if( type == DEL && subCol == 1 && subRow == 2 && hoverOverFB == true )
         {
             text1 = "SET DELAY TIME" ;
             text2 = "" ;
-            mouse = loadImage("images/mouse2.png") ;
+            // mouse = loadImage("images/mouse2.png") ;
         }
         else if( mode == settingPulseTime )
         {
             text1 = "ENTER PULSE SWITCH TIME" ;
             text2 = "PRESS <ENTER> WHEN READY" ;
-            mouse = loadImage("images/mouse1.png") ;
+            // mouse = loadImage("images/mouse1.png") ;
         }
         else if( type == PULSE && subCol == 1 && subRow == 2 && hoverOverFB == true )
         {
             text1 = "SET PULSE TIME" ;
             text2 = "" ;
-            mouse = loadImage("images/mouse2.png") ;
+            // mouse = loadImage("images/mouse2.png") ;
         }
         else
         {
             text1 = "" ;
             text2 = "" ;
-            mouse = loadImage("images/mouse1.png") ;
+            // mouse = loadImage("images/mouse1.png") ;
         }
-        image(mouse, width/2-gridSize, gridSize/5,gridSize,gridSize);
+        //image(mouse, width/2-gridSize, gridSize/5,gridSize,gridSize);
         textSize(gridSize/2);  
         textAlign(RIGHT,TOP);
         text( text1,  width/2 - gridSize, 0 ) ;
@@ -867,7 +880,10 @@ void loadLayout()
         block.setDelay( time ) ;
     } 
 
-    line = input.readLine();
+    try { line = input.readLine(); } 
+    catch (IOException e) {}
+    println(line)  ;
+
     size = Integer.parseInt(line);
 
     for( int i = 0 ; i < size ; i++ ) 
@@ -913,6 +929,7 @@ void loadLayout()
 
 void assembleProgram() 
 {
+    
     file = createWriter("arduinoProgram/arduinoProgram.ino");
     file.println("#include \"functionBlocks.h\"") ;
     file.println("") ;
@@ -941,8 +958,8 @@ void assembleProgram()
             case      INPUT: file.println("static     Input D"+(index+1)+" =      Input("+  pin +") ;") ; index++ ; break ;
             case     OUTPUT: file.println("static    Output D"+(index+1)+" =     Output("+  pin +") ;") ; index++ ; break ;
             case      PULSE: file.println("static     Pulse D"+(index+1)+" =      Pulse("+ time +") ;") ; index++ ; break ;  
-            case  SERIAL_IN: file.println("static  SerialIn D"+(index+1)+" =   SerialIn("+ time +") ;") ; index++ ; break ;  
-            case SERIAL_OUT: file.println("static SerialOut D"+(index+1)+" =  SerialOut("+ time +") ;") ; index++ ; break ;  
+            case  SER_IN: file.println("static  SerialIn D"+(index+1)+" =   SerialIn("+ time +") ;") ; index++ ; break ;  
+            case SER_OUT: file.println("static SerialOut D"+(index+1)+" =  SerialOut("+ time +") ;") ; index++ ; break ;  
         }
     }
     nDigitalBlocks = index ; 
@@ -959,9 +976,10 @@ void assembleProgram()
         {   // analog types
             case      ANA_IN:  file.println( "static  AnalogInput A"+(index+1)+" =  AnalogInput("+  pin +") ;") ; index++ ; break ;
             case     ANA_OUT:  file.println( "static AnalogOutput A"+(index+1)+" = AnalogOutput("+  pin +") ;") ; index++ ; break ;
-            case  COMPERATOR:  file.println( "static   Comperator A"+(index+1)+" =   Comperator() ;") ;           index++ ; break ;
-            case SERVO_MOTOR:  file.println( "static   ServoMotor A"+(index+1)+" =   ServoMotor("+  pin +") ;") ; index++ ; break ;
-            case         MAP:  file.println( "static          Map A"+(index+1)+" =          Map("+in1+","+in2+","+out1+","+out2+") ;") ;   index++ ; break ;
+            case        COMP:  file.println( "static   Comperator A"+(index+1)+" =   Comperator() ;") ;           index++ ; break ;
+            case       SERVO:  file.println( "static   ServoMotor A"+(index+1)+" =   ServoMotor("+  pin +") ;") ; index++ ; break ;
+            //case         MAP:  file.println( "static          Map A"+(index+1)+" =          Map("+in1+","+in2+","+out1+","+out2+") ;") ;   index++ ; break ;
+        }
     }
     nAnalogBlocks = index ;
 
@@ -978,6 +996,7 @@ void assembleProgram()
     file.println("") ;
     file.println("void updateLinks()") ;
     file.println("{") ;
+    
     for ( int i = 0 ; i < links.size() ; i ++ ) 
     {
         Link  link = links.get( i ) ;
@@ -990,7 +1009,7 @@ void assembleProgram()
         if( isAnalog > 0 )  file.println("    digitalBlock["+IN+"] -> IN" +(subrow+1)+" = digitalBlock["+Q+"] -> Q ;") ;
         else                file.println("    analogBlock["+IN+"] -> IN" +(subrow+1)+" = analogBlock["+Q+"] -> Q ;") ;
     }
-    ile.println("}") ;
+    file.println("}") ;
     file.println("") ;
     file.println("void sendMessage( String S )") ;
     file.println("{") ;
@@ -1023,7 +1042,7 @@ void assembleProgram()
     file.println("") ;
     file.println("void loop()") ;
     file.println("{") ;
-    file.println("/***************** UPDATE FUNCTION BLOCKS *****************/") ;
+    file.println("/***************** UPDATE FUNCTION BLOCKS ***************** /") ;
     file.println("    for( int i = 0 ; i < nDigitalBlocks ; i ++ ) { digitalBlock[i] -> run() ; updateLinks() ; }") ;
     file.println("    for( int i = 0 ; i <  nAnalogBlocks ; i ++ ) {  analogBlock[i] -> run() ; updateLinks() ; }") ;
     file.println("}") ;

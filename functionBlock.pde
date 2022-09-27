@@ -44,6 +44,8 @@ public class FunctionBlock
         case   INPUT:
         case   SERVO:
         case     MAP:
+        case SER_IN:
+        case SER_OUT:
             rect( xPos * gridSize + (gridSize/5), yPos * gridSize + 1, 3*gridSize/5, gridSize - 2 ) ; // main box
             break ;
 
@@ -92,6 +94,10 @@ public class FunctionBlock
             case   PULSE: txt= "\r\n" +  delayTime;          box = 0x08 ; break ;
             case  ANA_IN: txt= "ADC\r\n\r\nA" + pin;         box = 0x08 ; break ;
             case ANA_OUT: txt= "PWM\r\n\r\nD" + pin;         box = 0x02 ; break ;
+            case   SERVO: txt= "SERVO" ;                     box = 0x02 ; break ;
+            case  SER_IN: txt= "mess  INr\n\r\n" ;           box = 0x08 ; break ;
+            case SER_OUT: txt= "mess OUT\r\n\r\n" ;          box = 0x02 ; break ;
+            case     MAP: txt= "MAP" ;                       box = 0x0A ; break ;
         }
 
         int x1 = xPos * gridSize ;
