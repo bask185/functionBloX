@@ -39,9 +39,10 @@ V ID of Function blocks also need to be stored for the input and output blocks
 V if mouse is clicked to alter pin/time number, the number should be initialized to 0. To work from the current value does not
   work as intuitive as I imagined.
 V ditch the triangles for input/output and make them square like the others
-- add serial input and serial output blocks, to send and receive messages over the serial port
+V add serial input and serial output blocks, to send and receive messages over the serial port
 V add D for all digital Pin numbers
-- check if #error can be used to test the PWM pins for being an actual PWM pin
+V check if #error can be used to test the PWM pins for being an actual PWM pin note: it can be done
+  but the syntax behind it is abysmal. I need like 3 helper function with vague c++ syntax to get it done
 
 
 
@@ -56,7 +57,7 @@ EXTRA
 
 BACKLOG
 - move node of a line by dragging it with LMB
-- for the analog stuff, make a map block
+V for the analog stuff, make a map block
 
 CURRENT WORK:
 - The mouse functions have been refactored
