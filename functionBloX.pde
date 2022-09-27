@@ -818,8 +818,8 @@ void loadLayout()
     println("LAYOUT LOADED");
     String line = "" ;
 
-   
-    try {
+    try
+    {
         input = createReader("program.csv"); 
         line = input.readLine();
     } 
@@ -834,11 +834,11 @@ void loadLayout()
         catch (IOException e) {return ;}
         
         String[] pieces = split(line, ',');
-        int X        = Integer.parseInt( pieces[0] );
-        int Y        = Integer.parseInt( pieces[1] );
-        int type     = Integer.parseInt( pieces[2] );
-        int  pin     = Integer.parseInt( pieces[3] );
-        int time     = Integer.parseInt( pieces[4] );
+        int X     = Integer.parseInt( pieces[0] );
+        int Y     = Integer.parseInt( pieces[1] );
+        int type  = Integer.parseInt( pieces[2] );
+        int  pin  = Integer.parseInt( pieces[3] );
+        int time  = Integer.parseInt( pieces[4] );
 
         blocks.add( new FunctionBlock(X, Y, type, gridSize ) ) ;
         if( type >= ANA_IN )  nAnalogBlocks ++ ;
@@ -849,10 +849,7 @@ void loadLayout()
         block.setDelay( time ) ;
     } 
 
-    try { line = input.readLine(); } 
-    catch (IOException e) {}
-    println(line)  ;
-
+    line = input.readLine();
     size = Integer.parseInt(line);
 
     for( int i = 0 ; i < size ; i++ ) 
@@ -912,18 +909,22 @@ void assembleProgram()
         int  type = block.getType() ;
         int  time = block.getDelay() ;
         int   pin = block.getPin() ;
+
+        // Add code to keep track of servo objects, their indices need to be stored
         
         switch( type )
         {   // digital types
-            case     AND: file.println("static          And d"+(index+1)+" =          And() ;") ;           index++ ; break ;
-            case      OR: file.println("static           Or d"+(index+1)+" =           Or() ;") ;           index++ ; break ;
-            case       M: file.println("static       Memory d"+(index+1)+" =       Memory() ;") ;           index++ ; break ;
-            case     NOT: file.println("static          Not d"+(index+1)+" =          Not() ;") ;           index++ ; break ;
-            case      JK: file.println("static           Jk d"+(index+1)+" =           Jk() ;") ;           index++ ; break ;
-            case     DEL: file.println("static        Delay d"+(index+1)+" =        Delay("+ time +") ;") ; index++ ; break ;
-            case   INPUT: file.println("static        Input d"+(index+1)+" =        Input("+  pin +") ;") ; index++ ; break ;
-            case  OUTPUT: file.println("static       Output d"+(index+1)+" =       Output("+  pin +") ;") ; index++ ; break ;
-            case   PULSE: file.println("static        Pulse d"+(index+1)+" =        Pulse("+ time +") ;") ; index++ ; break ;  
+            case        AND: file.println("static       And D"+(index+1)+" =        And() ;") ;           index++ ; break ;
+            case         OR: file.println("static        Or D"+(index+1)+" =         Or() ;") ;           index++ ; break ;
+            case          M: file.println("static    Memory D"+(index+1)+" =     Memory() ;") ;           index++ ; break ;
+            case        NOT: file.println("static       Not D"+(index+1)+" =        Not() ;") ;           index++ ; break ;
+            case         JK: file.println("static        Jk D"+(index+1)+" =         Jk() ;") ;           index++ ; break ;
+            case        DEL: file.println("static     Delay D"+(index+1)+" =      Delay("+ time +") ;") ; index++ ; break ;
+            case      INPUT: file.println("static     Input D"+(index+1)+" =      Input("+  pin +") ;") ; index++ ; break ;
+            case     OUTPUT: file.println("static    Output D"+(index+1)+" =     Output("+  pin +") ;") ; index++ ; break ;
+            case      PULSE: file.println("static     Pulse D"+(index+1)+" =      Pulse("+ time +") ;") ; index++ ; break ;  
+            case  SERIAL_IN: file.println("static  SerialIn D"+(index+1)+" =   SerialIn("+ time +") ;") ; index++ ; break ;  
+            case SERIAL_OUT: file.println("static SerialOut D"+(index+1)+" =  SerialOut("+ time +") ;") ; index++ ; break ;  
         }
     }
     nDigitalBlocks = index ; 
@@ -938,39 +939,27 @@ void assembleProgram()
         
         switch( type )
         {   // analog types
-            case  ANA_IN: file.println("static  AnalogInput a"+(index+1)+" =  AnalogInput("+  pin +") ;") ; index++ ; break ;
-            case ANA_OUT: file.println("static AnalogOutput a"+(index+1)+" = AnalogOutput("+  pin +") ;") ; index++ ; break ;
-            // case COMPERATOR
-            // case SERVO_MOTOR
-            // case MAP
-        }
+            case      ANA_IN:  file.println( "static  AnalogInput A"+(index+1)+" =  AnalogInput("+  pin +") ;") ; index++ ; break ;
+            case     ANA_OUT:  file.println( "static AnalogOutput A"+(index+1)+" = AnalogOutput("+  pin +") ;") ; index++ ; break ;
+            case  COMPERATOR:  file.println( "static   Comperator A"+(index+1)+" =   Comperator() ;") ;           index++ ; break ;
+            case SERVO_MOTOR:  file.println( "static   ServoMotor A"+(index+1)+" =   ServoMotor("+  pin +") ;") ; index++ ; break ;
+            case         MAP:  file.println( "static          Map A"+(index+1)+" =          Map("+in1+","+in2+","+out1+","+out2+") ;") ;   index++ ; break ;
     }
     nAnalogBlocks = index ;
 
     file.println("") ;
     file.println("DigitalBlock *digitalBlock[] = {") ;
-    for( int i = 0 ; i < nDigitalBlocks ; i ++ ) file.println("    &d"+ (i+1)+" ,") ;
+    for( int i = 0 ; i < nDigitalBlocks ; i ++ ) file.println("    &D"+ (i+1)+" ,") ;
     file.println("} ;") ;
     file.println("const int nDigitalBlocks = " + nDigitalBlocks + " ;" ) ;
-
     file.println("") ;
     file.println("AnalogBlock *analogBlock[] = {") ;
-    for( int i = 0 ; i < nAnalogBlocks ; i ++ ) file.println("    &a"+ (i+1)+" ,") ;
+    for( int i = 0 ; i < nAnalogBlocks ; i ++ ) file.println("    &A"+ (i+1)+" ,") ;
     file.println("} ;") ;
     file.println("const int nAnalogBlocks = " + nAnalogBlocks + " ;" ) ;
-
     file.println("") ;
-    file.println("void setup()") ;
+    file.println("void updateLinks()") ;
     file.println("{") ;
-    file.println("}") ;
-    file.println("") ;
-    file.println("void loop()") ;
-    file.println("{") ;
-    file.println("/***************** UPDATE FUNCTION BLOCKS *****************/") ;
-    file.println("    for( int i = 0 ; i < nDigitalBlocks ; i ++ ) digitalBlock[i] -> run() ;") ;
-    file.println("    for( int i = 0 ; i <  nAnalogBlocks ; i ++ )  analogBlock[i] -> run() ;") ;
-    file.println("") ;
-    file.println("/***************** UPDATE LINKS *****************/") ;
     for ( int i = 0 ; i < links.size() ; i ++ ) 
     {
         Link  link = links.get( i ) ;
@@ -981,8 +970,44 @@ void assembleProgram()
         int isAnalog = link.isAnalogIO() ;
 
         if( isAnalog > 0 )  file.println("    digitalBlock["+IN+"] -> IN" +(subrow+1)+" = digitalBlock["+Q+"] -> Q ;") ;
-        else                file.println("     analogBlock["+IN+"] -> IN" +(subrow+1)+" =  analogBlock["+Q+"] -> Q ;") ;
+        else                file.println("    analogBlock["+IN+"] -> IN" +(subrow+1)+" = analogBlock["+Q+"] -> Q ;") ;
     }
+    ile.println("}") ;
+    file.println("") ;
+    file.println("void sendMessage( String S )") ;
+    file.println("{") ;
+    file.println("    Serial.println( S ) ;") ;
+    file.println("}") ;
+    file.println("String getMessage()") ;
+    file.println("{") ;
+    file.println("    static String lastMessage ;") ;
+    file.println("") ;
+    file.println("    if( Serial.available() ) // <== incomming message ;") ;
+    file.println("    {") ;
+    file.println("        lastMessage = "" ;          ") ;
+    file.println("        delay(3) ;          // use dirty delay to receive entire message") ;
+    file.println("") ;
+    file.println("        while( Serial.available() )") ;
+    file.println("        {") ;
+    file.println("            char c = Serial.read() ;") ;
+    file.println("            lastMessage += c ;") ;
+    file.println("        }") ;
+    file.println("    }") ;
+    file.println("") ;
+    file.println("    return lastMessage ;") ;
+    file.println("}   ") ;
+    file.println("") ;
+    file.println("void setup()") ;
+    file.println("{") ;
+    // NOTE init servo motors
+    file.println("    Serial.begin( 115200 ) ;") ;
+    file.println("}") ;
+    file.println("") ;
+    file.println("void loop()") ;
+    file.println("{") ;
+    file.println("/***************** UPDATE FUNCTION BLOCKS *****************/") ;
+    file.println("    for( int i = 0 ; i < nDigitalBlocks ; i ++ ) { digitalBlock[i] -> run() ; updateLinks() ; }") ;
+    file.println("    for( int i = 0 ; i <  nAnalogBlocks ; i ++ ) {  analogBlock[i] -> run() ; updateLinks() ; }") ;
     file.println("}") ;
     file.close() ;
 }

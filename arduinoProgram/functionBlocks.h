@@ -113,6 +113,46 @@ public:
     }
 } ;
 
+class SerialOut : public DigitalBlock
+{
+public:
+    SerialOut( String S) : message( S )
+    {
+    }
+
+    void run()
+    {
+        if( IN2 != Q )
+        {     
+            Q = IN2 ;
+            if( Q ) 
+            {
+                sendMessage( message ) ;
+            }
+        }
+    }
+    
+private:
+    const String message ;
+}
+
+class SerialIn : public DigitalBlock
+{
+public:
+    SerialIn( String S) : message( S )
+    {
+    }
+
+    void run()
+    {
+        if( message == getMessage() ) Q = 1 ;
+        else                          Q = 0 ;
+    }
+
+private:
+    const String message ;
+}
+
 class Input : public DigitalBlock
 {
 public:
@@ -201,6 +241,16 @@ public:
     virtual void run() ;
 } ;
 
+class Comperator : public AnalogBlock
+{
+public:
+    void run()
+    {
+        if( IN1 > IN2 + 2 ) Q = 1 ;   // marge of 2 for schmitt-trigger
+        if( IN1 < IN2 - 2 ) Q = 0 ; 
+    }
+}
+
 class AnalogInput : public AnalogBlock
 {
 public:
@@ -263,7 +313,7 @@ public:
         pin = _pin ;
     }
 
-    void initMotor()
+    void init()
     {
         motor.attach(pin) ;
     }
@@ -287,18 +337,25 @@ private:
 } ;
 
 
-class MAP : public AnalogBlock
+class Map : public AnalogBlock
 {
-    int32_t var ;   // result = map( var, in1, in2, out1, out2 ) ;
-    int32_t result ;
-    int32_t in1 ;
-    int32_t in2 ;
-    int32_t out1 ;
-    int32_t out2 ;
+    Map( uint32_t x1, uint32_t x2 , uint32_t x3, uint32_t x4 ) 
+        :  in1( x1 ) 
+        :  in2( x2 )
+        : out1( x1 ) 
+        : out2( x2 )
+    {}
 
     void run()
     {               // IN2
-        result = map( var, in1, in2, out1, out2 ) ;
+        Q = map( IN2, in1, in2, out1, out2 ) ;
     }
+
+    const uint32_t  in1 ;
+    const uint32_t  in2 ;
+    const uint32_t out1 ;
+    const uint32_t out2 ;
 } ;
 
+extern void sendMessage( String S ) __attribute__((weak)) ;
+extern String getMessage()          __attribute__((weak)) ;
