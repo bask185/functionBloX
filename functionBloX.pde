@@ -41,6 +41,7 @@ V if mouse is clicked to alter pin/time number, the number should be initialized
 V ditch the triangles for input/output and make them square like the others
 - add serial input and serial output blocks, to send and receive messages over the serial port
 V add D for all digital Pin numbers
+- check if #error can be used to test the PWM pins for being an actual PWM pin
 
 EXTRA
 - make comperator for usage with analog input
@@ -138,18 +139,21 @@ final int   settingPulseTime = 7 ;
 
 int         gridSize = 60 ;
 
-final int     AND =  1 ;
-final int      OR =  2 ;
-final int       M =  3 ;
-final int     DEL =  4 ;
-final int     NOT =  5 ;
-final int   INPUT =  6 ;
-final int  OUTPUT =  7 ;
-final int      JK =  8 ;
-final int   PULSE =  9 ;
+final int        AND =  1 ;
+final int         OR =  2 ;
+final int          M =  3 ;
+final int        DEL =  4 ;
+final int        NOT =  5 ;
+final int      INPUT =  6 ;
+final int     OUTPUT =  7 ;
+final int         JK =  8 ;
+final int      PULSE =  9 ;
 
-final int  ANA_IN = 10 ;
-final int ANA_OUT = 11 ;
+final int     ANA_IN = 20 ;
+final int    ANA_OUT = 21 ;
+final int      SERVO = 22 ;
+final int        MAP = 23 ;
+final int       COMP = 24 ;
 
 
 // digital input
@@ -174,26 +178,26 @@ checklist adding new block
 
 */
 
-int         col ;
-int         row ;
-int         subCol ;
-int         subRow ;
-int         nItems ;
-boolean     locked ;
-int         index ;
-int         mode = idle ;
-int         linkIndex = 0 ;
-int         foundLinkIndex ;
-int         currentType ;
-int         pinNumber ;
-int         delayTime ;
+int      col ;
+int      row ;
+int      subCol ;
+int      subRow ;
+int      nItems ;
+boolean  locked ;
+int      index ;
+int      mode = idle ;
+int      linkIndex = 0 ;
+int      foundLinkIndex ;
+int      currentType ;
+int      pinNumber ;
+int      delayTime ;
 
-int             nAnalogBlocks ;
-int             nDigitalBlocks ;
+int      nAnalogBlocks ;
+int      nDigitalBlocks ;
 
-boolean         hoverOverFB ;
-boolean         hoverOverPoint ;
-boolean         blockMiddle ;
+boolean  hoverOverFB ;
+boolean  hoverOverPoint ;
+boolean  blockMiddle ;
 
 FunctionBlock or1 ;
 FunctionBlock and1 ;
@@ -206,6 +210,9 @@ FunctionBlock jk1 ;
 FunctionBlock gen1 ;
 FunctionBlock ana_in1 ;
 FunctionBlock ana_out1 ;
+FunctionBlock servo1 ;
+FunctionBlock map1 ;
+FunctionBlock comp1 ;
 
 
 void setup()
@@ -217,19 +224,24 @@ void setup()
     textSize( 20 );
     background(255) ;
     
-    and1     = new FunctionBlock((width-gridSize)/gridSize,  0,     AND, gridSize ) ;
-    or1      = new FunctionBlock((width-gridSize)/gridSize,  1,      OR, gridSize ) ;
-    sr1      = new FunctionBlock((width-gridSize)/gridSize,  2,       M, gridSize ) ;
-    delay1   = new FunctionBlock((width-gridSize)/gridSize,  3,     DEL, gridSize ) ;
-    not1     = new FunctionBlock((width-gridSize)/gridSize,  4,     NOT, gridSize ) ;
-    inp1     = new FunctionBlock((width-gridSize)/gridSize,  5,   INPUT, gridSize ) ;
-    outp1    = new FunctionBlock((width-gridSize)/gridSize,  6,  OUTPUT, gridSize ) ;
-    jk1      = new FunctionBlock((width-gridSize)/gridSize,  7,      JK, gridSize ) ;
-    gen1     = new FunctionBlock((width-gridSize)/gridSize,  8,   PULSE, gridSize ) ;
+    // LEFT COLUMN  ANALOG STUFFS
+    and1     = new FunctionBlock((width-2*gridSize)/gridSize,  0,     AND, gridSize ) ;
+    or1      = new FunctionBlock((width-2*gridSize)/gridSize,  1,      OR, gridSize ) ;
+    sr1      = new FunctionBlock((width-2*gridSize)/gridSize,  2,       M, gridSize ) ;
+    delay1   = new FunctionBlock((width-2*gridSize)/gridSize,  3,     DEL, gridSize ) ;
+    not1     = new FunctionBlock((width-2*gridSize)/gridSize,  4,     NOT, gridSize ) ;
+    inp1     = new FunctionBlock((width-2*gridSize)/gridSize,  5,   INPUT, gridSize ) ;
+    outp1    = new FunctionBlock((width-2*gridSize)/gridSize,  6,  OUTPUT, gridSize ) ;
+    jk1      = new FunctionBlock((width-2*gridSize)/gridSize,  7,      JK, gridSize ) ;
+    gen1     = new FunctionBlock((width-2*gridSize)/gridSize,  8,   PULSE, gridSize ) ;
 
+    // RIGHT COLUMNS DIGITAL STUFFS
+    ana_in1  = new FunctionBlock((width-gridSize)/gridSize,    0,  ANA_IN, gridSize ) ;
+    ana_out1 = new FunctionBlock((width-gridSize)/gridSize,    1, ANA_OUT, gridSize ) ;
+    servo1   = new FunctionBlock((width-gridSize)/gridSize,    2,   SERVO, gridSize ) ;
+    map1     = new FunctionBlock((width-gridSize)/gridSize,    3,     MAP, gridSize ) ;
+    comp1    = new FunctionBlock((width-gridSize)/gridSize,    4,    COMP, gridSize ) ;
 
-    ana_in1  = new FunctionBlock((width-gridSize)/gridSize,  9,  ANA_IN, gridSize ) ;
-    ana_out1 = new FunctionBlock((width-gridSize)/gridSize, 10, ANA_OUT, gridSize ) ;
 }
 
 void draw()
@@ -248,11 +260,14 @@ void draw()
 // MOUSE PRESSED FUNCTIONS
 void addFunctionBlock()
 {
-    mode = movingItem ;         
-    currentType = row + 1 ;
+    mode = movingItem ;
+
+    if( mouseX > (width-gridSize)) currentType = row + 1 + 20 ;
+    else                           currentType = row + 1 ;
+
     pinNumber = 0 ;
 
-    blocks.add( new FunctionBlock(( width- 2*gridSize) / gridSize, row, currentType, gridSize )) ;    
+    blocks.add( new FunctionBlock(( width- 3*gridSize) / gridSize, row, currentType, gridSize )) ;    
 
     index = blocks.size() - 1 ;
     return ;
@@ -368,7 +383,7 @@ void leftMousePress()
 {
     if( mode == settingNumber || mode == settingDelayTime || mode == settingPulseTime ) return ;                               // as long as a number is set, LMB nor RMB must do anything
 
-    if(      mode == idle && (mouseX > (width-gridSize)) )                       addFunctionBlock() ;
+    if(      mode == idle && (mouseX > (width-2*gridSize)) )                     addFunctionBlock() ;
     else if( mode == idle ) for (int i = 0; i < blocks.size(); i++)              moveItem() ;
     if (     mode == idle && subCol == 1 && subRow == 2 && hoverOverFB == true ) alterNumber() ;
     else if( mode == idle && subCol == 2 && subRow == 1 && hoverOverFB == true ) createLink() ;
@@ -433,6 +448,9 @@ void drawBackground()
     gen1.draw() ;
     ana_in1.draw() ;
     ana_out1.draw() ;
+    servo1.draw() ;
+    map1.draw() ;
+    comp1.draw() ;
 }
 
 void updateLinks()
@@ -984,7 +1002,7 @@ void assembleProgram()
     file.println("") ;
     file.println("    if( Serial.available() ) // <== incomming message ;") ;
     file.println("    {") ;
-    file.println("        lastMessage = "" ;          ") ;
+    file.println("        lastMessage = \"\" ;          ") ;
     file.println("        delay(3) ;          // use dirty delay to receive entire message") ;
     file.println("") ;
     file.println("        while( Serial.available() )") ;

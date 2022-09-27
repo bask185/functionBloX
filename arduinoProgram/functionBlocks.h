@@ -1,6 +1,9 @@
 #include <Arduino.h>
 #include <Servo.h>
 
+
+extern void sendMessage( String S ) __attribute__((weak)) ;
+extern String getMessage()          __attribute__((weak)) ;
 const int ANALOG_SAMPLE_TIME = 20 ;
 
 class DigitalBlock
@@ -134,7 +137,7 @@ public:
     
 private:
     const String message ;
-}
+} ;
 
 class SerialIn : public DigitalBlock
 {
@@ -151,7 +154,7 @@ public:
 
 private:
     const String message ;
-}
+} ;
 
 class Input : public DigitalBlock
 {
@@ -249,7 +252,7 @@ public:
         if( IN1 > IN2 + 2 ) Q = 1 ;   // marge of 2 for schmitt-trigger
         if( IN1 < IN2 - 2 ) Q = 0 ; 
     }
-}
+} ;
 
 class AnalogInput : public AnalogBlock
 {
@@ -278,31 +281,36 @@ private:
     uint32_t       prevTime ;
 } ;
 
+//template<uint8_t pin>
 class AnalogOutput : public AnalogBlock
 {
 public:
 
-    AnalogOutput( uint8_t _pin )
-    {
-        pin = _pin ;
+    AnalogOutput( uint8_t _pin ) : pin( _pin )
+    {        
+        static_assert
+        ( 
+                pin ==  3 
+            ||  pin ==  5
+            ||  pin ==  6
+            ||  pin ==  9
+            ||  pin == 10
+            ||  pin == 11 , "INVALID PWM PIN USED" 
+        ) ;
     }
-
-    uint8_t pin ;
 
     void run()
     {
-        if( analogIN2 != prevIn )
-        {   prevIn  = analogIN2 ;                // if incomming change, update PWM level
+        if( IN2 != prevIn )
+        {   prevIn  = IN2 ;                // if incomming change, update PWM level
 
-            analogWrite( pin, analogIN2 ) ;
-            Serial.println( analogIN2 ) ; // DEBUG just testing if it... actually works
+            analogWrite( pin, IN2) ;
         }
     }
-
-    uint8_t analogIN2 ;
-
+  
 private:
-    uint8_t prevIn ;
+    const uint8_t pin ;
+    uint8_t       prevIn ;
 } ;
 
 class ServoMotor : public AnalogBlock
@@ -339,11 +347,12 @@ private:
 
 class Map : public AnalogBlock
 {
+    //Delay(int x) : delayTime( x ) 
     Map( uint32_t x1, uint32_t x2 , uint32_t x3, uint32_t x4 ) 
-        :  in1( x1 ) 
-        :  in2( x2 )
-        : out1( x1 ) 
-        : out2( x2 )
+        :  in1( x1 ), 
+           in2( x2 ),
+          out1( x3 ), 
+          out2( x4 )
     {}
 
     void run()
@@ -356,6 +365,3 @@ class Map : public AnalogBlock
     const uint32_t out1 ;
     const uint32_t out2 ;
 } ;
-
-extern void sendMessage( String S ) __attribute__((weak)) ;
-extern String getMessage()          __attribute__((weak)) ;

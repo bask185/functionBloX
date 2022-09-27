@@ -42,7 +42,13 @@ public class FunctionBlock
         case ANA_OUT:
         case  OUTPUT:
         case   INPUT:
+        case   SERVO:
+        case     MAP:
             rect( xPos * gridSize + (gridSize/5), yPos * gridSize + 1, 3*gridSize/5, gridSize - 2 ) ; // main box
+            break ;
+
+        case COMP: // comperator
+            //triangle(xPos * gridSize + (gridSize/5), yPos * gridSize, 3*gridSize/5, gridSize, xPos * gridSize + (gridSize/5), yPos * gridSize + gridSize );
             break ;
 
         case PULSE:  
