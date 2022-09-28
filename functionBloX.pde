@@ -164,6 +164,13 @@ int      delayTime ;
 int      mapState ;
 int      in1, in2, out1, out2 ;
 
+int     linkQ ;
+int     linkIn ;
+int     linkRow ;
+int     analogQ ;
+int     analogIn ;
+int     indexOfBlock ;
+
 int      nAnalogBlocks ;
 int      nDigitalBlocks ;
 
@@ -298,7 +305,6 @@ void deleteObject()
 
     blocks.remove(index);		                                            // DELETE THE OBJECT
     hoverOverFB = false ;
-    updateBlocks() ;        // ensure all blocks have correct indices
 }
 
 void removeNode()
@@ -448,7 +454,10 @@ void updateLinks()
             &&  start_subX == 2    && start_subY == 1 
             && Qfound == false )
             {
-                link.setQ( j ) ;
+                analogQ = isAnalog ;    // debug
+                linkQ = index ;         // debug
+                link.setAnalogOut(isAnalog) ;
+                link.setQ( index ) ;
                 Qfound = true ;
             }
             else if( Qfound == false ) link.setQ( 255 ) ;
@@ -457,6 +466,10 @@ void updateLinks()
             &&  stop_subX == 0 
             &&  INfound   == false ) 
             {
+                analogIn = isAnalog ;
+                linkIn = index ;        // debug
+                linkRow = stop_subY ;   // debug
+                link.setAnalogIn(isAnalog) ;
                 link.setIn( stop_subY, index ) ;
                 INfound = true ;
             }
@@ -504,7 +517,7 @@ void checkFunctionBlocks()
             hoverOverFB = true ;
             if( subCol == 1 && subRow == 1 ) blockMiddle =  true ;
             index = i ;
-            //indexOfBlock = block.getIndex() ;
+            indexOfBlock = block.getIndex() ;
             return ;
         }
     }
@@ -550,21 +563,22 @@ void updateCursor()
         subCol = mouseX / (gridSize/3) % 3 ;
         subRow = mouseY / (gridSize/3) % 3 ;
     }  
-
-    
+   
 
     textAlign(LEFT,TOP);
     textSize(20);    
     text("X: " + col,10,50);                                                         // row and col on screen.
     text("Y: " + row,10,70);
-   // if(hoverOverFB==true)text("ITEM TRUE",10,90);
-    text("index: "+ index,10,90);  //text("index2: "+ indexOfBlock,200,90);
+    text("index: "+ index,10,90);  text("index2: "+ indexOfBlock,200,90);
     text("mode " + mode,10,110);
     text("subCol " + subCol,10,130);
     text("subRow " + subRow,10,150);
     if(hoverOverPoint == true ) text("line detected ",10,170);
-    text("N analog  " + nAnalogBlocks, 10, 190);
-    text("N digital " + nDigitalBlocks, 10, 210);
+    text("linkQ   " + linkQ, 10, 190);
+    text("linkIn  " + linkIn, 10, 210);
+    text("linkRow " + linkRow, 10, 230);
+    text("analogQ " + analogQ, 10, 250);
+    text("analogIn " + analogIn, 10, 270);
 }
 
 void printTexts()
@@ -874,7 +888,6 @@ void loadLayout()
         int out2  = Integer.parseInt( pieces[8] );
 
         blocks.add( new FunctionBlock(X, Y, type, gridSize ) ) ;
-        updateBlocks() ;                    // ensure all blocks have correct indices
 
         if( type >= ANA_IN )  nAnalogBlocks ++ ;
         else                 nDigitalBlocks ++ ;
