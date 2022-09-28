@@ -48,6 +48,7 @@ V for the analog stuff, make a map block
 - add code to insert constants for map block and constant block
 - finalize the arduino code with the latest added components. (also replace constant class by an actual number in the generated links)
 - Servo's still need a pin variable
+- fix that new function blocks are drawn more to the left, and limit the cursor not to include the left colomn of default blocks
 
 EXTRA
 - make comperator for usage with analog input
@@ -135,6 +136,7 @@ PImage          mouse;
 String text1 = "" ;
 String text2 = "" ;
 
+ArrayList <FunctionBlock> demoBlocks = new ArrayList() ;
 ArrayList <FunctionBlock> blocks = new ArrayList() ;
 ArrayList <Link>          links  = new ArrayList() ;
 
@@ -174,22 +176,11 @@ final int      DELAY = 26 ;
 final int   CONSTANT = 27 ;
 
 
-// digital input
-// digital output
-// potentiometer
-// PWM
-// SERVO
-// occupanceDetector
-// DCC accessory article,
-// DCC loco function
-
 /*
 checklist adding new block
 - Add one to the final ints
-- declare the single demo object
-- initialize the single demo object
-- draw the demo object
-- alter the draw method in the class
+- add demo object to the array
+- alter the draw method in the class (text and connection lines)
 - add redundant items, like dedicated numbers, 
 - add control texts
 - add device to the arduino code
@@ -209,7 +200,8 @@ int      foundLinkIndex ;
 int      currentType ;
 int      pinNumber ;
 int      delayTime ;
-int      mapNumber ;
+int      mapState ;
+int      in1, in2, out1, out2 ;
 
 int      nAnalogBlocks ;
 int      nDigitalBlocks ;
@@ -218,28 +210,8 @@ boolean  hoverOverFB ;
 boolean  hoverOverPoint ;
 boolean  blockMiddle ;
 
-FunctionBlock or1 ;
-FunctionBlock and1 ;
-FunctionBlock sr1 ;
-FunctionBlock delay1 ;
-FunctionBlock not1 ;
-FunctionBlock inp1 ;
-FunctionBlock outp1 ;
-FunctionBlock jk1 ;
-FunctionBlock gen1 ;
-FunctionBlock ana_in1 ;
-FunctionBlock ana_out1 ;
-FunctionBlock servo1 ;
-FunctionBlock map1 ;
-FunctionBlock comp1 ;
-FunctionBlock ser_in1 ;
-FunctionBlock ser_out1 ;
-FunctionBlock const1 ;
-
-
 void setup()
-{
-   
+{ 
     //fullScreen() ;
     loadLayout() ;
     size(displayWidth, displayHeight) ;
@@ -247,25 +219,25 @@ void setup()
     background(255) ;
     
     // LEFT COLUMN DIGITAL STUFFS
-    and1      = new FunctionBlock((width-2*gridSize)/gridSize,  0,     AND, gridSize ) ;
-    or1       = new FunctionBlock((width-2*gridSize)/gridSize,  1,      OR, gridSize ) ;
-    sr1       = new FunctionBlock((width-2*gridSize)/gridSize,  2,       M, gridSize ) ;
-    not1      = new FunctionBlock((width-2*gridSize)/gridSize,  3,     NOT, gridSize ) ;
-    inp1      = new FunctionBlock((width-2*gridSize)/gridSize,  4,   INPUT, gridSize ) ;
-    outp1     = new FunctionBlock((width-2*gridSize)/gridSize,  5,  OUTPUT, gridSize ) ;
-    jk1       = new FunctionBlock((width-2*gridSize)/gridSize,  6,      JK, gridSize ) ;
-    gen1      = new FunctionBlock((width-2*gridSize)/gridSize,  7,   PULSE, gridSize ) ;
-    ser_in1   = new FunctionBlock((width-2*gridSize)/gridSize,  8,  SER_IN, gridSize ) ;
-    ser_out1  = new FunctionBlock((width-2*gridSize)/gridSize,  9, SER_OUT, gridSize ) ;
+    demoBlocks.add( new FunctionBlock((width-2*gridSize)/gridSize,  0,     AND, gridSize ) ) ;
+    demoBlocks.add( new FunctionBlock((width-2*gridSize)/gridSize,  1,      OR, gridSize ) ) ;
+    demoBlocks.add( new FunctionBlock((width-2*gridSize)/gridSize,  2,       M, gridSize ) ) ;
+    demoBlocks.add( new FunctionBlock((width-2*gridSize)/gridSize,  3,     NOT, gridSize ) ) ;
+    demoBlocks.add( new FunctionBlock((width-2*gridSize)/gridSize,  4,   INPUT, gridSize ) ) ;
+    demoBlocks.add( new FunctionBlock((width-2*gridSize)/gridSize,  5,  OUTPUT, gridSize ) ) ;
+    demoBlocks.add( new FunctionBlock((width-2*gridSize)/gridSize,  6,      JK, gridSize ) ) ;
+    demoBlocks.add( new FunctionBlock((width-2*gridSize)/gridSize,  7,   PULSE, gridSize ) ) ;
+    demoBlocks.add( new FunctionBlock((width-2*gridSize)/gridSize,  8,  SER_IN, gridSize ) ) ;
+    demoBlocks.add( new FunctionBlock((width-2*gridSize)/gridSize,  9, SER_OUT, gridSize ) ) ;
 
     // RIGHT COLUMN ANALOG STUFFS
-    ana_in1   = new FunctionBlock((width-1*gridSize)/gridSize,  0,   ANA_IN, gridSize ) ;
-    ana_out1  = new FunctionBlock((width-1*gridSize)/gridSize,  1,  ANA_OUT, gridSize ) ;
-    servo1    = new FunctionBlock((width-1*gridSize)/gridSize,  2,    SERVO, gridSize ) ;
-    map1      = new FunctionBlock((width-1*gridSize)/gridSize,  3,      MAP, gridSize ) ;
-    comp1     = new FunctionBlock((width-1*gridSize)/gridSize,  4,     COMP, gridSize ) ;
-    delay1    = new FunctionBlock((width-1*gridSize)/gridSize,  5,    DELAY, gridSize ) ;
-    const1    = new FunctionBlock((width-1*gridSize)/gridSize,  6, CONSTANT, gridSize ) ;
+    demoBlocks.add( new FunctionBlock((width-1*gridSize)/gridSize,  0,   ANA_IN, gridSize ) ) ;
+    demoBlocks.add( new FunctionBlock((width-1*gridSize)/gridSize,  1,  ANA_OUT, gridSize ) ) ;
+    demoBlocks.add( new FunctionBlock((width-1*gridSize)/gridSize,  2,    SERVO, gridSize ) ) ;
+    demoBlocks.add( new FunctionBlock((width-1*gridSize)/gridSize,  3,      MAP, gridSize ) ) ;
+    demoBlocks.add( new FunctionBlock((width-1*gridSize)/gridSize,  4,     COMP, gridSize ) ) ;
+    demoBlocks.add( new FunctionBlock((width-1*gridSize)/gridSize,  5,    DELAY, gridSize ) ) ;
+    demoBlocks.add( new FunctionBlock((width-1*gridSize)/gridSize,  6, CONSTANT, gridSize ) ) ;
 }
 
 void draw()
@@ -406,7 +378,8 @@ void dragLine()
 
 void leftMousePress()
 {
-    if( mode == settingPin || mode == settingDelayTime || mode == settingPulseTime ) return ;                               // as long as a number is set, LMB nor RMB must do anything
+    if( mode == settingPin || mode == settingDelayTime || mode == settingPulseTime 
+    ||  mode == settingMapValues ) return ;                               // as long as a number is set, LMB nor RMB must do anything
 
     if(      mode == idle && (mouseX > (width-2*gridSize)) )                     addFunctionBlock() ;
     else if( mode == idle ) for (int i = 0; i < blocks.size(); i++)              moveItem() ;
@@ -463,24 +436,11 @@ void drawBackground()
     rect(0,0,(width - 120) - 2 , (height - 120) - 2 ) ;
 
     textAlign(CENTER,CENTER);
-
-    and1.draw() ;       // draw default items
-    or1.draw() ;
-    sr1.draw() ;
-    delay1.draw() ;
-    not1.draw() ;
-    inp1.draw() ;
-    outp1.draw() ;
-    jk1.draw() ;
-    gen1.draw() ;
-    ana_in1.draw() ;
-    ana_out1.draw() ;
-    servo1.draw() ;
-    map1.draw() ;
-    comp1.draw() ; 
-    ser_in1.draw() ;
-    ser_out1.draw() ;
-    const1.draw() ;
+    for( int i = 0 ; i < demoBlocks.size() ; i ++ )
+    {
+        FunctionBlock block = demoBlocks.get(i) ;
+        block.draw() ;
+    }
 }
 
 void updateLinks()
@@ -713,6 +673,17 @@ void printTexts()
             text2 = "PRESS <ENTER> WHEN READY" ;
             // mouse = loadImage("images/mouse1.png") ;
         }
+        else if( mode == settingMapValues )
+        {
+            switch( mapState )
+            {
+                case 0: text1 = "Set In 1"  ; break ;
+                case 1: text1 = "Set In 2"  ; break ;
+                case 2: text1 = "Set Out 1" ; break ;
+                case 3: text1 = "Set Out 2" ; break ;
+            }
+            text2 = "PRESS <ENTER> WHEN READY" ;
+        }
         else if( type == PULSE && subCol == 1 && subRow == 2 && hoverOverFB == true )
         {
             text1 = "SET PULSE TIME" ;
@@ -780,10 +751,16 @@ void keyPressed()
         }
     }
     
-    if( mode == settingPin || mode == settingDelayTime || mode == settingPulseTime )
+    if( mode == settingPin       || mode == settingDelayTime 
+    ||  mode == settingPulseTime || mode == settingMapValues )
     {
         if( keyCode == ENTER )
         {
+            if( mode == settingMapValues )
+            {
+                if( ++ mapState == 4 ) mapState = 0 ;
+                else return ;
+            }
             mode = idle ;
             return ;
         }
@@ -794,6 +771,16 @@ void keyPressed()
             {
                 pinNumber = makeNumber( pinNumber, 0, 31) ;
                 block.setPin( pinNumber ) ;
+            }
+            else if( mode == settingMapValues )
+            {
+                switch( mapState )
+                {
+                    case 0: in1  = makeNumber(  in1, 0, 60000 ) ;block.setIn1(in1) ; break ;
+                    case 1: in2  = makeNumber(  in2, 0, 60000 ) ;block.setIn2(in2) ; break ;
+                    case 2: out1 = makeNumber( out1, 0, 60000 ) ;block.setOut1(out1) ; break ;
+                    case 3: out2 = makeNumber( out2, 0, 60000 ) ;block.setOut2(out2) ; break ;
+                }
             }
             else
             {

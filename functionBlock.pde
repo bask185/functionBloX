@@ -113,7 +113,8 @@ public class FunctionBlock
             case    SERVO: txt= "SERVO" ;                     box = 0x02 ; break ;
             case   SER_IN: txt= "MESS\r\nIN" ;                box = 0x08 ; break ;
             case  SER_OUT: txt= "MESS\r\nOUT" ;               box = 0x02 ; break ;
-            case      MAP: txt= "MAP" ;                       box = 0x0A ; break ;
+            case      MAP: txt= in1 + "  " + out1 + "\r\nMAP\r\n"
+                              + in2 + "  " + out2 ;           box = 0x0A ; break ;
             case     COMP: txt = "+          \r\n-          ";box = 0x0D ; break ;
             case CONSTANT: txt = "CONST\r\n\r\n"+ delayTime;  box = 0x08 ; break ;
         }
