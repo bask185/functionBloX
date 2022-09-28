@@ -448,8 +448,7 @@ void updateLinks()
             &&  start_subX == 2    && start_subY == 1 
             && Qfound == false )
             {
-                link.setQ( index ) ;
-                link.setAnalog( isAnalog ) ;
+                link.setQ( j ) ;
                 Qfound = true ;
             }
             else if( Qfound == false ) link.setQ( 255 ) ;
@@ -505,7 +504,7 @@ void checkFunctionBlocks()
             hoverOverFB = true ;
             if( subCol == 1 && subRow == 1 ) blockMiddle =  true ;
             index = i ;
-            indexOfBlock = block.getIndex() ;
+            //indexOfBlock = block.getIndex() ;
             return ;
         }
     }
@@ -559,7 +558,7 @@ void updateCursor()
     text("X: " + col,10,50);                                                         // row and col on screen.
     text("Y: " + row,10,70);
    // if(hoverOverFB==true)text("ITEM TRUE",10,90);
-    text("index: "+ index,10,90);  text("index2: "+ indexOfBlock,200,90);
+    text("index: "+ index,10,90);  //text("index2: "+ indexOfBlock,200,90);
     text("mode " + mode,10,110);
     text("subCol " + subCol,10,130);
     text("subRow " + subRow,10,150);

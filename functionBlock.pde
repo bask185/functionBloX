@@ -4,6 +4,7 @@ public class FunctionBlock
     int yPos ;
     int type ;
     int gridSize ;
+    int index ;
 
     int IN1 ;
     int IN2 ;
@@ -163,7 +164,7 @@ public class FunctionBlock
     void setDelay( int delayTime ) { this.delayTime = delayTime ; }
     int  getDelay( ) { return delayTime ; }
 
-    int  getType() { return  type ; }
+    
     int isAnalog() { return isAnalog ; }
 
     void setIndex( int index ) { this.index = index ; }
