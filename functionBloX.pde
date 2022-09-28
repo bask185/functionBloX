@@ -44,10 +44,10 @@ V add D for all digital Pin numbers
 V check if #error can be used to test the PWM pins for being an actual PWM pin note: it can be done
   but the syntax behind it is abysmal. I need like 3 helper function with vague c++ syntax to get it done
 - add mouse images to git
-
-
-
-- add method to insert constants for a map block
+V for the analog stuff, make a map block
+- add code to insert constants for map block and constant block
+- finalize the arduino code with the latest added components. (also replace constant class by an actual number in the generated links)
+- Servo's still need a pin variable
 
 EXTRA
 - make comperator for usage with analog input
@@ -58,7 +58,6 @@ EXTRA
 
 BACKLOG
 - move node of a line by dragging it with LMB
-V for the analog stuff, make a map block
 
 CURRENT WORK:
 - The mouse functions have been refactored
@@ -68,8 +67,6 @@ CURRENT WORK:
 - adjusting gridSize, both FB and links work, but the subcoordinates of the mouse
   seems off, with different zoom levels it can be difficult to move an item or create a link..
   
-
-
 possible solutions:
 - store indices in the function blocks themselfes and keep track of separate indices
   for analog and digital IO.
@@ -966,7 +963,7 @@ void assembleProgram()
             case       M: file.println("static    Memory D"+(index+1)+" =     Memory() ;") ;           index++ ; break ;
             case     NOT: file.println("static       Not D"+(index+1)+" =        Not() ;") ;           index++ ; break ;
             case      JK: file.println("static        Jk D"+(index+1)+" =         Jk() ;") ;           index++ ; break ;
-            case     DELAY: file.println("static     Delay D"+(index+1)+" =      Delay("+ time +") ;") ; index++ ; break ;
+            
             case   INPUT: file.println("static     Input D"+(index+1)+" =      Input("+  pin +") ;") ; index++ ; break ;
             case  OUTPUT: file.println("static    Output D"+(index+1)+" =     Output("+  pin +") ;") ; index++ ; break ;
             case   PULSE: file.println("static     Pulse D"+(index+1)+" =      Pulse("+ time +") ;") ; index++ ; break ;  
@@ -990,6 +987,7 @@ void assembleProgram()
             case     ANA_OUT:  file.println( "static AnalogOutput A"+(index+1)+" = AnalogOutput("+  pin +") ;") ; index++ ; break ;
             case        COMP:  file.println( "static   Comperator A"+(index+1)+" =   Comperator() ;") ;           index++ ; break ;
             case       SERVO:  file.println( "static   ServoMotor A"+(index+1)+" =   ServoMotor("+  pin +") ;") ; index++ ; break ;
+            case       DELAY:  file.println( "static        Delay A"+(index+1)+" =        Delay("+ time +") ;") ; index++ ; break ;
             //case         MAP:  file.println( "static          Map A"+(index+1)+" =          Map("+in1+","+in2+","+out1+","+out2+") ;") ;   index++ ; break ;
         }
     }
@@ -1013,13 +1011,22 @@ void assembleProgram()
     {
         Link  link = links.get( i ) ;
 
-        int        Q = link.getQ() ;
-        int   subrow = link.getSubrow() ;
-        int       IN = link.getIn( subrow ) ;
-        int isAnalog = link.isAnalogIO() ;
+        int         Q = link.getQ() ;
+        int    subrow = link.getSubrow() ;
+        int        IN = link.getIn( subrow ) ;
+        int  analogIn = link.isAnalogIn() ;
+        int analogOut = link.isAnalogOut() ;
 
-        if( isAnalog > 0 )  file.println("    digitalBlock["+IN+"] -> IN" +(subrow+1)+" = digitalBlock["+Q+"] -> Q ;") ;
-        else                file.println("    analogBlock["+IN+"] -> IN" +(subrow+1)+" = analogBlock["+Q+"] -> Q ;") ;
+
+    // example: analogBlock[0] -> IN2 = digitalBlock[1] -> Q ;
+        file.print("    ") ;
+        if( analogIn > 0 )  file.print( "analogBlock" ) ;
+        else                file.print("digitalBlock" ) ;
+        file.print("["+IN+"] -> IN" +(subrow+1)+" = " ) ;
+
+        if( analogOut > 0 )  file.print( "analogBlock" ) ;
+        else                 file.print("digitalBlock" ) ;
+        file.println( "["+IN+"] -> IN" +(subrow+1)+" = digitalBlock["+Q+"] -> Q ;") ;
     }
     file.println("}") ;
     file.println("") ;
@@ -1048,13 +1055,13 @@ void assembleProgram()
     file.println("") ;
     file.println("void setup()") ;
     file.println("{") ;
-    // NOTE init servo motors
+    file.println("    // NOTE init servo motors") ;
     file.println("    Serial.begin( 115200 ) ;") ;
     file.println("}") ;
     file.println("") ;
     file.println("void loop()") ;
     file.println("{") ;
-    file.println("/***************** UPDATE FUNCTION BLOCKS ***************** /") ;
+    file.println("/***************** UPDATE FUNCTION BLOCKS *****************/") ;
     file.println("    for( int i = 0 ; i < nDigitalBlocks ; i ++ ) { digitalBlock[i] -> run() ; updateLinks() ; }") ;
     file.println("    for( int i = 0 ; i <  nAnalogBlocks ; i ++ ) {  analogBlock[i] -> run() ; updateLinks() ; }") ;
     file.println("}") ;
