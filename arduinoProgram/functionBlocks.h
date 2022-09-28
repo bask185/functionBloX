@@ -1,6 +1,9 @@
 #include <Arduino.h>
 #include <Servo.h>
 
+
+extern void sendMessage( String S ) __attribute__((weak)) ;
+extern String getMessage()          __attribute__((weak)) ;
 const int ANALOG_SAMPLE_TIME = 20 ;
 
 class DigitalBlock
@@ -113,6 +116,46 @@ public:
     }
 } ;
 
+class SerialOut : public DigitalBlock
+{
+public:
+    SerialOut( String S) : message( S )
+    {
+    }
+
+    void run()
+    {
+        if( IN2 != Q )
+        {     
+            Q = IN2 ;
+            if( Q ) 
+            {
+                sendMessage( message ) ;
+            }
+        }
+    }
+    
+private:
+    const String message ;
+} ;
+
+class SerialIn : public DigitalBlock
+{
+public:
+    SerialIn( String S) : message( S )
+    {
+    }
+
+    void run()
+    {
+        if( message == getMessage() ) Q = 1 ;
+        else                          Q = 0 ;
+    }
+
+private:
+    const String message ;
+} ;
+
 class Input : public DigitalBlock
 {
 public:
@@ -162,34 +205,6 @@ public:
     }
 } ;
 
-class Delay : public DigitalBlock
-{
-public:
-    Delay(int x) : delayTime( x )                       // initialize the constant
-    {
-    }
-
-    void run()
-    {
-        if( Q != IN2 )                                   // if new state changes
-        {
-            if( millis() - prevTime >= delayTime )       // keep monitor if interval has expired
-            {
-                Q = IN2 ;                                // if so, adopt the new state
-            }
-        }
-        else
-        {
-            prevTime = millis() ;                         // if new state does not change, keep setting oldTime
-        }
-    }
-
-private:
-    const uint32_t delayTime ;
-    uint32_t       prevTime ;
-} ;
-
-
 class AnalogBlock
 {
 public:
@@ -200,6 +215,60 @@ public:
 
     virtual void run() ;
 } ;
+
+class Delay : public AnalogBlock
+{
+public:
+    Delay(int x) : delayTime( x )                        // initialize the constant
+    {
+    }
+
+    void run()
+    {
+        if( Q != IN2 )                                   // if new state changes
+        {
+            if( millis() - prevTime >= delayTime )       // keep monitor if interval has expired
+            {
+                if( IN2 < Q ) Q -- ;                     // if so, adopt the new state
+                if( IN2 > Q ) Q ++ ;
+                prevTime = millis() ;
+            }
+        }
+        else
+        {
+            prevTime = millis() ;                        // if new state does not change, keep setting oldTime
+        }
+    }
+
+private:
+    const uint32_t delayTime ;
+    uint32_t       prevTime ;
+} ;
+
+class Comperator : public AnalogBlock
+{
+public:
+    void run()
+    {
+        if( IN1 > IN2 + 2 ) Q = 1 ;   // marge of 2 for schmitt-trigger effect, may need to more like 5..
+        if( IN1 < IN2 - 2 ) Q = 0 ; 
+    }
+} ;
+
+class Constant : public AnalogBlock
+{
+public:
+    Constant( uint16_t val )
+    {
+        Q = val ;
+    }
+
+    void run()
+    {
+
+    }
+} ;
+
 
 class AnalogInput : public AnalogBlock
 {
@@ -226,29 +295,36 @@ private:
     uint32_t       prevTime ;
 } ;
 
+template<uint8_t pin>
 class AnalogOutput : public AnalogBlock
 {
 public:
 
-    AnalogOutput( uint8_t _pin )
-    {
-        pin = _pin ;
+    AnalogOutput( uint8_t _pin ) : pin( _pin )
+    {        
+        static_assert
+        ( 
+                pin ==  3 
+            ||  pin ==  5
+            ||  pin ==  6
+            ||  pin ==  9
+            ||  pin == 10
+            ||  pin == 11 , "INVALID PWM PIN USED" 
+        ) ;
     }
-
-    uint8_t pin ;
 
     void run()
     {
         if( IN2 != prevIn )
         {   prevIn  = IN2 ;                // if incomming change, update PWM level
 
-            Serial.println( IN2 ) ; // DEBUG just testing if it... actually works
-            analogWrite( pin, IN2 ) ;
+            analogWrite( pin, IN2) ;
         }
     }
-
+  
 private:
-    uint8_t prevIn ;
+    const uint8_t pin ;
+    uint8_t       prevIn ;
 } ;
 
 class ServoMotor : public AnalogBlock
@@ -259,7 +335,7 @@ public:
         pin = _pin ;
     }
 
-    void initMotor()
+    void init()
     {
         motor.attach(pin) ;
     }
@@ -283,18 +359,38 @@ private:
 } ;
 
 
-class MAP : public AnalogBlock
+class Map : public AnalogBlock
 {
-    int32_t var ;   // result = map( var, in1, in2, out1, out2 ) ;
-    int32_t result ;
-    int32_t in1 ;
-    int32_t in2 ;
-    int32_t out1 ;
-    int32_t out2 ;
+    Map( uint32_t x1, uint32_t x2 , uint32_t x3, uint32_t x4 ) 
+        :  in1( x1 ), 
+           in2( x2 ),
+          out1( x3 ), 
+          out2( x4 )
+    {}
 
     void run()
     {               // IN2
-        result = map( var, in1, in2, out1, out2 ) ;
+        Q = map( IN2, in1, in2, out1, out2 ) ;
     }
+
+    const uint32_t  in1 ;
+    const uint32_t  in2 ;
+    const uint32_t out1 ;
+    const uint32_t out2 ;
 } ;
 
+class Constant : public AnalogBlock     // I really should not do this, but try to hardcode the constants in the .ino file instead
+{                                       // This uses atleast 12 bytes of memory when a constant does not use bytes in the first place
+public:
+    Constant(int x) : val( x )
+    {
+    }
+
+    void run()
+    {
+        Q = x ;
+    }
+
+private:
+    const int val ;
+}

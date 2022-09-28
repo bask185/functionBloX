@@ -2,7 +2,8 @@ class Link
 {
     final int maxPos = 50 ;
 
-    int isAnalog ;                      // this flag is used to use analog values instead of Q and IN
+    int isAnalogIn ;
+    int isAnalogOut ;
 
     int[][] positions = new int[2][maxPos];
     int nPoints = 0 ;
@@ -78,6 +79,11 @@ class Link
             circle(x1,y1,3) ;
             circle(x2,y2,3) ;
         }
+    }
+
+    void setGridSize( int gridSize )
+    {
+        this.gridSize = gridSize ;
     }
 
     void setQ( int Q ) { this.Q = Q ; }
@@ -160,8 +166,10 @@ class Link
         else                 return false ;
     }
 
-    void setAnalog( int val ) { isAnalog = val ; }
-    int isAnalogIO() { return isAnalog ; }
+    void setAnalogIn(  int val ) { isAnalogIn  = val ; }
+    void setAnalogOut( int val ) { isAnalogOut = val ; }
+    int isAnalogIn()  { return isAnalogIn  ; }
+    int isAnalogOut() { return isAnalogOut ; }
 
     int getPosX( int index ) { return positions[0][index] >> 8 ;   }
     int getPosY( int index ) { return positions[1][index] >> 8 ;   }

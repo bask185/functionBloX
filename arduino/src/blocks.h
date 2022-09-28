@@ -19,7 +19,7 @@ enum blockTypes
        AND = 0,
         OR, 
          M, 
-       DEL, 
+       DELAY, 
        NOT, 
      INPUT,
     OUTPUT,
@@ -43,7 +43,7 @@ void setup()
             pinMode( block[i].pin, OUTPUT ) ;
             break ;
 
-        case DEL:       // idk do something clever with adding timers or something
+        case DELAY:       // idk do something clever with adding timers or something
             break ;
         }
     }
@@ -81,7 +81,7 @@ void loop()
             digitalWrite( output[i].pin, output[i].IN2 ) ;
             break ;
 
-        // case DEL: for( int i = 0 ; i < n_blocks  ; i ++ )
+        // case DELAY: for( int i = 0 ; i < n_blocks  ; i ++ )
         //     {
         //         if( block[i].Q != block[i].IN )                                   // if new state changes
         //         {
