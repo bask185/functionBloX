@@ -49,6 +49,7 @@ public class FunctionBlock
         case     MAP:
         case SER_IN:
         case SER_OUT:
+        case CONSTANT:
             rect( xPos * gridSize + (gridSize/5), yPos * gridSize + 1, 3*gridSize/5, gridSize - 2 ) ; // main box
             break ;
 
@@ -92,22 +93,23 @@ public class FunctionBlock
         // draw the input and output connection lines and make up the text inside the block
         switch( type )
         {                                       // box bits: Q, in1, in2, in3,
-            case     AND: txt =  "AND" ;                     box = 0x0F ; break ;
-            case      OR: txt =   "OR" ;                     box = 0x0F ; break ;
-            case     DELAY: txt ="DELAY\r\n\r\n" + delayTime ;box = 0x0A ; break ;
-            case     NOT: txt =  "NOT" ;                     box = 0x0A ; break ; // text replaced by clock symbol
-            case   INPUT: txt = "IN-\r\nPUT\r\nD" + pin;     box = 0x08 ; break ;
-            case  OUTPUT: txt ="OUT-\r\nPUT\r\nD" + pin;     box = 0x02 ; break ;
-            case      JK: txt =  "J    \r\nK    \r\nCLK";    box = 0x0F ; break ;
-            case       M: txt = "S          \r\nM\r\nR          ";   box = 0x0D ; break ;
-            case   PULSE: txt= "\r\n" +  delayTime;          box = 0x08 ; break ;
-            case  ANA_IN: txt= "ADC\r\n\r\nA" + pin;         box = 0x08 ; break ;
-            case ANA_OUT: txt= "PWM\r\n\r\nD" + pin;         box = 0x02 ; break ;
-            case   SERVO: txt= "SERVO" ;                     box = 0x02 ; break ;
-            case  SER_IN: txt= "MESS\r\nIN" ;                box = 0x08 ; break ;
-            case SER_OUT: txt= "MESS\r\nOUT" ;               box = 0x02 ; break ;
-            case     MAP: txt= "MAP" ;                       box = 0x0A ; break ;
-            case    COMP: txt = "+          \r\n-          ";box = 0x0D ; break ;
+            case      AND: txt =  "AND" ;                     box = 0x0F ; break ;
+            case       OR: txt =   "OR" ;                     box = 0x0F ; break ;
+            case      DELAY: txt ="DELAY\r\n\r\n" + delayTime ;box = 0x0A ; break ;
+            case      NOT: txt =  "NOT" ;                     box = 0x0A ; break ; // text replaced by clock symbol
+            case    INPUT: txt = "IN-\r\nPUT\r\nD" + pin;     box = 0x08 ; break ;
+            case   OUTPUT: txt ="OUT-\r\nPUT\r\nD" + pin;     box = 0x02 ; break ;
+            case       JK: txt =  "J    \r\nK    \r\nCLK";    box = 0x0F ; break ;
+            case        M: txt = "S          \r\nM\r\nR          ";   box = 0x0D ; break ;
+            case    PULSE: txt= "\r\n" +  delayTime;          box = 0x08 ; break ;
+            case   ANA_IN: txt= "ADC\r\n\r\nA" + pin;         box = 0x08 ; break ;
+            case  ANA_OUT: txt= "PWM\r\n\r\nD" + pin;         box = 0x02 ; break ;
+            case    SERVO: txt= "SERVO" ;                     box = 0x02 ; break ;
+            case   SER_IN: txt= "MESS\r\nIN" ;                box = 0x08 ; break ;
+            case  SER_OUT: txt= "MESS\r\nOUT" ;               box = 0x02 ; break ;
+            case      MAP: txt= "MAP" ;                       box = 0x0A ; break ;
+            case     COMP: txt = "+          \r\n-          ";box = 0x0D ; break ;
+            case CONSTANT: txt = "CONST\r\n\r\n"+ delayTime;  box = 0x08 ; break ;
         }
 
         x1 = xPos * gridSize + gridSize/8 ;

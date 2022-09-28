@@ -249,7 +249,7 @@ class Comperator : public AnalogBlock
 public:
     void run()
     {
-        if( IN1 > IN2 + 2 ) Q = 1 ;   // marge of 2 for schmitt-trigger
+        if( IN1 > IN2 + 2 ) Q = 1 ;   // marge of 2 for schmitt-trigger effect, may need to more like 5..
         if( IN1 < IN2 - 2 ) Q = 0 ; 
     }
 } ;
@@ -379,3 +379,19 @@ class Map : public AnalogBlock
     const uint32_t out1 ;
     const uint32_t out2 ;
 } ;
+
+class Constant : public AnalogBlock     // I really should not do this, but try to hardcode the constants in the .ino file instead
+{                                       // This uses atleast 12 bytes of memory when a constant does not use bytes in the first place
+public:
+    Constant(int x) : val( x )
+    {
+    }
+
+    void run()
+    {
+        Q = x ;
+    }
+
+private:
+    const int val ;
+}

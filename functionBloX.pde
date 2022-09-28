@@ -169,6 +169,7 @@ final int      SERVO = 23 ;
 final int        MAP = 24 ;
 final int       COMP = 25 ;
 final int      DELAY = 26 ;
+final int   CONSTANT = 27 ;
 
 
 // digital input
@@ -230,6 +231,7 @@ FunctionBlock map1 ;
 FunctionBlock comp1 ;
 FunctionBlock ser_in1 ;
 FunctionBlock ser_out1 ;
+FunctionBlock const1 ;
 
 
 void setup()
@@ -241,7 +243,7 @@ void setup()
     textSize( 20 );
     background(255) ;
     
-    // LEFT COLUMN  ANALOG STUFFS
+    // LEFT COLUMN DIGITAL STUFFS
     and1      = new FunctionBlock((width-2*gridSize)/gridSize,  0,     AND, gridSize ) ;
     or1       = new FunctionBlock((width-2*gridSize)/gridSize,  1,      OR, gridSize ) ;
     sr1       = new FunctionBlock((width-2*gridSize)/gridSize,  2,       M, gridSize ) ;
@@ -253,14 +255,14 @@ void setup()
     ser_in1   = new FunctionBlock((width-2*gridSize)/gridSize,  8,  SER_IN, gridSize ) ;
     ser_out1  = new FunctionBlock((width-2*gridSize)/gridSize,  9, SER_OUT, gridSize ) ;
 
-    // RIGHT COLUMNS DIGITAL STUFFS
-    ana_in1  = new FunctionBlock((width-1*gridSize)/gridSize,    0,  ANA_IN, gridSize ) ;
-    ana_out1 = new FunctionBlock((width-1*gridSize)/gridSize,    1, ANA_OUT, gridSize ) ;
-    servo1   = new FunctionBlock((width-1*gridSize)/gridSize,    2,   SERVO, gridSize ) ;
-    map1     = new FunctionBlock((width-1*gridSize)/gridSize,    3,     MAP, gridSize ) ;
-    comp1    = new FunctionBlock((width-1*gridSize)/gridSize,    4,    COMP, gridSize ) ;
-    delay1   = new FunctionBlock((width-1*gridSize)/gridSize,    5,   DELAY, gridSize ) ;
-
+    // RIGHT COLUMN ANALOG STUFFS
+    ana_in1   = new FunctionBlock((width-1*gridSize)/gridSize,  0,   ANA_IN, gridSize ) ;
+    ana_out1  = new FunctionBlock((width-1*gridSize)/gridSize,  1,  ANA_OUT, gridSize ) ;
+    servo1    = new FunctionBlock((width-1*gridSize)/gridSize,  2,    SERVO, gridSize ) ;
+    map1      = new FunctionBlock((width-1*gridSize)/gridSize,  3,      MAP, gridSize ) ;
+    comp1     = new FunctionBlock((width-1*gridSize)/gridSize,  4,     COMP, gridSize ) ;
+    delay1    = new FunctionBlock((width-1*gridSize)/gridSize,  5,    DELAY, gridSize ) ;
+    const1    = new FunctionBlock((width-1*gridSize)/gridSize,  6, CONSTANT, gridSize ) ;
 }
 
 void draw()
@@ -473,6 +475,7 @@ void drawBackground()
     comp1.draw() ; 
     ser_in1.draw() ;
     ser_out1.draw() ;
+    const1.draw() ;
 }
 
 void updateLinks()
