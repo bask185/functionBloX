@@ -123,6 +123,10 @@ mousewheel    ==> alter grid size
 
 */
 
+final int darkYellow = 0xCbB700 ; 
+final int oceanBlue  = 0x006994 ; // DOES NOT WORK, NEED TO USE COLOR VARIABLES FOR THIS...
+final int darkRed    = 0xc80000 ;
+
 PrintWriter     file ;
 PrintWriter     output;
 BufferedReader  input;
@@ -139,9 +143,10 @@ final int   movingItem       = 1 ;
 final int   deletingItem     = 2 ;
 final int   makingLinks      = 3 ;
 final int   addingLinePoints = 4 ;
-final int   settingNumber    = 5 ;
+final int   settingPin       = 5 ;
 final int   settingDelayTime = 6 ;
 final int   settingPulseTime = 7 ;
+final int   settingMapValues = 8 ;
 
 int         gridSize = 60 ;
 
@@ -204,6 +209,7 @@ int      foundLinkIndex ;
 int      currentType ;
 int      pinNumber ;
 int      delayTime ;
+int      mapNumber ;
 
 int      nAnalogBlocks ;
 int      nDigitalBlocks ;
@@ -313,12 +319,13 @@ void alterNumber()
 
         FunctionBlock block = blocks.get( index ) ;
         int type = block.getType() ;
-        if( type ==     DELAY ) mode = settingDelayTime ;
+        if( type ==   DELAY ) mode = settingDelayTime ;
         if( type ==   PULSE ) mode = settingPulseTime ;
+        if( type ==     MAP ) mode = settingMapValues ;
         if( type ==   INPUT
         ||  type ==  OUTPUT
         ||  type ==  ANA_IN
-        ||  type == ANA_OUT ) mode = settingNumber ;
+        ||  type == ANA_OUT ) mode = settingPin ;
     } catch (IndexOutOfBoundsException e) {}
 }
 
@@ -399,7 +406,7 @@ void dragLine()
 
 void leftMousePress()
 {
-    if( mode == settingNumber || mode == settingDelayTime || mode == settingPulseTime ) return ;                               // as long as a number is set, LMB nor RMB must do anything
+    if( mode == settingPin || mode == settingDelayTime || mode == settingPulseTime ) return ;                               // as long as a number is set, LMB nor RMB must do anything
 
     if(      mode == idle && (mouseX > (width-2*gridSize)) )                     addFunctionBlock() ;
     else if( mode == idle ) for (int i = 0; i < blocks.size(); i++)              moveItem() ;
@@ -411,7 +418,7 @@ void leftMousePress()
 
 void rightMousePress()
 {
-    if( mode == settingNumber ) return ;                                        // as long as a number is set, LMB nor RMB must do anything
+    if( mode == settingPin ) return ;                                        // as long as a number is set, LMB nor RMB must do anything
 
     if( mode == idle 
     && blocks.size() > 0 
@@ -450,8 +457,9 @@ void mouseWheel(MouseEvent event)
 
 void drawBackground()
 {
-    background(180) ;
-    fill(255) ;
+    // background(0x9b,0x87,0x0c) ; darkYellow = 0xAb970c ;
+    background( darkYellow  ) ;
+    fill(0x00,0x69,0x94) ;
     rect(0,0,(width - 120) - 2 , (height - 120) - 2 ) ;
 
     textAlign(CENTER,CENTER);
@@ -672,7 +680,7 @@ void printTexts()
             text2 = "" ;
             // mouse = loadImage("images/mouse2.png") ;
         }
-        else if( mode == settingNumber )
+        else if( mode == settingPin )
         {
             text1 = "SET PIN NUMBER" ;
             text2 = "PRESS <ENTER> WHEN READY" ;
@@ -772,7 +780,7 @@ void keyPressed()
         }
     }
     
-    if( mode == settingNumber || mode == settingDelayTime || mode == settingPulseTime )
+    if( mode == settingPin || mode == settingDelayTime || mode == settingPulseTime )
     {
         if( keyCode == ENTER )
         {
@@ -782,7 +790,7 @@ void keyPressed()
         else
         {
             FunctionBlock block = blocks.get( index ) ;
-            if( mode == settingNumber )
+            if( mode == settingPin )
             {
                 pinNumber = makeNumber( pinNumber, 0, 31) ;
                 block.setPin( pinNumber ) ;
@@ -811,6 +819,11 @@ void keyPressed()
     }
 }
 
+
+
+
+
+/***************** SAVING, LOADING AND GENERATING SOURCE ***********/
 void saveLayout()
 {
     println("LAYOUT SAVED");
@@ -1016,17 +1029,28 @@ void assembleProgram()
         int        IN = link.getIn( subrow ) ;
         int  analogIn = link.isAnalogIn() ;
         int analogOut = link.isAnalogOut() ;
-
+        int  constVal ;
 
     // example: analogBlock[0] -> IN2 = digitalBlock[1] -> Q ;
+    // or for constant:  analogBlock[1] -> IN1 = 50 ;
+    
         file.print("    ") ;
         if( analogIn > 0 )  file.print(" analogBlock" ) ;
         else                file.print("digitalBlock" ) ;
         file.print("["+IN+"] -> IN" +(subrow+1)+" = " ) ;
 
-        if( analogOut > 0 )  file.print(" analogBlock" ) ;
-        else                 file.print("digitalBlock" ) ;
-        file.println( "["+Q+"] -> Q ;") ;
+        FunctionBlock block = blocks.get( Q ) ;         // constant blocks are directly replaced with their values
+        if( block.getType() == CONSTANT )
+        {
+            constVal = block.getConst() ;
+            file.println( constVal + " ;") ;
+        }
+        else
+        {
+            if( analogOut > 0 )  file.print(" analogBlock" ) ;
+            else                 file.print("digitalBlock" ) ;
+            file.println( "["+Q+"] -> Q ;") ;
+        }
     }
     file.println("}") ;
     file.println("") ;
@@ -1067,3 +1091,4 @@ void assembleProgram()
     file.println("}") ;
     file.close() ;
 }
+/***************** SAVING, LOADING AND GENERATING SOURCE ***********/

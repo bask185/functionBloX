@@ -231,6 +231,7 @@ public:
             {
                 if( IN2 < Q ) Q -- ;                     // if so, adopt the new state
                 if( IN2 > Q ) Q ++ ;
+                prevTime = millis() ;
             }
         }
         else

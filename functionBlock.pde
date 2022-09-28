@@ -11,6 +11,9 @@ public class FunctionBlock
     int Q ;
     int pin ;
     int delayTime ;
+    int constVal ;
+
+    int in1, in2, out1, out2 ;
 
     int isAnalog ;
 
@@ -31,7 +34,7 @@ public class FunctionBlock
         int y1,y2,y3,y4,y5,y6 ;
 
         textAlign( CENTER, CENTER ) ;
-        fill(230);
+        fill(0xc8,0x00,0x00); //dark red boxes
 
         switch( type )
         {
@@ -50,7 +53,11 @@ public class FunctionBlock
         case SER_IN:
         case SER_OUT:
         case CONSTANT:
-            rect( xPos * gridSize + (gridSize/5), yPos * gridSize + 1, 3*gridSize/5, gridSize - 2 ) ; // main box
+            rect( 
+                xPos * gridSize + (gridSize/5), 
+                yPos * gridSize + 1, 
+                3*gridSize/5, 
+                gridSize - 2 ) ; // main box
             break ;
 
         case COMP: // comperator TRIANGLE SYMBOL
@@ -85,7 +92,6 @@ public class FunctionBlock
             break ;
         }
         stroke(0);
-        fill(255);
 
         byte box = 0 ;
         String txt = "" ;
@@ -122,11 +128,11 @@ public class FunctionBlock
         if( (box & 0x02) > 0 ) line(x1, y2, x2, y2) ; //rect( xPos * gridSize,                yPos * gridSize + 3*gridSize/5, gridSize/5, gridSize/5 ) ; // bottom left
         if( (box & 0x04) > 0 ) line(x1, y3, x2, y3) ; //rect( xPos * gridSize + 4*gridSize/5, yPos * gridSize +   gridSize/5, gridSize/5, gridSize/5 ) ; // top right
         
-        x1 = xPos * gridSize + 7*gridSize/9 ;
+        x1 = xPos * gridSize + 4*gridSize/5 ;
         x2 = xPos * gridSize + 8*gridSize/9 ;
         if( (box & 0x08) > 0 )//if( type == 5 )          line(x1, y1, x2, y1) ; //ellipse( xPos * gridSize + 7*gridSize/8, yPos * gridSize +   gridSize/3, gridSize/5, gridSize/5 ) ; // ellipse for not
         line(x1, y2, x2, y2) ;                          // line of Q
-        fill(0);
+        fill(255);
 
         textSize( gridSize / 5 ) ; 
         
@@ -156,6 +162,18 @@ public class FunctionBlock
     void setDelay( int delayTime ) { this.delayTime = delayTime ; }
     int  getDelay( ) { return delayTime ; }
 
-    int  getType() { return  type ; }
-    int isAnalog() { return isAnalog ; }
+    int  getType()  { return  type ; }
+    int  isAnalog() { return isAnalog ; }
+
+    void setConst( int constVal ) { this.constVal = constVal ; }
+    int  getConst() { return constVal ; }
+
+    void setIn1(  int x) { this.in1  = x ; }
+    void setIn2(  int x) { this.in2  = x ; }
+    void setOut1( int x) { this.out1 = x ; }
+    void setOut2( int x) { this.out2 = x ; }
+    int  getIn1()  { return  in1 ; }
+    int  getIn2()  { return  in2 ; }
+    int  getOut1() { return out1 ; }
+    int  getOut2() { return out2 ; }
 }
