@@ -205,34 +205,6 @@ public:
     }
 } ;
 
-class Delay : public DigitalBlock
-{
-public:
-    Delay(int x) : delayTime( x )                       // initialize the constant
-    {
-    }
-
-    void run()
-    {
-        if( Q != IN2 )                                   // if new state changes
-        {
-            if( millis() - prevTime >= delayTime )       // keep monitor if interval has expired
-            {
-                Q = IN2 ;                                // if so, adopt the new state
-            }
-        }
-        else
-        {
-            prevTime = millis() ;                         // if new state does not change, keep setting oldTime
-        }
-    }
-
-private:
-    const uint32_t delayTime ;
-    uint32_t       prevTime ;
-} ;
-
-
 class AnalogBlock
 {
 public:
@@ -242,6 +214,34 @@ public:
     uint16_t      Q ;
 
     virtual void run() ;
+} ;
+
+class Delay : public AnalogBlock
+{
+public:
+    Delay(int x) : delayTime( x )                        // initialize the constant
+    {
+    }
+
+    void run()
+    {
+        if( Q != IN2 )                                   // if new state changes
+        {
+            if( millis() - prevTime >= delayTime )       // keep monitor if interval has expired
+            {
+                if( IN2 < Q ) Q -- ;                     // if so, adopt the new state
+                if( IN2 > Q ) Q ++ ;
+            }
+        }
+        else
+        {
+            prevTime = millis() ;                        // if new state does not change, keep setting oldTime
+        }
+    }
+
+private:
+    const uint32_t delayTime ;
+    uint32_t       prevTime ;
 } ;
 
 class Comperator : public AnalogBlock
@@ -296,22 +296,22 @@ private:
     uint32_t       prevTime ;
 } ;
 
-//template<uint8_t pin>
+template<uint8_t pin>
 class AnalogOutput : public AnalogBlock
 {
 public:
 
     AnalogOutput( uint8_t _pin ) : pin( _pin )
     {        
-        // static_assert
-        // ( 
-        //         pin ==  3 
-        //     ||  pin ==  5
-        //     ||  pin ==  6
-        //     ||  pin ==  9
-        //     ||  pin == 10
-        //     ||  pin == 11 , "INVALID PWM PIN USED" 
-        // ) ;
+        static_assert
+        ( 
+                pin ==  3 
+            ||  pin ==  5
+            ||  pin ==  6
+            ||  pin ==  9
+            ||  pin == 10
+            ||  pin == 11 , "INVALID PWM PIN USED" 
+        ) ;
     }
 
     void run()
@@ -362,7 +362,6 @@ private:
 
 class Map : public AnalogBlock
 {
-    //Delay(int x) : delayTime( x ) 
     Map( uint32_t x1, uint32_t x2 , uint32_t x3, uint32_t x4 ) 
         :  in1( x1 ), 
            in2( x2 ),

@@ -935,8 +935,7 @@ void loadLayout()
 }
 
 void assembleProgram() 
-{
-    
+{    
     file = createWriter("arduinoProgram/arduinoProgram.ino");
     file.println("#include \"functionBlocks.h\"") ;
     file.println("") ;
