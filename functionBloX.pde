@@ -506,7 +506,7 @@ void updateLinks()
             && Qfound == false )
             {
                 link.setQ( j ) ;
-                link.setAnalog( isAnalog ) ;
+                link.setAnalogIn( isAnalog ) ;
                 Qfound = true ;
             }
 
@@ -835,7 +835,7 @@ void saveLayout()
         int IN2      = link.getIn(1) ;
         int IN3      = link.getIn(2) ;
         int subrow   = link.getSubrow() ;
-        int isAnalog = link.isAnalogIO() ;
+        int isAnalog =1;//= link.isAnalogIO() ;
 
         output.print( Q + "," + IN1 + "," + IN2 + "," +IN3 + "," + subrow ) ;
 
@@ -1020,13 +1020,13 @@ void assembleProgram()
 
     // example: analogBlock[0] -> IN2 = digitalBlock[1] -> Q ;
         file.print("    ") ;
-        if( analogIn > 0 )  file.print( "analogBlock" ) ;
+        if( analogIn > 0 )  file.print(" analogBlock" ) ;
         else                file.print("digitalBlock" ) ;
         file.print("["+IN+"] -> IN" +(subrow+1)+" = " ) ;
 
-        if( analogOut > 0 )  file.print( "analogBlock" ) ;
+        if( analogOut > 0 )  file.print(" analogBlock" ) ;
         else                 file.print("digitalBlock" ) ;
-        file.println( "["+IN+"] -> IN" +(subrow+1)+" = digitalBlock["+Q+"] -> Q ;") ;
+        file.println( "["+Q+"] -> Q ;") ;
     }
     file.println("}") ;
     file.println("") ;
