@@ -49,24 +49,25 @@ V for the analog stuff, make a map block
 - finalize the arduino code with the latest added components. (also replace constant class by an actual number in the generated links)
 - Servo's still need a pin variable
 - fix that new function blocks are drawn more to the left, and limit the cursor not to include the left colomn of default blocks
+- store the new values of a map block.
 
 EXTRA
-- make comperator for usage with analog input
-- make separate arrays for AND, NOR and MEMORIES. , unsure if actually needed, it may help with generating organized source code.
-- also add NAND or NOR gates or implement inverted outputs !Q
-- let textSize change appropiate with gridSize for all function blox
+V make comperator for usage with analog input
+X make separate arrays for AND, NOR and MEMORIES. , unsure if actually needed, it may help with generating organized source code.
+V let textSize change appropiate with gridSize for all function blox
 - add panning for larger layouts
 
 BACKLOG
 - move node of a line by dragging it with LMB
+- implement inverted outputs !Q
 
 CURRENT WORK:
-- The mouse functions have been refactored
 - test the new link updates
 - store the first and final coordinates directly
 - fix the problem that links are out of synch with new digital and analog IO.
 - adjusting gridSize, both FB and links work, but the subcoordinates of the mouse
   seems off, with different zoom levels it can be difficult to move an item or create a link..
+- store the map values.
   
 possible solutions:
 - store indices in the function blocks themselfes and keep track of separate indices
@@ -646,26 +647,33 @@ void printTexts()
             text2 = "PRESS <ENTER> WHEN READY" ;
             // mouse = loadImage("images/mouse1.png") ;
         }
-        else if((   type == INPUT  ||    type == OUTPUT 
-        ||          type == ANA_IN ||    type == ANA_OUT ) 
-        &&        subCol ==     1  &&  subRow ==      2  
-        &&   hoverOverFB == true )
-        {
-            text1 = "SET PIN NUMBER" ;
-            text2 = "" ;
-            // mouse = loadImage("images/mouse2.png") ;
-        }
         else if( mode == settingDelayTime )
         {
             text1 = "ENTER DELAY TIME" ;
             text2 = "PRESS <ENTER> WHEN READY" ;
             // mouse = loadImage("images/mouse1.png") ;
         }
-        else if( type == DELAY && subCol == 1 && subRow == 2 && hoverOverFB == true )
+        else if( subCol == 1 && subRow == 2 && hoverOverFB == true && mode == idle )
         {
-            text1 = "SET DELAY TIME" ;
-            text2 = "" ;
-            // mouse = loadImage("images/mouse2.png") ;
+            if(    type == INPUT  || type == OUTPUT 
+            ||     type == ANA_IN || type == ANA_OUT )
+            {
+                text1 = "SET PIN NUMBER" ;
+                text2 = "" ;
+                // mouse = loadImage("images/mouse2.png") ;
+            }
+            else if( type == DELAY )
+            {
+                text1 = "SET DELAY TIME" ;
+                text2 = "" ;
+                // mouse = loadImage("images/mouse2.png") ;
+            }
+            else if( type == MAP )
+            {
+                text1 = "SET MAP VALUES" ;
+                text2 = "" ;
+                // mouse = loadImage("images/mouse2.png") ; 
+            }
         }
         else if( mode == settingPulseTime )
         {
@@ -776,8 +784,8 @@ void keyPressed()
             {
                 switch( mapState )
                 {
-                    case 0: in1  = makeNumber(  in1, 0, 60000 ) ;block.setIn1(in1) ; break ;
-                    case 1: in2  = makeNumber(  in2, 0, 60000 ) ;block.setIn2(in2) ; break ;
+                    case 0: in1  = makeNumber(  in1, 0, 60000 ) ;block.setIn1( in1) ; break ;
+                    case 1: in2  = makeNumber(  in2, 0, 60000 ) ;block.setIn2( in2) ; break ;
                     case 2: out1 = makeNumber( out1, 0, 60000 ) ;block.setOut1(out1) ; break ;
                     case 3: out2 = makeNumber( out2, 0, 60000 ) ;block.setOut2(out2) ; break ;
                 }
@@ -789,7 +797,7 @@ void keyPressed()
             }
         }
     }
-    if( key == 's') saveLayout() ;
+    if( key == 's' ) saveLayout() ;
 
     if( key == 't' )
     {
@@ -821,7 +829,11 @@ void saveLayout()
     for (int i = 0; i < blocks.size(); i++ )
     {
         FunctionBlock block = blocks.get(i) ;
-        output.println( block.getXpos() + "," + block.getYpos() + "," + block.getType() + "," + block.getPin() + "," + block.getDelay() ) ;
+        output.println( block.getXpos() + "," + block.getYpos() + "," 
+                      + block.getType() + "," + block.getPin()  + "," 
+                      + block.getDelay()+ "," 
+                      + block.getIn1()  + "," + block.getIn2()  + "," 
+                      + block.getOut1() + "," + block.getOut2() + "," ) ;
     }
 
     output.println(links.size());           // the amount of links is saved
@@ -880,6 +892,10 @@ void loadLayout()
         int type  = Integer.parseInt( pieces[2] );
         int  pin  = Integer.parseInt( pieces[3] );
         int time  = Integer.parseInt( pieces[4] );
+        int  in1  = Integer.parseInt( pieces[5] );
+        int  in2  = Integer.parseInt( pieces[6] );
+        int out1  = Integer.parseInt( pieces[7] );
+        int out2  = Integer.parseInt( pieces[8] );
 
         blocks.add( new FunctionBlock(X, Y, type, gridSize ) ) ;
         if( type >= ANA_IN )  nAnalogBlocks ++ ;
@@ -888,6 +904,10 @@ void loadLayout()
         FunctionBlock block = blocks.get(j) ;
         block.setPin( pin ) ;
         block.setDelay( time ) ;
+        block.setIn1( in1 ) ;
+        block.setIn2( in2 ) ;
+        block.setOut1( out1 ) ;
+        block.setOut2( out2 ) ;
     } 
 
     try { line = input.readLine(); } 
