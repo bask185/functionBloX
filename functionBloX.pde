@@ -48,8 +48,8 @@ V for the analog stuff, make a map block
 - add code to insert constants for map block and constant block
 - finalize the arduino code with the latest added components. (also replace constant class by an actual number in the generated links)
 - Servo's still need a pin variable
-- fix that new function blocks are drawn more to the left, and limit the cursor not to include the left colomn of default blocks
-- store the new values of a map block.
+- fix that new function blocks are created more to the left, and limit the cursor not to include the left colomn of default blocks
+V store the new values of a map block.
 
 EXTRA
 V make comperator for usage with analog input
@@ -292,12 +292,14 @@ void alterNumber()
 
         FunctionBlock block = blocks.get( index ) ;
         int type = block.getType() ;
-        if( type ==   DELAY ) mode = settingDelayTime ;
+        if( type ==   DELAY 
+        ||  type == CONSTANT) mode = settingDelayTime ;
         if( type ==   PULSE ) mode = settingPulseTime ;
         if( type ==     MAP ) mode = settingMapValues ;
         if( type ==   INPUT
         ||  type ==  OUTPUT
         ||  type ==  ANA_IN
+        ||  type ==   SERVO
         ||  type == ANA_OUT ) mode = settingPin ;
     } catch (IndexOutOfBoundsException e) {}
 }
@@ -655,14 +657,15 @@ void printTexts()
         }
         else if( subCol == 1 && subRow == 2 && hoverOverFB == true && mode == idle )
         {
-            if(    type == INPUT  || type == OUTPUT 
-            ||     type == ANA_IN || type == ANA_OUT )
+            if( type == INPUT  || type == OUTPUT 
+            ||  type == ANA_IN || type == ANA_OUT 
+            ||  type == SERVO )
             {
                 text1 = "SET PIN NUMBER" ;
                 text2 = "" ;
                 // mouse = loadImage("images/mouse2.png") ;
             }
-            else if( type == DELAY )
+            else if( type == DELAY || type == CONSTANT )
             {
                 text1 = "SET DELAY TIME" ;
                 text2 = "" ;
@@ -673,6 +676,12 @@ void printTexts()
                 text1 = "SET MAP VALUES" ;
                 text2 = "" ;
                 // mouse = loadImage("images/mouse2.png") ; 
+            }
+            else if( type == PULSE )
+            {
+                text1 = "SET PULSE TIME" ;
+                text2 = "" ;
+                // mouse = loadImage("images/mouse2.png") ;
             }
         }
         else if( mode == settingPulseTime )
@@ -691,12 +700,6 @@ void printTexts()
                 case 3: text1 = "Set Out 2" ; break ;
             }
             text2 = "PRESS <ENTER> WHEN READY" ;
-        }
-        else if( type == PULSE && subCol == 1 && subRow == 2 && hoverOverFB == true )
-        {
-            text1 = "SET PULSE TIME" ;
-            text2 = "" ;
-            // mouse = loadImage("images/mouse2.png") ;
         }
         else
         {

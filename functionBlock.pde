@@ -110,7 +110,7 @@ public class FunctionBlock
             case    PULSE: txt= "\r\n" +  delayTime;          box = 0x08 ; break ;
             case   ANA_IN: txt= "ADC\r\n\r\nA" + pin;         box = 0x08 ; break ;
             case  ANA_OUT: txt= "PWM\r\n\r\nD" + pin;         box = 0x02 ; break ;
-            case    SERVO: txt= "SERVO" ;                     box = 0x02 ; break ;
+            case    SERVO: txt= "SERVO\r\n"  + pin;         box = 0x02 ; break ;
             case   SER_IN: txt= "MESS\r\nIN" ;                box = 0x08 ; break ;
             case  SER_OUT: txt= "MESS\r\nOUT" ;               box = 0x02 ; break ;
             case      MAP: txt= in1 + "  " + out1 + "\r\nMAP\r\n"
