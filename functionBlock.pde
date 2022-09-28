@@ -27,6 +27,9 @@ public class FunctionBlock
 
     void draw()
     {
+        int x1,x2,x3,x4,x5,x6 ;
+        int y1,y2,y3,y4,y5,y6 ;
+
         textAlign( CENTER, CENTER ) ;
         fill(230);
 
@@ -35,7 +38,7 @@ public class FunctionBlock
         case     AND:
         case      OR:
         case       M:
-        case     DEL:
+        case     DELAY:
         case     NOT:
         case      JK:
         case  ANA_IN:
@@ -49,24 +52,30 @@ public class FunctionBlock
             rect( xPos * gridSize + (gridSize/5), yPos * gridSize + 1, 3*gridSize/5, gridSize - 2 ) ; // main box
             break ;
 
-        case COMP: // comperator
-            //triangle(xPos * gridSize + (gridSize/5), yPos * gridSize, 3*gridSize/5, gridSize, xPos * gridSize + (gridSize/5), yPos * gridSize + gridSize );
+        case COMP: // comperator TRIANGLE SYMBOL
+            x1 = xPos * gridSize + (gridSize/5) ;
+            y1 = yPos * gridSize ;
+            x2 = x1 ;
+            y2 = y1 + gridSize ;
+            x3 = x1 + 3*gridSize/5 ;
+            y3 = y1 + (y2 - y1) / 2 ;
+            triangle(x1,y1,x2,y2,x3,y3) ;
             break ;
 
-        case PULSE:  
+        case PULSE: // CICLE PLUS PULSE SYMBOL
             ellipse( xPos * gridSize + (gridSize/2), yPos * gridSize + (gridSize/2), 3*gridSize/5, 3*gridSize/5 ) ; // perhaps replace by image?
-            int x1 = xPos*gridSize + 3*gridSize/9;
-            int y1 = yPos*gridSize+ gridSize/2;
-            int x2 = xPos*gridSize + 4*gridSize/9;
-            int y2 = y1 ;
-            int x3 = x2 ;
-            int y3 = yPos*gridSize + 3*gridSize/9;
-            int x4 = xPos*gridSize + 5*gridSize/9;
-            int y4 = y3 ;
-            int x5 = x4 ;
-            int y5 = y1 ;
-            int x6 = xPos*gridSize + 6*gridSize/9;
-            int y6 = y1 ;
+            x1 = xPos*gridSize + 3*gridSize/9;
+            y1 = yPos*gridSize+ gridSize/2;
+            x2 = xPos*gridSize + 4*gridSize/9;
+            y2 = y1 ;
+            x3 = x2 ;
+            y3 = yPos*gridSize + 3*gridSize/9;
+            x4 = xPos*gridSize + 5*gridSize/9;
+            y4 = y3 ;
+            x5 = x4 ;
+            y5 = y1 ;
+            x6 = xPos*gridSize + 6*gridSize/9;
+            y6 = y1 ;
             line(x1,y1,x2,y2);
             line(x2,y2,x3,y3);
             line(x3,y3,x4,y4);
@@ -80,17 +89,17 @@ public class FunctionBlock
         byte box = 0 ;
         String txt = "" ;
 
-        // draw the input and output connection lines
+        // draw the input and output connection lines and make up the text inside the block
         switch( type )
         {                                       // box bits: Q, in1, in2, in3,
             case     AND: txt =  "AND" ;                     box = 0x0F ; break ;
             case      OR: txt =   "OR" ;                     box = 0x0F ; break ;
-            case       M: txt =   " M" ;                     box = 0x0D ; break ;
-            case     DEL: txt ="DELAY\r\n\r\n" + delayTime ; box = 0x0A ; break ;
+            case     DELAY: txt ="DELAY\r\n\r\n" + delayTime ;box = 0x0A ; break ;
             case     NOT: txt =  "NOT" ;                     box = 0x0A ; break ; // text replaced by clock symbol
             case   INPUT: txt = "IN-\r\nPUT\r\nD" + pin;     box = 0x08 ; break ;
             case  OUTPUT: txt ="OUT-\r\nPUT\r\nD" + pin;     box = 0x02 ; break ;
             case      JK: txt =  "J    \r\nK    \r\nCLK";    box = 0x0F ; break ;
+            case       M: txt = "S          \r\nM\r\nR          ";   box = 0x0D ; break ;
             case   PULSE: txt= "\r\n" +  delayTime;          box = 0x08 ; break ;
             case  ANA_IN: txt= "ADC\r\n\r\nA" + pin;         box = 0x08 ; break ;
             case ANA_OUT: txt= "PWM\r\n\r\nD" + pin;         box = 0x02 ; break ;
@@ -98,20 +107,21 @@ public class FunctionBlock
             case  SER_IN: txt= "MESS\r\nIN" ;                box = 0x08 ; break ;
             case SER_OUT: txt= "MESS\r\nOUT" ;               box = 0x02 ; break ;
             case     MAP: txt= "MAP" ;                       box = 0x0A ; break ;
+            case    COMP: txt = "+          \r\n-          ";box = 0x0D ; break ;
         }
 
-        int x1 = xPos * gridSize ;
-        int x2 = xPos * gridSize + gridSize/5 ;
-        int y1 = yPos * gridSize + gridSize/6 + 0 * gridSize / 3 ;
-        int y2 = yPos * gridSize + gridSize/6 + 1 * gridSize / 3 ;
-        int y3 = yPos * gridSize + gridSize/6 + 2 * gridSize / 3 ;
+        x1 = xPos * gridSize + gridSize/8 ;
+        x2 = xPos * gridSize + gridSize/5 ;
+        y1 = yPos * gridSize + gridSize/6 + 0 * gridSize / 3 ;
+        y2 = yPos * gridSize + gridSize/6 + 1 * gridSize / 3 ;
+        y3 = yPos * gridSize + gridSize/6 + 2 * gridSize / 3 ;
 
         if( (box & 0x01) > 0 ) line(x1, y1, x2, y1) ; //rect( xPos * gridSize,                yPos * gridSize +   gridSize/5, gridSize/5, gridSize/5 ) ; // top left
         if( (box & 0x02) > 0 ) line(x1, y2, x2, y2) ; //rect( xPos * gridSize,                yPos * gridSize + 3*gridSize/5, gridSize/5, gridSize/5 ) ; // bottom left
         if( (box & 0x04) > 0 ) line(x1, y3, x2, y3) ; //rect( xPos * gridSize + 4*gridSize/5, yPos * gridSize +   gridSize/5, gridSize/5, gridSize/5 ) ; // top right
         
-        x1 = xPos * gridSize + gridSize ;
-        x2 = xPos * gridSize + gridSize - gridSize/5 ;
+        x1 = xPos * gridSize + 7*gridSize/9 ;
+        x2 = xPos * gridSize + 8*gridSize/9 ;
         if( (box & 0x08) > 0 )//if( type == 5 )          line(x1, y1, x2, y1) ; //ellipse( xPos * gridSize + 7*gridSize/8, yPos * gridSize +   gridSize/3, gridSize/5, gridSize/5 ) ; // ellipse for not
         line(x1, y2, x2, y2) ;                          // line of Q
         fill(0);
@@ -123,17 +133,6 @@ public class FunctionBlock
 
         text( txt, x , y ) ;
         textSize( gridSize / 5 ) ; 
-        if( type ==   M ) text( "S\n\nR", x-(gridSize/5) , y ) ; // draw S and R for memory
-        if( type == DEL ) // delay
-        {
-            // ... is this not for that small diagonal line for the NOT gates?
-            fill(255);            
-            x1 = xPos * gridSize + gridSize / 2 ;   
-            y1 = yPos * gridSize + gridSize / 2 ;
-            y2 = yPos * gridSize ;
-            line(x1, y2, x1, y2) ;
-            fill(0);
-        }
     }
 
     void setPos( int xPos, int yPos )

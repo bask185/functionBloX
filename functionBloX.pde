@@ -148,24 +148,27 @@ final int   settingPulseTime = 7 ;
 
 int         gridSize = 60 ;
 
+final int DIGITAL_BLOCKS = 0 ;
+
 final int        AND =  1 ;
 final int         OR =  2 ;
 final int          M =  3 ;
-final int        DEL =  4 ;
-final int        NOT =  5 ;
-final int      INPUT =  6 ;
-final int     OUTPUT =  7 ;
-final int         JK =  8 ;
-final int      PULSE =  9 ;
-final int     SER_IN = 10 ;
-final int    SER_OUT = 11 ;
+final int        NOT =  4 ;
+final int      INPUT =  5 ;
+final int     OUTPUT =  6 ;
+final int         JK =  7 ;
+final int      PULSE =  8 ;
+final int     SER_IN =  9 ;
+final int    SER_OUT = 10 ;
 
+final int ANALOG_BLOCKS = 20 ;
 
 final int     ANA_IN = 21 ;
 final int    ANA_OUT = 22 ;
 final int      SERVO = 23 ;
 final int        MAP = 24 ;
 final int       COMP = 25 ;
+final int      DELAY = 26 ;
 
 
 // digital input
@@ -242,21 +245,21 @@ void setup()
     and1      = new FunctionBlock((width-2*gridSize)/gridSize,  0,     AND, gridSize ) ;
     or1       = new FunctionBlock((width-2*gridSize)/gridSize,  1,      OR, gridSize ) ;
     sr1       = new FunctionBlock((width-2*gridSize)/gridSize,  2,       M, gridSize ) ;
-    delay1    = new FunctionBlock((width-2*gridSize)/gridSize,  3,     DEL, gridSize ) ;
-    not1      = new FunctionBlock((width-2*gridSize)/gridSize,  4,     NOT, gridSize ) ;
-    inp1      = new FunctionBlock((width-2*gridSize)/gridSize,  5,   INPUT, gridSize ) ;
-    outp1     = new FunctionBlock((width-2*gridSize)/gridSize,  6,  OUTPUT, gridSize ) ;
-    jk1       = new FunctionBlock((width-2*gridSize)/gridSize,  7,      JK, gridSize ) ;
-    gen1      = new FunctionBlock((width-2*gridSize)/gridSize,  8,   PULSE, gridSize ) ;
-    ser_in1   = new FunctionBlock((width-2*gridSize)/gridSize,  9,  SER_IN, gridSize ) ;
-    ser_out1  = new FunctionBlock((width-2*gridSize)/gridSize, 10, SER_OUT, gridSize ) ;
+    not1      = new FunctionBlock((width-2*gridSize)/gridSize,  3,     NOT, gridSize ) ;
+    inp1      = new FunctionBlock((width-2*gridSize)/gridSize,  4,   INPUT, gridSize ) ;
+    outp1     = new FunctionBlock((width-2*gridSize)/gridSize,  5,  OUTPUT, gridSize ) ;
+    jk1       = new FunctionBlock((width-2*gridSize)/gridSize,  6,      JK, gridSize ) ;
+    gen1      = new FunctionBlock((width-2*gridSize)/gridSize,  7,   PULSE, gridSize ) ;
+    ser_in1   = new FunctionBlock((width-2*gridSize)/gridSize,  8,  SER_IN, gridSize ) ;
+    ser_out1  = new FunctionBlock((width-2*gridSize)/gridSize,  9, SER_OUT, gridSize ) ;
 
     // RIGHT COLUMNS DIGITAL STUFFS
-    ana_in1  = new FunctionBlock((width-gridSize)/gridSize,    0,  ANA_IN, gridSize ) ;
-    ana_out1 = new FunctionBlock((width-gridSize)/gridSize,    1, ANA_OUT, gridSize ) ;
-    servo1   = new FunctionBlock((width-gridSize)/gridSize,    2,   SERVO, gridSize ) ;
-    map1     = new FunctionBlock((width-gridSize)/gridSize,    3,     MAP, gridSize ) ;
-    comp1    = new FunctionBlock((width-gridSize)/gridSize,    4,    COMP, gridSize ) ;
+    ana_in1  = new FunctionBlock((width-1*gridSize)/gridSize,    0,  ANA_IN, gridSize ) ;
+    ana_out1 = new FunctionBlock((width-1*gridSize)/gridSize,    1, ANA_OUT, gridSize ) ;
+    servo1   = new FunctionBlock((width-1*gridSize)/gridSize,    2,   SERVO, gridSize ) ;
+    map1     = new FunctionBlock((width-1*gridSize)/gridSize,    3,     MAP, gridSize ) ;
+    comp1    = new FunctionBlock((width-1*gridSize)/gridSize,    4,    COMP, gridSize ) ;
+    delay1   = new FunctionBlock((width-1*gridSize)/gridSize,    5,   DELAY, gridSize ) ;
 
 }
 
@@ -311,7 +314,7 @@ void alterNumber()
 
         FunctionBlock block = blocks.get( index ) ;
         int type = block.getType() ;
-        if( type ==     DEL ) mode = settingDelayTime ;
+        if( type ==     DELAY ) mode = settingDelayTime ;
         if( type ==   PULSE ) mode = settingPulseTime ;
         if( type ==   INPUT
         ||  type ==  OUTPUT
@@ -690,7 +693,7 @@ void printTexts()
             text2 = "PRESS <ENTER> WHEN READY" ;
             // mouse = loadImage("images/mouse1.png") ;
         }
-        else if( type == DEL && subCol == 1 && subRow == 2 && hoverOverFB == true )
+        else if( type == DELAY && subCol == 1 && subRow == 2 && hoverOverFB == true )
         {
             text1 = "SET DELAY TIME" ;
             text2 = "" ;
@@ -960,7 +963,7 @@ void assembleProgram()
             case       M: file.println("static    Memory D"+(index+1)+" =     Memory() ;") ;           index++ ; break ;
             case     NOT: file.println("static       Not D"+(index+1)+" =        Not() ;") ;           index++ ; break ;
             case      JK: file.println("static        Jk D"+(index+1)+" =         Jk() ;") ;           index++ ; break ;
-            case     DEL: file.println("static     Delay D"+(index+1)+" =      Delay("+ time +") ;") ; index++ ; break ;
+            case     DELAY: file.println("static     Delay D"+(index+1)+" =      Delay("+ time +") ;") ; index++ ; break ;
             case   INPUT: file.println("static     Input D"+(index+1)+" =      Input("+  pin +") ;") ; index++ ; break ;
             case  OUTPUT: file.println("static    Output D"+(index+1)+" =     Output("+  pin +") ;") ; index++ ; break ;
             case   PULSE: file.println("static     Pulse D"+(index+1)+" =      Pulse("+ time +") ;") ; index++ ; break ;  
