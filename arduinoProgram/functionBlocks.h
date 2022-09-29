@@ -286,11 +286,9 @@ public:
         if( millis() - prevTime >= sampleRate ) 
         {     prevTime = millis() ;
 
-            analogQ = analogRead( pin ) ;
+            Q = analogRead( pin ) ;
         }
     }
-
-    int analogQ ;
 
 private:
     const uint32_t sampleRate = ANALOG_SAMPLE_TIME ;

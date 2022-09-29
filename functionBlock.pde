@@ -4,6 +4,7 @@ public class FunctionBlock
     int yPos ;
     int type ;
     int gridSize ;
+    int index ;
 
     int IN1 ;
     int IN2 ;
@@ -25,7 +26,9 @@ public class FunctionBlock
         this.gridSize   = gridSize ;
         isAnalog        = 0 ;
 
-        if( type == ANA_IN || type == ANA_OUT ) isAnalog = 1 ;
+        if( type == ANA_IN || type == ANA_OUT || type == SERVO
+        ||  type ==    MAP || type == COMP    || type == DELAY
+        ||  type ==  CONSTANT ) isAnalog = 1 ;
     }
 
     void draw()
@@ -106,7 +109,7 @@ public class FunctionBlock
             case    INPUT: txt = "IN-\r\nPUT\r\nD" + pin;     box = 0x08 ; break ;
             case   OUTPUT: txt ="OUT-\r\nPUT\r\nD" + pin;     box = 0x02 ; break ;
             case       JK: txt =  "J    \r\nK    \r\nCLK";    box = 0x0F ; break ;
-            case        M: txt = "S          \r\nM\r\nR          ";   box = 0x0D ; break ;
+            case        M: txt = "S      \r\nM\r\nR      ";   box = 0x0D ; break ;
             case    PULSE: txt= "\r\n" +  delayTime;          box = 0x08 ; break ;
             case   ANA_IN: txt= "ADC\r\n\r\nA" + pin;         box = 0x08 ; break ;
             case  ANA_OUT: txt= "PWM\r\n\r\nD" + pin;         box = 0x02 ; break ;
@@ -115,7 +118,7 @@ public class FunctionBlock
             case  SER_OUT: txt= "MESS\r\nOUT" ;               box = 0x02 ; break ;
             case      MAP: txt= in1 + "  " + out1 + "\r\nMAP\r\n"
                               + in2 + "  " + out2 ;           box = 0x0A ; break ;
-            case     COMP: txt = "+          \r\n-          ";box = 0x0D ; break ;
+            case     COMP: txt = "+      \r\n-      ";        box = 0x0D ; break ;
             case CONSTANT: txt = "CONST\r\n\r\n"+ delayTime;  box = 0x08 ; break ;
         }
 
@@ -163,8 +166,12 @@ public class FunctionBlock
     void setDelay( int delayTime ) { this.delayTime = delayTime ; }
     int  getDelay( ) { return delayTime ; }
 
+    
+    int isAnalog() { return isAnalog ; }
+
+    void setIndex( int index ) { this.index = index ; }
+    int  getIndex() { return index ; }
     int  getType()  { return  type ; }
-    int  isAnalog() { return isAnalog ; }
 
     void setConst( int constVal ) { this.constVal = constVal ; }
     int  getConst() { return constVal ; }
