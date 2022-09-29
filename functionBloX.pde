@@ -25,13 +25,11 @@ V you can 'finish' a link on every row, as long as the column is ok...
 I think over over FB is always true?
 V entering a number works, but as soon as you touch a new function block
 the number is overwritten. It seems that all blocks share the pin number -_-
-- create special items like servo motors, blinking lights (auto toggling IO)
-- make variable gridsize workable
+V create special items like servo motors, blinking lights (auto toggling IO)
+V make variable gridsize workable
 - store and load layout, add buttons.
 - add small sphere to mouse if there is anything to click. perhaps half green and half red to indicate which buttons can be pressed
 V make small nodes along link nodes, so you can see when lines just simply cross
-// NOTE. Added different baseclass. This works well for the arduino, but I have the problem that the links and indices are screwed up.
-// I think I also need to to add analog base class for
 V may need to refactor to separate classes so it becomes easier to add the new analog items
 V ID of Function blocks also need to be stored for the input and output blocks
 - add method to update all links' Qs and INs for when a FB is removed or replaced. Currently links will point to the old index
@@ -45,29 +43,51 @@ V check if #error can be used to test the PWM pins for being an actual PWM pin n
   but the syntax behind it is abysmal. I need like 3 helper function with vague c++ syntax to get it done
 - add mouse images to git
 V for the analog stuff, make a map block
-- add code to insert constants for map block and constant block
+V add code to insert constants for map block and constant block
 - finalize the arduino code with the latest added components. (also replace constant class by an actual number in the generated links)
-- Servo's still need a pin variable
-- fix that new function blocks are created more to the left, and limit the cursor not to include the left colomn of default blocks
+V Servo's still need a pin variable
+V fix that new function blocks are created more to the left, and limit the cursor not to include the left colomn of default blocks
 V store the new values of a map block.
+- refactor the code and add comments somewhere to show how it is organized. The comments must be able to be used to find the code easily.
+    perhaps also a list with commented function prototypes of all functions?
+- Texts on main screen are related to gridSize... kill that!
+- if not yet done, Links cannot be removed by right mousing buttoning on the last node
 
-EXTRA
+  setup
+  loop
+  mouse functions
+  keyboard functions
+  round robin tasks
+  saving and storeing
+
+LIST OF BLOCKS TO ADD
+- loconet -> loco drive
+- loconet -> loco function
+- loconet -> point (send)
+- loconet -> point (received)
+- loconet -> feedback
+- loconet -> railcom (must be simultaneous with the feedback)
+
+- arithmatic blocks? +, -, /, *
+
+
+BACKLOG
 V make comperator for usage with analog input
 X make separate arrays for AND, NOR and MEMORIES. , unsure if actually needed, it may help with generating organized source code.
 V let textSize change appropiate with gridSize for all function blox
 - add panning for larger layouts
-
-BACKLOG
+- exclude top row and first column for cosmetic purposes. It would be neat if we can stuff control buttons there.
 - move node of a line by dragging it with LMB
 - implement inverted outputs !Q
+- if zoomed in, the components can be drawn in the yellow zone.. and
+  if zoomed out we cannot reach the bottom right zone of the blue zone...
+
 
 CURRENT WORK:
 - test the new link updates
-- store the first and final coordinates directly
+- store the first and final coordinates of links nodes directly. These important for making arduino code. If the
+  start or stop coordinates are not well saved one will get vague bugs... 
 - fix the problem that links are out of synch with new digital and analog IO.
-- adjusting gridSize, both FB and links work, but the subcoordinates of the mouse
-  seems off, with different zoom levels it can be difficult to move an item or create a link..
-- store the map values.
   
 possible solutions:
 - store indices in the function blocks themselfes and keep track of separate indices
@@ -267,7 +287,6 @@ void addFunctionBlock()
     blocks.add( new FunctionBlock(( width- 3*gridSize) / gridSize, row, currentType, gridSize )) ;    
 
     index = blocks.size() - 1 ;
-    return ;
 }
 
 void moveItem()
@@ -277,10 +296,8 @@ void moveItem()
     if( col == block.getXpos() &&  row == block.getYpos() && blockMiddle == true )
     {
         mode = movingItem ;
-        //index = i;
         return ;
     }
-    //else index = 0 ;
 }
 
 void alterNumber()
@@ -385,7 +402,7 @@ void leftMousePress()
     ||  mode == settingMapValues ) return ;                               // as long as a number is set, LMB nor RMB must do anything
 
     if(      mode == idle && (mouseX > (width-2*gridSize)) )                     addFunctionBlock() ;
-    else if( mode == idle ) for (int i = 0; i < blocks.size(); i++)              moveItem() ;
+    else if( mode == idle ) /*for (int i = 0; i < blocks.size(); i++)*/          moveItem() ;
     if (     mode == idle && subCol == 1 && subRow == 2 && hoverOverFB == true ) alterNumber() ;
     else if( mode == idle && subCol == 2 && subRow == 1 && hoverOverFB == true ) createLink() ;
     else if( mode == addingLinePoints && subCol == 0    && hoverOverFB == true ) finishLink() ;
@@ -425,8 +442,9 @@ void mouseReleased()
 void mouseWheel(MouseEvent event)
 {
     float e = event.getCount();
-    if( e > 0 && gridSize < 40 ) return ;
-    gridSize -= 5* (int) e ;
+    if(( e > 0 && gridSize <  35 )
+    || ( e < 0 && gridSize > 135 )) return ;
+    gridSize -= 15* (int) e ;
     println( gridSize ) ;
 }
 
@@ -436,7 +454,7 @@ void drawBackground()
     // background(0x9b,0x87,0x0c) ; darkYellow = 0xAb970c ;
     background( darkYellow  ) ;
     fill(0x00,0x69,0x94) ;
-    rect(0,0,(width - 120) - 2 , (height - 120) - 2 ) ;
+    rect(5,5,(width - 120) - 2 , (height - 120) - 2 ) ;
 
     textAlign(CENTER,CENTER);
     for( int i = 0 ; i < demoBlocks.size() ; i ++ )
@@ -564,16 +582,16 @@ void updateCursor()
 {
 
     col = mouseX / gridSize ;
-    int max_col = (width - 2*gridSize) / gridSize ;
+    int max_col = (width - 3*gridSize) / gridSize ;
     col = constrain( col, 0, max_col ) ;
 
     row =    mouseY / gridSize ;
-    int max_row = (height - 2*gridSize ) / gridSize ;
+    int max_row = (height - 3*gridSize ) / gridSize ;
     row = constrain( row, 0, max_row ) ;
 
     if( mode != movingItem )
     {
-        subCol = mouseX / (gridSize/3) % 3 ;
+        subCol = mouseX / (gridSize/3) % 3 ; // NOTE this suck balls when the gridSize is not divisable by 3
         subRow = mouseY / (gridSize/3) % 3 ;
     }  
 
@@ -601,7 +619,7 @@ void printTexts()
 
         int type = block.getType() ;
 
-        if(mouseX > (width-gridSize)  && mode == idle ) // seems to work very well
+        if(mouseX > (width-2*gridSize)  && mode == idle ) // seems to work very well
         {
             text1 = "New function block" ;
             text2 = "" ;
