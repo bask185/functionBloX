@@ -6,8 +6,8 @@
         {
             "label": "build",
             "type": "shell",
-            "command": "processing-java --sketch=\"c:\\Users\\Gebruiker\\Documents\\Projects\\functionBlox\" --run"
-            //"command": "processing-java --sketch=\"c:\\Users\\sknippels\\Documents\\hobbyProjects\\functionBloX\" --run"
+            //"command": "processing-java --sketch=\"c:\\Users\\Gebruiker\\Documents\\Projects\\functionBlox\" --run"
+            "command": "processing-java --sketch=\"c:\\Users\\sknippels\\Documents\\hobbyProjects\\functionBloX\" --run"
         }
     ]
 }

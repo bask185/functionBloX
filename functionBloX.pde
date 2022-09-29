@@ -52,6 +52,20 @@ V store the new values of a map block.
     perhaps also a list with commented function prototypes of all functions?
 - Texts on main screen are related to gridSize... kill that!
 - if not yet done, Links cannot be removed by right mousing buttoning on the last node
+- map values need to be rearanged, so like 
+  in1   in2
+      in
+      MAP
+      out
+ out1   out2
+ - map values are not set int he arduino program
+ - constans FB should not be counted in the arduino program. This causes oncprrect
+- links seem not correct, wrong blocks go to wrong blocks. 
+- the constant value is also 0, this is propably the value of a different block (CONSTANTS DO NOT WORK< DO NOT USE)
+- insert messages for serial input and output (OUTPUT MESSAGES FUCKING WORK!!!)
+- with 
+
+
 
   setup
   loop
@@ -123,9 +137,10 @@ mousewheel    ==> alter grid size
 
 */
 
-final int darkYellow = 0xCbB700 ; 
-final int oceanBlue  = 0x006994 ; // DOES NOT WORK, NEED TO USE COLOR VARIABLES FOR THIS...
-final int darkRed    = 0xc80000 ;
+color backGroundColor = 100 ; 
+color mainPanel  = 200 ; // DOES NOT WORK, NEED TO USE COLOR VARIABLES FOR THIS...
+color fbColor    = #97db61  ;
+color textColor  = 0 ;
 
 PrintWriter     file ;
 PrintWriter     output;
@@ -136,8 +151,8 @@ String text1 = "" ;
 String text2 = "" ;
 
 ArrayList <FunctionBlock> demoBlocks = new ArrayList() ;
-ArrayList <FunctionBlock> blocks = new ArrayList() ;
-ArrayList <Link>          links  = new ArrayList() ;
+ArrayList <FunctionBlock>     blocks = new ArrayList() ;
+ArrayList <Link>              links  = new ArrayList() ;
 
 final int   idle             = 0 ;
 final int   movingItem       = 1 ;
@@ -148,6 +163,7 @@ final int   settingPin       = 5 ;
 final int   settingDelayTime = 6 ;
 final int   settingPulseTime = 7 ;
 final int   settingMapValues = 8 ;
+final int   settingMessage   = 9 ;
 
 int         gridSize = 60 ;
 
@@ -252,11 +268,11 @@ void draw()
     checkFunctionBlocks() ;
     checkLinePoints() ;
     printTexts() ;
-    updateCursor() ;
     updateBlocks() ;
     drawBlocks() ;
     updateLinks() ;
     drawLinks() ;
+    updateCursor() ;
 }
 
 
@@ -277,7 +293,7 @@ void addFunctionBlock()
 
 void moveItem()
 {
-    FunctionBlock block = blocks.get( index ); // DEBUG NEED A TRY N CATCH..
+    FunctionBlock block = blocks.get( index ); // DEBUG NEED A TRY N CATCH.. 2x happened
 
     if( col == block.getXpos() &&  row == block.getYpos() && blockMiddle == true )
     {
@@ -298,6 +314,8 @@ void alterNumber()
         ||  type == CONSTANT) mode = settingDelayTime ;
         if( type ==   PULSE ) mode = settingPulseTime ;
         if( type ==     MAP ) mode = settingMapValues ;
+        if( type ==  SER_IN
+        ||  type == SER_OUT ) mode = settingMessage ;
         if( type ==   INPUT
         ||  type ==  OUTPUT
         ||  type ==  ANA_IN
@@ -384,7 +402,7 @@ void dragLine()
 void leftMousePress()
 {
     if( mode == settingPin || mode == settingDelayTime || mode == settingPulseTime 
-    ||  mode == settingMapValues ) return ;                               // as long as a number is set, LMB nor RMB must do anything
+    ||  mode == settingMapValues || mode == settingMessage ) return ;                               // as long as a number is set, LMB nor RMB must do anything
 
     if(      mode == idle && (mouseX > (width-2*gridSize)) )                     addFunctionBlock() ;
     else if( mode == idle ) /*for (int i = 0; i < blocks.size(); i++)*/          moveItem() ;
@@ -436,9 +454,9 @@ void mouseWheel(MouseEvent event)
 
 void drawBackground()
 {
-    // background(0x9b,0x87,0x0c) ; darkYellow = 0xAb970c ;
-    background( darkYellow  ) ;
-    fill(0x00,0x69,0x94) ;
+    // background(0x9b,0x87,0x0c) ; backGroundColor = 0xAb970c ;
+    background( backGroundColor  ) ;
+    fill( mainPanel) ;
     rect(5,5,(width - 120) - 2 , (height - 120) - 2 ) ;
 
     textAlign(CENTER,CENTER);
@@ -573,7 +591,7 @@ void checkLinePoints()
     {
         Link link = links.get(foundLinkIndex) ;
         
-        for( int j = 0 ; j < link.getNlinks() ; j++ )
+        for( int j = 0 ; j < link.getNlinks()+1 ; j++ )
         {
             if( link.getPosX( j ) == col      //text("col: true",10,230);
             &&  link.getPosY( j ) == row      //text("row: true",10,250);
@@ -619,6 +637,13 @@ void updateCursor()
     text("linkRow " + linkRow, 10, 230);
     text("analogQ " + analogQ, 10, 250);
     text("analogIn " + analogIn, 10, 270);
+
+    if( text1 != "" || text2 != "" )
+    {
+        fill(255) ;
+        arc(mouseX, mouseY, 10, 10, 0, 2*PI );
+    }
+    fill(0);
 }
 
 void printTexts()
@@ -628,6 +653,9 @@ void printTexts()
         FunctionBlock block = blocks.get(index);
 
         int type = block.getType() ;
+
+        text1 = "";
+        text2 = "";
 
         if(mouseX > (width-2*gridSize)  && mode == idle ) // seems to work very well
         {
@@ -736,9 +764,9 @@ void printTexts()
             // mouse = loadImage("images/mouse1.png") ;
         }
         //image(mouse, width/2-gridSize, gridSize/5,gridSize,gridSize);
-        textSize(gridSize/2);  
+        textSize(30);  
         textAlign(RIGHT,TOP);
-        text( text1,  width/2 - gridSize, 0 ) ;
+        text( text1,  width/2 - 60, 0 ) ;
         textAlign(LEFT,TOP);
         text( text2, width/2, 0 ) ;
         textAlign(CENTER,CENTER);
@@ -791,7 +819,8 @@ void keyPressed()
     }
     
     if( mode == settingPin       || mode == settingDelayTime 
-    ||  mode == settingPulseTime || mode == settingMapValues )
+    ||  mode == settingPulseTime || mode == settingMapValues 
+    ||  mode == settingMessage   )
     {
         if( keyCode == ENTER )
         {
@@ -873,12 +902,12 @@ void saveLayout()
         Link link = links.get(i) ;
         println("N nodes = " + (link.getNlinks()-1) ) ;
 
-        int Q        = link.getQ() ;
+        int   Q      = link.getQ() ;
         int IN1      = link.getIn(0) ;
         int IN2      = link.getIn(1) ;
         int IN3      = link.getIn(2) ;
         int subrow   = link.getSubrow() ;
-        int isAnalog =1;//= link.isAnalogIO() ;
+        int isAnalog = 1 ;//= link.isAnalogIO() ;
 
         output.print( Q + "," + IN1 + "," + IN2 + "," +IN3 + "," + subrow ) ;
 
@@ -965,8 +994,6 @@ void loadLayout()
         //int s2     = Integer.parseInt( pieces[8] );
         int isAnalog = Integer.parseInt( pieces[205] ) ;
 
-        if( isAnalog > 0 ) { println("ANALOG LINK loaded BRUH!!") ; }
-
         links.add( new Link( x1, y1, gridSize ) ) ;
         Link link = links.get(i) ;
 
@@ -1010,17 +1037,17 @@ void assembleProgram()
         
         switch( type )
         {   // digital types
-            case     AND: file.println("static       And D"+(index+1)+" =        And() ;") ;           index++ ; break ;
-            case      OR: file.println("static        Or D"+(index+1)+" =         Or() ;") ;           index++ ; break ;
-            case       M: file.println("static    Memory D"+(index+1)+" =     Memory() ;") ;           index++ ; break ;
-            case     NOT: file.println("static       Not D"+(index+1)+" =        Not() ;") ;           index++ ; break ;
-            case      JK: file.println("static        Jk D"+(index+1)+" =         Jk() ;") ;           index++ ; break ;
-            
-            case   INPUT: file.println("static     Input D"+(index+1)+" =      Input("+  pin +") ;") ; index++ ; break ;
-            case  OUTPUT: file.println("static    Output D"+(index+1)+" =     Output("+  pin +") ;") ; index++ ; break ;
-            case   PULSE: file.println("static     Pulse D"+(index+1)+" =      Pulse("+ time +") ;") ; index++ ; break ;  
-            case  SER_IN: file.println("static  SerialIn D"+(index+1)+" =   SerialIn("+ time +") ;") ; index++ ; break ;  
-            case SER_OUT: file.println("static SerialOut D"+(index+1)+" =  SerialOut("+ time +") ;") ; index++ ; break ;  
+            case     AND: file.println("static          And d"+(index+1)+" = And() ;") ;                    index++ ; break ;
+            case      OR: file.println("static           Or d"+(index+1)+" = Or() ;") ;                     index++ ; break ;
+            case       M: file.println("static       Memory d"+(index+1)+" = Memory() ;") ;                 index++ ; break ;
+            case     NOT: file.println("static          Not d"+(index+1)+" = Not() ;") ;                    index++ ; break ;
+            case      JK: file.println("static           Jk d"+(index+1)+" = Jk() ;") ;                     index++ ; break ;
+                   
+            case   INPUT: file.println("static        Input d"+(index+1)+" = Input("+  pin +") ;") ;        index++ ; break ;
+            case  OUTPUT: file.println("static       Output d"+(index+1)+" = Output("+  pin +") ;") ;       index++ ; break ;
+            case   PULSE: file.println("static        Pulse d"+(index+1)+" = Pulse("+ time +") ;") ;        index++ ; break ;  
+            case  SER_IN: file.println("static     SerialIn d"+(index+1)+" = SerialIn("+ time +") ;") ;     index++ ; break ;  
+            case SER_OUT: file.println("static    SerialOut d"+(index+1)+" = SerialOut("+ time +") ;") ;    index++ ; break ;  
         }
     }
     nDigitalBlocks = index ; 
@@ -1032,27 +1059,32 @@ void assembleProgram()
         int type  = block.getType() ;
         int time  = block.getDelay() ;
         int  pin  = block.getPin() ;
+        int  in1  = block.getIn1() ;
+        int  in2  = block.getIn2() ;
+        int out1  = block.getOut1() ;
+        int out2  = block.getOut2() ;
         
         switch( type )
         {   // analog types
-            case      ANA_IN:  file.println( "static  AnalogInput A"+(index+1)+" =  AnalogInput("+  pin +") ;") ; index++ ; break ;
-            case     ANA_OUT:  file.println( "static AnalogOutput A"+(index+1)+" = AnalogOutput("+  pin +") ;") ; index++ ; break ;
-            case        COMP:  file.println( "static   Comperator A"+(index+1)+" =   Comperator() ;") ;           index++ ; break ;
-            case       SERVO:  file.println( "static   ServoMotor A"+(index+1)+" =   ServoMotor("+  pin +") ;") ; index++ ; break ;
-            case       DELAY:  file.println( "static        Delay A"+(index+1)+" =        Delay("+ time +") ;") ; index++ ; break ;
-            //case         MAP:  file.println( "static          Map A"+(index+1)+" =          Map("+in1+","+in2+","+out1+","+out2+") ;") ;   index++ ; break ;
+            case      ANA_IN:  file.println( "static  AnalogInput a"+(index+1)+" = AnalogInput("+  pin +") ;") ;    index++ ; break ;
+            case     ANA_OUT:  file.println( "static AnalogOutput a"+(index+1)+" = AnalogOutput("+  pin +") ;") ;   index++ ; break ;
+            case        COMP:  file.println( "static   Comperator a"+(index+1)+" = Comperator() ;") ;               index++ ; break ;
+            case       SERVO:  file.println( "static   ServoMotor a"+(index+1)+" = ServoMotor("+  pin +") ;") ;     index++ ; break ;
+            case       DELAY:  file.println( "static        Delay a"+(index+1)+" = Delay("+ time +") ;") ;          index++ ; break ;
+            case         MAP:  file.println( "static          Map a"+(index+1)+" = Map("+in1+","+in2+","+out1+","+out2+") ;") ;   index++ ; break ;
+            //case    CONSTANT:  index++ ; break ;
         }
     }
     nAnalogBlocks = index ;
 
     file.println("") ;
     file.println("DigitalBlock *digitalBlock[] = {") ;
-    for( int i = 0 ; i < nDigitalBlocks ; i ++ ) file.println("    &D"+ (i+1)+" ,") ;
+    for( int i = 0 ; i < nDigitalBlocks ; i ++ ) file.println("    &d"+ (i+1)+" ,") ;
     file.println("} ;") ;
     file.println("const int nDigitalBlocks = " + nDigitalBlocks + " ;" ) ;
     file.println("") ;
     file.println("AnalogBlock *analogBlock[] = {") ;
-    for( int i = 0 ; i < nAnalogBlocks ; i ++ ) file.println("    &A"+ (i+1)+" ,") ;
+    for( int i = 0 ; i < nAnalogBlocks ; i ++ ) file.println("    &a"+ (i+1)+" ,") ;
     file.println("} ;") ;
     file.println("const int nAnalogBlocks = " + nAnalogBlocks + " ;" ) ;
     file.println("") ;
@@ -1068,7 +1100,6 @@ void assembleProgram()
         int        IN = link.getIn( subrow ) ;
         int  analogIn = link.isAnalogIn() ;
         int analogOut = link.isAnalogOut() ;
-        int  constVal ;
 
     // example: analogBlock[0] -> IN2 = digitalBlock[1] -> Q ;
     // or for constant:  analogBlock[1] -> IN1 = 50 ;
@@ -1081,8 +1112,10 @@ void assembleProgram()
         FunctionBlock block = blocks.get( Q ) ;         // constant blocks are directly replaced with their values
         if( block.getType() == CONSTANT )
         {
-            constVal = block.getConst() ;
+            int constVal = block.getDelay() ;
             file.println( constVal + " ;") ;
+            println("Q: " + Q + " CONSTANT: " + constVal ) ;
+
         }
         else
         {
@@ -1119,7 +1152,7 @@ void assembleProgram()
     file.println("void setup()") ;
     file.println("{") ;
     file.println("    // NOTE init servo motors") ;
-    file.println("    Serial.begin( 115200 ) ;") ;
+    file.println("    Serial.begin( 9600 ) ;") ;
     file.println("}") ;
     file.println("") ;
     file.println("void loop()") ;
@@ -1131,3 +1164,35 @@ void assembleProgram()
     file.close() ;
 }
 /***************** SAVING, LOADING AND GENERATING SOURCE ***********/
+
+
+
+/*
+    REPEAT_MS( 500 )
+    {
+        Serial.println("\r\n\r\n") ;
+        for( int i = 0 ; i < nDigitalBlocks ; i ++ )
+        {
+            int valIn1 = digitalBlock[i] -> IN1 ;
+            int valIn2 = digitalBlock[i] -> IN2 ;
+            int valIn3 = digitalBlock[i] -> IN3 ;
+            int valQ   = digitalBlock[i] -> Q ;
+            Serial.println( valIn1 ) ; 
+            Serial.print( valIn2 ) ; Serial.print("         ");Serial.println( valQ) ;
+            Serial.println( valIn3 ) ;Serial.println();
+        } 
+        Serial.println("\r\n") ;
+        for( int i = 0 ; i <  nAnalogBlocks ; i ++ )
+        {
+            int valIn1 = analogBlock[i] -> IN1 ;
+            int valIn2 = analogBlock[i] -> IN2 ;
+            int valIn3 = analogBlock[i] -> IN3 ;
+            int valQ   = analogBlock[i] -> Q ;
+            Serial.println( valIn1 ) ; 
+            Serial.print( valIn2 ) ; Serial.print("          ");Serial.println( valQ) ;
+            Serial.println( valIn3 ) ;Serial.println();
+            
+        } 
+    }
+    END_REPEAT
+*/	

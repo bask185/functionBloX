@@ -231,6 +231,7 @@ public:
             {
                 if( IN2 < Q ) Q -- ;                     // if so, adopt the new state
                 if( IN2 > Q ) Q ++ ;
+                Serial.println(Q) ;
                 prevTime = millis() ;
             }
         }
@@ -250,17 +251,17 @@ class Comperator : public AnalogBlock
 public:
     void run()
     {
-        if( IN1 > IN2 + 2 ) Q = 1 ;   // marge of 2 for schmitt-trigger effect, may need to more like 5..
-        if( IN1 < IN2 - 2 ) Q = 0 ; 
+        if( IN1 > IN3 + 2 ) Q = 1 ;   // marge of 2 for schmitt-trigger effect, may need to more like 5..
+        if( IN1 < IN3 - 2 ) Q = 0 ; 
     }
 } ;
+
 
 class Constant : public AnalogBlock
 {
 public:
-    Constant( uint16_t val )
+    Constant( )
     {
-        Q = val ;
     }
 
     void run()
@@ -295,22 +296,12 @@ private:
     uint32_t       prevTime ;
 } ;
 
-template<uint8_t pin>
 class AnalogOutput : public AnalogBlock
 {
 public:
 
     AnalogOutput( uint8_t _pin ) : pin( _pin )
     {        
-        static_assert
-        ( 
-                pin ==  3 
-            ||  pin ==  5
-            ||  pin ==  6
-            ||  pin ==  9
-            ||  pin == 10
-            ||  pin == 11 , "INVALID PWM PIN USED" 
-        ) ;
     }
 
     void run()
@@ -342,15 +333,14 @@ public:
 
     void run()
     {
-        if( servoPos != analogIN2 )
-        {   servoPos  = analogIN2 ;
+        if( servoPos != IN2 )
+        {   servoPos  = IN2 ;
         
             servoPos = constrain( servoPos, 0, 180 ) ;
             motor.write(servoPos) ;
+            Serial.print(pin) ; Serial.write(' ') ;Serial.println(servoPos) ;
         }
     }
-
-    uint8_t analogIN2 ;
 
 private:
     Servo motor ;
@@ -361,7 +351,8 @@ private:
 
 class Map : public AnalogBlock
 {
-    Map( uint32_t x1, uint32_t x2 , uint32_t x3, uint32_t x4 ) 
+public:
+    Map( int32_t x1, int32_t x2 , int32_t x3, int32_t x4 ) 
         :  in1( x1 ), 
            in2( x2 ),
           out1( x3 ), 
@@ -373,12 +364,13 @@ class Map : public AnalogBlock
         Q = map( IN2, in1, in2, out1, out2 ) ;
     }
 
-    const uint32_t  in1 ;
-    const uint32_t  in2 ;
-    const uint32_t out1 ;
-    const uint32_t out2 ;
+private:
+    const int32_t  in1 ;
+    const int32_t  in2 ;
+    const int32_t out1 ;
+    const int32_t out2 ;
 } ;
-
+/*
 class Constant : public AnalogBlock     // I really should not do this, but try to hardcode the constants in the .ino file instead
 {                                       // This uses atleast 12 bytes of memory when a constant does not use bytes in the first place
 public:
@@ -393,4 +385,19 @@ public:
 
 private:
     const int val ;
-}
+}*/
+
+#define REPEAT_US(x)    { \
+                            static uint32_t previousTime ;\
+                            uint32_t currentTime = micros() ;\
+                            if( currentTime  - previousTime >= x ) {\
+                                previousTime = currentTime ;
+                                // code to be repeated goes between these 2 macros
+#define REPEAT_MS(x)    { \
+                            static uint32_t previousTime ;\
+                            uint32_t currentTime = millis() ;\
+                            if( currentTime  - previousTime >= x ) {\
+                                previousTime = currentTime ;
+                                // code to be repeated goes between these 2 macros
+#define END_REPEAT          } \
+                        }

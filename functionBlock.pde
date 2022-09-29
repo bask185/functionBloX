@@ -37,7 +37,7 @@ public class FunctionBlock
         int y1,y2,y3,y4,y5,y6 ;
 
         textAlign( CENTER, CENTER ) ;
-        fill(0xc8,0x00,0x00); //dark red boxes
+        fill(fbColor); //dark red boxes
 
         switch( type )
         {
@@ -104,7 +104,7 @@ public class FunctionBlock
         {                                       // box bits: Q, in1, in2, in3,
             case      AND: txt =  "AND" ;                     box = 0x0F ; break ;
             case       OR: txt =   "OR" ;                     box = 0x0F ; break ;
-            case      DELAY: txt ="DELAY\r\n\r\n" + delayTime ;box = 0x0A ; break ;
+            case      DELAY: txt ="DELAY\r\n\r\n" + delayTime;box = 0x0A ; break ;
             case      NOT: txt =  "NOT" ;                     box = 0x0A ; break ; // text replaced by clock symbol
             case    INPUT: txt = "IN-\r\nPUT\r\nD" + pin;     box = 0x08 ; break ;
             case   OUTPUT: txt ="OUT-\r\nPUT\r\nD" + pin;     box = 0x02 ; break ;
@@ -113,11 +113,11 @@ public class FunctionBlock
             case    PULSE: txt= "\r\n" +  delayTime;          box = 0x08 ; break ;
             case   ANA_IN: txt= "ADC\r\n\r\nA" + pin;         box = 0x08 ; break ;
             case  ANA_OUT: txt= "PWM\r\n\r\nD" + pin;         box = 0x02 ; break ;
-            case    SERVO: txt= "SERVO\r\n"  + pin;         box = 0x02 ; break ;
+            case    SERVO: txt= "SERVO\r\n"  + pin;           box = 0x02 ; break ;
             case   SER_IN: txt= "MESS\r\nIN" ;                box = 0x08 ; break ;
             case  SER_OUT: txt= "MESS\r\nOUT" ;               box = 0x02 ; break ;
-            case      MAP: txt= in1 + "  " + out1 + "\r\nMAP\r\n"
-                              + in2 + "  " + out2 ;           box = 0x0A ; break ;
+            case      MAP: txt= in1 + "  " + in2 + "\r\nMAP\r\n"
+                             + out1 + "  " + out2 ;           box = 0x0A ; break ;
             case     COMP: txt = "+      \r\n-      ";        box = 0x0D ; break ;
             case CONSTANT: txt = "CONST\r\n\r\n"+ delayTime;  box = 0x08 ; break ;
         }
@@ -136,7 +136,7 @@ public class FunctionBlock
         x2 = xPos * gridSize + 8*gridSize/9 ;
         if( (box & 0x08) > 0 )//if( type == 5 )          line(x1, y1, x2, y1) ; //ellipse( xPos * gridSize + 7*gridSize/8, yPos * gridSize +   gridSize/3, gridSize/5, gridSize/5 ) ; // ellipse for not
         line(x1, y2, x2, y2) ;                          // line of Q
-        fill(255);
+        fill(textColor);
 
         textSize( gridSize / 5 ) ; 
         

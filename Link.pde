@@ -76,6 +76,7 @@ class Link
             int y2 = yPos * gridSize + ySub * gridSize / 3 + gridSize/6 ;
 
             line( x1, y1, x2, y2 ) ;
+            fill(255) ;
             circle(x1,y1,3) ;
             circle(x2,y2,3) ;
         }
