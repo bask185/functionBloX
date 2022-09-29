@@ -52,7 +52,7 @@ V store the new values of a map block.
     perhaps also a list with commented function prototypes of all functions?
 - Texts on main screen are related to gridSize... kill that!
 - if not yet done, Links cannot be removed by right mousing buttoning on the last node
-- map values need to be rearanged, so like 
+V map values need to be rearanged, so like 
   in1   in2
       in
       MAP
@@ -64,6 +64,8 @@ V store the new values of a map block.
 - the constant value is also 0, this is propably the value of a different block (CONSTANTS DO NOT WORK< DO NOT USE)
 - insert messages for serial input and output (OUTPUT MESSAGES FUCKING WORK!!!)
 - with 
+- if gridSize is not 60, placing compenents suck balls
+
 
 
 
@@ -138,7 +140,8 @@ mousewheel    ==> alter grid size
 */
 
 color backGroundColor = 100 ; 
-color mainPanel  = 200 ; // DOES NOT WORK, NEED TO USE COLOR VARIABLES FOR THIS...
+color mainPanel  = 200 ;
+// color mainPanel  = #5C4033 ; dark brown 
 color fbColor    = #97db61  ;
 color textColor  = 0 ;
 
@@ -293,12 +296,16 @@ void addFunctionBlock()
 
 void moveItem()
 {
-    FunctionBlock block = blocks.get( index ); // DEBUG NEED A TRY N CATCH.. 2x happened
-
-    if( col == block.getXpos() &&  row == block.getYpos() && blockMiddle == true )
+    try
     {
-        mode = movingItem ;
+        FunctionBlock block = blocks.get( index ); // DEBUG NEED A TRY N CATCH.. 3x happened
+
+        if( col == block.getXpos() &&  row == block.getYpos() && blockMiddle == true )
+        {
+            mode = movingItem ;
+        }
     }
+    catch( IndexOutOfBoundsException e ) {}
 }
 
 void alterNumber()
@@ -475,7 +482,7 @@ void updateBlocks()
     {
         FunctionBlock block = blocks.get(i) ;
         int type = block.getType() ;
-
+        //if( type == CONSTANT ) continue ;
         if( type >= ANA_IN ) { block.setIndex(  analogIndex ++ ) ; }
         else                 { block.setIndex( digitalIndex ++ ) ; }
     }
@@ -723,7 +730,8 @@ void printTexts()
             }
             else if( type == DELAY || type == CONSTANT )
             {
-                text1 = "SET DELAY TIME" ;
+                if( type == DELAY ) text1 = "SET DELAY TIME" ;
+                else                text1 = "SET VALUE" ;
                 text2 = "" ;
                 // mouse = loadImage("images/mouse2.png") ;
             }
@@ -992,7 +1000,7 @@ void loadLayout()
         int y1       = Integer.parseInt( pieces[6] );
         //int s1     = Integer.parseInt( pieces[7] );
         //int s2     = Integer.parseInt( pieces[8] );
-        int isAnalog = Integer.parseInt( pieces[205] ) ;
+        //int isAnalog = Integer.parseInt( pieces[205] ) ;
 
         links.add( new Link( x1, y1, gridSize ) ) ;
         Link link = links.get(i) ;
@@ -1041,8 +1049,7 @@ void assembleProgram()
             case      OR: file.println("static           Or d"+(index+1)+" = Or() ;") ;                     index++ ; break ;
             case       M: file.println("static       Memory d"+(index+1)+" = Memory() ;") ;                 index++ ; break ;
             case     NOT: file.println("static          Not d"+(index+1)+" = Not() ;") ;                    index++ ; break ;
-            case      JK: file.println("static           Jk d"+(index+1)+" = Jk() ;") ;                     index++ ; break ;
-                   
+            case      JK: file.println("static           Jk d"+(index+1)+" = Jk() ;") ;                     index++ ; break ;    
             case   INPUT: file.println("static        Input d"+(index+1)+" = Input("+  pin +") ;") ;        index++ ; break ;
             case  OUTPUT: file.println("static       Output d"+(index+1)+" = Output("+  pin +") ;") ;       index++ ; break ;
             case   PULSE: file.println("static        Pulse d"+(index+1)+" = Pulse("+ time +") ;") ;        index++ ; break ;  
@@ -1072,6 +1079,7 @@ void assembleProgram()
             case       SERVO:  file.println( "static   ServoMotor a"+(index+1)+" = ServoMotor("+  pin +") ;") ;     index++ ; break ;
             case       DELAY:  file.println( "static        Delay a"+(index+1)+" = Delay("+ time +") ;") ;          index++ ; break ;
             case         MAP:  file.println( "static          Map a"+(index+1)+" = Map("+in1+","+in2+","+out1+","+out2+") ;") ;   index++ ; break ;
+            case    CONSTANT:  file.println( "static     Constant a"+(index+1)+" = Constant("+time+") ;") ;         index++ ; break ;
             //case    CONSTANT:  index++ ; break ;
         }
     }
@@ -1109,15 +1117,15 @@ void assembleProgram()
         else                file.print("digitalBlock" ) ;
         file.print("["+IN+"] -> IN" +(subrow+1)+" = " ) ;
 
-        FunctionBlock block = blocks.get( Q ) ;         // constant blocks are directly replaced with their values
-        if( block.getType() == CONSTANT )
-        {
-            int constVal = block.getDelay() ;
-            file.println( constVal + " ;") ;
-            println("Q: " + Q + " CONSTANT: " + constVal ) ;
+        // FunctionBlock block = blocks.get( Q ) ;         // CONST BLOCKS ARE TEMPORARILY USED AS REGULAR BLOCKS. CODE MUST BE TESTED ON BUGS NOW
+        // if( block.getType() == CONSTANT )
+        // {
+        //     int constVal = block.getDelay() ;
+        //     file.println( constVal + " ;") ;
+        //     println("Q: " + Q + " CONSTANT: " + constVal ) ;
 
-        }
-        else
+        // }
+        // else
         {
             if( analogOut > 0 )  file.print(" analogBlock" ) ;
             else                 file.print("digitalBlock" ) ;

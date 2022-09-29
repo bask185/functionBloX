@@ -260,8 +260,9 @@ public:
 class Constant : public AnalogBlock
 {
 public:
-    Constant( )
+    Constant( uint32_t val )
     {
+        Q = val ;
     }
 
     void run()
