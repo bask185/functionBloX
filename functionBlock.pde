@@ -138,11 +138,11 @@ public class FunctionBlock
         line(x1, y2, x2, y2) ;                          // line of Q
         fill(textColor);
 
-        textSize( gridSize / 5 ) ; 
         
         int x = xPos * gridSize + gridSize/2 ;
         int y = yPos * gridSize + gridSize/2 ;
 
+        textSize( gridSize / 6 ) ; 
         text( txt, x , y ) ;
         textSize( gridSize / 5 ) ; 
     }
