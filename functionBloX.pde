@@ -104,7 +104,7 @@ V let textSize change appropiate with gridSize for all function blox
 
 
 CURRENT WORK:
-- adding conrol buttons
+- add the texts for serial blocks, use the upper texts..
 
 
 STUFF TO ADD
@@ -816,11 +816,10 @@ void printTexts()
     catch (IndexOutOfBoundsException e) {}
 }
 
-// ASSEMBLE ARDUINO PROGRAM.
+
+
 int makeNumber(int _number, int lowerLimit, int upperLimit )
 {
-    //if( (key >= '0' && key <= '9') || keyCode == BACKSPACE || keyCode == LEFT || keyCode == RIGHT )
-    //{
          if( keyCode ==  LEFT      ) { _number -- ;             }
     else if( keyCode == RIGHT      ) { _number ++ ;             }
     else if( _number == upperLimit ) { _number = ( key-'0' ) ;  }
