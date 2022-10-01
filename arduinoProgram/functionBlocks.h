@@ -325,15 +325,17 @@ public:
     ServoMotor( uint8_t _pin ) 
     {
         pin = _pin ;
-    }
-
-    void init()
-    {
-        motor.attach(pin) ;
+        initialized = 0 ;
     }
 
     void run()
     {
+        if( !initialized )
+        {   initialized = true ;
+
+            motor.attach(pin) ;
+        }
+
         if( servoPos != IN2 )
         {   servoPos  = IN2 ;
         
@@ -346,7 +348,8 @@ public:
 private:
     Servo motor ;
     uint8_t servoPos ;
-    uint8_t pin ;
+    uint8_t pin : 7 ;
+    uint8_t initialized : 1 ;
 } ;
 
 
@@ -386,7 +389,7 @@ public:
 
 private:
     const int val ;
-}*/
+}
 
 #define REPEAT_US(x)    { \
                             static uint32_t previousTime ;\
@@ -402,3 +405,4 @@ private:
                                 // code to be repeated goes between these 2 macros
 #define END_REPEAT          } \
                         }
+        */

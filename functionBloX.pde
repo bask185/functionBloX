@@ -6,7 +6,7 @@ V create all GPIO items, inputs, outputs, ~~~pwm out, analog in~~~.
 X make onscreen keypad to click on numbers so one may enter a number for an input for instance
 V create the arduino framework
 V make 3 inputs for and and or gates
-V beacon off the X and Y limits to exlude the right and bottom side (DONER)
+V limit the X and Y limits to exlude the right and bottom side (DONER)
 V auto set modes, depending on where one clicks. I no longer want to use the kayboard. (DONER)
 V remove subclasses and change the functionBlock class to contain type variable.. (DONER, seems to work)
 V add a dynamic message box which tells you what LMB and RMB does at any time
@@ -60,8 +60,8 @@ V map values need to be rearanged, so like
  out1   out2
  V map values are not set int he arduino program
 V insert messages for serial input and output
-- if gridSize is not 60, placing compenents suck balls
-- initialize servo objects
+V if gridSize is not 60, placing compenents suck balls
+V initialize servo objects
 - enter the texts for serial blocks
   setup
   loop
@@ -105,30 +105,76 @@ V let textSize change appropiate with gridSize for all function blox
 
 CURRENT WORK:
 - add the texts for serial blocks, use the upper texts..
-
+- test servo's
+- find usb microphone/camera and make recording
 
 STUFF TO ADD
 
-ANALOG:
-    SERVO 
-    MAP
-    SERIAL PRINT A NUMBER
-    CONSTANTS (as input)
-    COMPARATOR
-    ANALOG DELAY (increments or decrements an IN with 1 at the time)
 
-DIGITAL
-    Serial read and print messages
-    check if a D latch or D flip flop is at all usefull considering that we already have a JK FF
+BEACON
 
-3 events:
-mouse pressed ==> create line object and store initial X/Y coordinates. Inc point index
-mouse drag    ==> update the current element with new X/Y coordinates
-mouse release ==> increment the index counter
-mousewheel    ==> alter grid size
+PROGRAM FUNCTIONS IN ORDER
+void setup()
+
+void draw()
+// ROUND ROBIN TASKS
+drawBackground() ;
+checkFunctionBlocks() ;
+checkLinePoints() ;
+printTexts() ;
+updateBlocks() ;
+drawBlocks() ;
+updateLinks() ;
+drawLinks() ;
+controlButtons() ;
+updateCursor() ;
+
+// MOUSE EVENTS
+
+void mousePressed()
+
+    void leftMousePress() 
+        drawBackground() ;
+        checkFunctionBlocks() ;
+        checkLinePoints() ;
+        printTexts() ;
+        updateBlocks() ;
+        drawBlocks() ;
+        updateLinks() ;
+        drawLinks() ;
+        controlButtons() ;
+        updateCursor() ;
+
+    void rightMousePress()
+        void deleteObject() ;
+        void removeNode() ;
+        void removeLink() ;
+
+void mouseDragged()
+    void dragItem() ;
+
+void mouseMoved()
+    dragLine() ;
+
+void mouseReleased()
+
+void mouseWheel(MouseEvent event)
+
+// keyboard event
+void keyPressed()
+
+void saveLayout() ;
+void loadLayout() ;
+void assembleProgram() ;
+
+// helper functions
+void makeNumber()
+
+
+
+
 
 */
-
 color backGroundColor = 100 ; 
 color mainPanel  = 200 ;
 // color mainPanel  = #5C4033 ; dark brown 
@@ -186,6 +232,15 @@ final int        MAP = 24 ;
 final int       COMP = 25 ;
 final int      DELAY = 26 ;
 final int   CONSTANT = 27 ;
+
+
+// 23,5,0,0,0,0,0,  servo
+// 24,0,0,0,1,30,90, map 
+// 37,0,0,0,0,0,0,   
+// 17,0,0,0,0,0,0,
+// 22,0,0,0,0,0,0,
+// 21,0,0,0,0,0,0,
+// 23,6,0,0,0,0,0,
 
 
 /*
@@ -277,188 +332,6 @@ void draw()
     updateCursor() ;
 }
 
-
-// mouse PRESSED FUNCTIONS
-void addFunctionBlock()
-{
-    int row =    mouseY / 60 ;
-    mode = movingItem ;
-
-    if( mouseX > (width-60)) currentType = row + 21 ; // hover over analog things
-    else                     currentType = row +  1 ; // hover over digital things
-
-    pinNumber = 0 ;
-
-    blocks.add( new FunctionBlock(( width- 3*60) / 60, row, currentType, 60 )) ;    
-
-    index = blocks.size() - 1 ;
-}
-
-void moveItem()
-{
-    try
-    {
-        FunctionBlock block = blocks.get( index ); // DEBUG NEED A TRY N CATCH.. 3x happened
-
-        if( col == block.getXpos() &&  row == block.getYpos() && blockMiddle == true )
-        {
-            mode = movingItem ;
-        }
-    }
-    catch( IndexOutOfBoundsException e ) {}
-}
-
-void alterNumber()
-{
-    try
-    {
-        pinNumber = 0 ;
-        delayTime = 0 ;
-
-        FunctionBlock block = blocks.get( index ) ;
-        int type = block.getType() ;
-        if( type ==   DELAY 
-        ||  type == CONSTANT) mode = settingDelayTime ;
-        if( type ==   PULSE ) mode = settingPulseTime ;
-        if( type ==     MAP ) mode = settingMapValues ;
-        if( type ==  SER_IN
-        ||  type == SER_OUT ) mode = settingMessage ;
-        if( type ==   INPUT
-        ||  type ==  OUTPUT
-        ||  type ==  ANA_IN
-        ||  type ==   SERVO
-        ||  type == ANA_OUT ) mode = settingPin ;
-    } catch (IndexOutOfBoundsException e) {}
-}
-
-void createLink()
-{
-    mode = addingLinePoints ;
-
-    int analogIO = 0 ;
-
-    FunctionBlock block = blocks.get( index ) ;
-    int type = block.getType() ;
-
-    links.add( new Link( col, row, gridSize ) ) ;
-    Link link = links.get( linkIndex ) ;
-    link.updatePoint( col, row, subCol, subRow  ) ;
-}
-
-void finishLink()
-{
-    mode = idle ; 
-    Link link = links.get( linkIndex ) ;
-    linkIndex ++ ;
-}
-
-void addNodeToLink()
-{
-    Link link = links.get( linkIndex ) ;
-    link.addPoint( ) ;
-    link.updatePoint( col, row, subCol, subRow  ) ;
-}
-
-void deleteObject()
-{
-    FunctionBlock block = blocks.get( index ) ;
-    int type = block.getType() ;
-
-    if( type >= ANA_IN )  nAnalogBlocks -- ;
-    else                 nDigitalBlocks -- ;
-
-    blocks.remove(index);		                                            // DELETE THE OBJECT
-    hoverOverFB = false ;
-}
-
-void removeNode()
-{
-    Link link =links.get( linkIndex ) ;
-    if( link.removePoint( ) )
-    {
-        mode = idle ;
-        links.remove(linkIndex) ;
-    }
-    else
-    {
-        link.updatePoint( col, row, subCol, subRow  ) ;
-    }
-}
-
-void removeLink()
-{
-    println("foundLinkIndex: " + foundLinkIndex) ;
-    links.remove( foundLinkIndex ) ;
-    linkIndex -- ;
-}
-
-void dragItem() 
-{
-    FunctionBlock block = blocks.get(index);
-    block.setPos(col,row);
-}
-
-void dragLine()
-{
-    Link link = links.get( linkIndex ) ;
-    link.updatePoint( col, row, subCol, subRow  ) ;
-}
-// helper functions
-
-
-void leftMousePress()
-{
-    if( mode == settingPin || mode == settingDelayTime || mode == settingPulseTime 
-    ||  mode == settingMapValues || mode == settingMessage ) return ;                               // as long as a number is set, LMB nor RMB must do anything
-
-    if(      mode == idle && (mouseX > (width-2*60)) )                           addFunctionBlock() ;
-    else if( mode == idle )                                                      moveItem() ;
-    if (     mode == idle && subCol == 1 && subRow == 2 && hoverOverFB == true ) alterNumber() ;
-    else if( mode == idle && subCol == 2 && subRow == 1 && hoverOverFB == true ) createLink() ;
-    else if( mode == addingLinePoints && subCol == 0    && hoverOverFB == true ) finishLink() ;
-    else if( mode == addingLinePoints )                                          addNodeToLink() ; 
-}
-
-void rightMousePress()
-{
-    if( mode == settingPin ) return ;                                        // as long as a number is set, LMB nor RMB must do anything
-
-    if( mode == idle 
-    && blocks.size() > 0 
-    &&  index < blocks.size() 
-    && hoverOverFB == true
-    && blockMiddle == true )                deleteObject() ;  
-    else if( mode == addingLinePoints )     removeNode() ;
-    else if( hoverOverPoint )               removeLink() ;
-}
-void mousePressed()
-{	
-    if( mouseButton ==  LEFT )              leftMousePress() ;
-    if( mouseButton == RIGHT )              rightMousePress() ;
-}
-void mouseDragged()
-{
-    if( mode == movingItem )                dragItem() ;
-}
-void mouseMoved()
-{
-    if( mode == addingLinePoints )          dragLine() ;
-}
-void mouseReleased()
-{
-    if( mode == movingItem )                mode = idle ;
-}
-
-void mouseWheel(MouseEvent event)
-{
-    float e = event.getCount();
-    if(( e > 0 && gridSize <  35 )
-    || ( e < 0 && gridSize > 135 )) return ;
-    gridSize -= 15* (int) e ;
-    println( gridSize ) ;
-}
-
-
 void drawBackground()
 {
     // background(0x9b,0x87,0x0c) ; backGroundColor = 0xAb970c ;
@@ -502,6 +375,8 @@ void controlButtons()
         text1 = "QUIT PROGRAM" ;
         if( mousePressed )
         {
+            saveLayout() ;
+            assembleProgram() ;
             exit() ;
         }
     }
@@ -667,7 +542,7 @@ void updateCursor()
         subRow = mouseY / (gridSize/3) % 3 ;
     }  
    
-
+/*
     textAlign(LEFT,TOP);
     textSize(20);    
     text("X: " + col,10,50);                                                         // row and col on screen.
@@ -689,6 +564,7 @@ void updateCursor()
         arc(mouseX, mouseY, 10, 10, 0, 2*PI );
     }
     fill(0);
+    */
 }
 
 void printTexts()
@@ -817,6 +693,196 @@ void printTexts()
 }
 
 
+// mouse PRESSED FUNCTIONS
+void addFunctionBlock()
+{
+    int row =    mouseY / 60 ;
+    mode = movingItem ;
+
+    if( mouseX > (width-60)) currentType = row + 21 ; // hover over analog things
+    else                     currentType = row +  1 ; // hover over digital things
+
+    pinNumber = 0 ;
+
+    blocks.add( new FunctionBlock(( width- 3*60) / 60, row, currentType, 60 )) ;    
+
+    index = blocks.size() - 1 ;
+}
+
+void moveItem()
+{
+    try
+    {
+        FunctionBlock block = blocks.get( index ); // DEBUG NEED A TRY N CATCH.. 3x happened
+
+        if( col == block.getXpos() &&  row == block.getYpos() && blockMiddle == true )
+        {
+            mode = movingItem ;
+        }
+    }
+    catch( IndexOutOfBoundsException e ) {}
+}
+
+void alterNumber()
+{
+    try
+    {
+        pinNumber = 0 ;
+        delayTime = 0 ;
+
+        FunctionBlock block = blocks.get( index ) ;
+        int type = block.getType() ;
+
+        if( type ==   DELAY 
+        ||  type == CONSTANT) mode = settingDelayTime ;
+
+        if( type ==   PULSE ) mode = settingPulseTime ;
+
+        if( type ==     MAP ) mode = settingMapValues ;
+
+        if( type ==  SER_IN
+        ||  type == SER_OUT ) mode = settingMessage ;
+
+        if( type ==   INPUT
+        ||  type ==  OUTPUT
+        ||  type ==  ANA_IN
+        ||  type ==   SERVO
+        ||  type == ANA_OUT ) mode = settingPin ;
+
+    } catch (IndexOutOfBoundsException e) {}
+}
+
+void createLink()
+{
+    mode = addingLinePoints ;
+
+    int analogIO = 0 ;
+
+    FunctionBlock block = blocks.get( index ) ;
+    int type = block.getType() ;
+
+    links.add( new Link( col, row, gridSize ) ) ;
+    Link link = links.get( linkIndex ) ;
+    link.updatePoint( col, row, subCol, subRow  ) ;
+}
+
+void finishLink()
+{
+    mode = idle ; 
+    Link link = links.get( linkIndex ) ;
+    linkIndex ++ ;
+}
+
+void addNodeToLink()
+{
+    Link link = links.get( linkIndex ) ;
+    link.addPoint( ) ;
+    link.updatePoint( col, row, subCol, subRow  ) ;
+}
+
+void deleteObject()
+{
+    FunctionBlock block = blocks.get( index ) ;
+    int type = block.getType() ;
+
+    if( type >= ANA_IN )  nAnalogBlocks -- ;
+    else                 nDigitalBlocks -- ;
+
+    blocks.remove(index);		                                            // DELETE THE OBJECT
+    hoverOverFB = false ;
+}
+
+void removeNode()
+{
+    Link link =links.get( linkIndex ) ;
+    if( link.removePoint( ) )
+    {
+        mode = idle ;
+        links.remove(linkIndex) ;
+    }
+    else
+    {
+        link.updatePoint( col, row, subCol, subRow  ) ;
+    }
+}
+
+void removeLink()
+{
+    println("foundLinkIndex: " + foundLinkIndex) ;
+    links.remove( foundLinkIndex ) ;
+    linkIndex -- ;
+}
+
+void dragItem() 
+{
+    FunctionBlock block = blocks.get(index);
+    block.setPos(col,row);
+}
+
+void dragLine()
+{
+    Link link = links.get( linkIndex ) ;
+    link.updatePoint( col, row, subCol, subRow  ) ;
+}
+// helper functions
+
+
+void leftMousePress()
+{
+    if( mode == settingPin || mode == settingDelayTime || mode == settingPulseTime 
+    ||  mode == settingMapValues || mode == settingMessage ) return ;                               // as long as a number is set, LMB nor RMB must do anything
+
+    if(      mode == idle && (mouseX > (width-2*60)) )                           addFunctionBlock() ;
+    else if( mode == idle )                                                      moveItem() ;
+    if (     mode == idle && subCol == 1 && subRow == 2 && hoverOverFB == true ) alterNumber() ;
+    else if( mode == idle && subCol == 2 && subRow == 1 && hoverOverFB == true ) createLink() ;
+    else if( mode == addingLinePoints && subCol == 0    && hoverOverFB == true ) finishLink() ;
+    else if( mode == addingLinePoints )                                          addNodeToLink() ; 
+}
+
+void rightMousePress()
+{
+    if( mode == settingPin ) return ;                                        // as long as a number is set, LMB nor RMB must do anything
+
+    if( mode == idle 
+    && blocks.size() > 0 
+    &&  index < blocks.size() 
+    && hoverOverFB == true
+    && blockMiddle == true )                deleteObject() ;  
+    else if( mode == addingLinePoints )     removeNode() ;
+    else if( hoverOverPoint )               removeLink() ;
+}
+void mousePressed()
+{	
+    if( mouseButton ==  LEFT )              leftMousePress() ;
+    if( mouseButton == RIGHT )              rightMousePress() ;
+}
+void mouseDragged()
+{
+    if( mode == movingItem )                dragItem() ;
+}
+void mouseMoved()
+{
+    if( mode == addingLinePoints )          dragLine() ;
+}
+void mouseReleased()
+{
+    if( mode == movingItem )                mode = idle ;
+}
+
+void mouseWheel(MouseEvent event)
+{
+    float e = event.getCount();
+    if(( e > 0 && gridSize <  35 )
+    || ( e < 0 && gridSize > 135 )) return ;
+    gridSize -= 15* (int) e ;
+    println( gridSize ) ;
+}
+
+
+
+
+
 
 int makeNumber(int _number, int lowerLimit, int upperLimit )
 {
@@ -897,21 +963,6 @@ void keyPressed()
                 block.setDelay( delayTime ) ; // used for delay and pulse generator
             }
         }
-    }
-    if( key == 's' ) saveLayout() ;
-
-    if( key == 't' )
-    {
-        for( int i = 0 ; i < blocks.size() ; i ++ )
-        {
-            FunctionBlock block = blocks.get( i ) ;
-            int number = block.getPin() ;
-            println(number) ;
-        }
-    }
-    if( key == 'p' )
-    {
-        assembleProgram() ;
     }
 }
 
@@ -1192,7 +1243,6 @@ void assembleProgram()
     file.println("") ;
     file.println("void setup()") ;
     file.println("{") ;
-    file.println("    // NOTE init servo motors") ;
     file.println("    Serial.begin( 9600 ) ;") ;
     file.println("}") ;
     file.println("") ;
@@ -1204,36 +1254,3 @@ void assembleProgram()
     file.println("}") ;
     file.close() ;
 }
-/***************** SAVING, LOADING AND GENERATING SOURCE ***********/
-
-
-
-/*
-    REPEAT_MS( 500 )
-    {
-        Serial.println("\r\n\r\n") ;
-        for( int i = 0 ; i < nDigitalBlocks ; i ++ )
-        {
-            int valIn1 = digitalBlock[i] -> IN1 ;
-            int valIn2 = digitalBlock[i] -> IN2 ;
-            int valIn3 = digitalBlock[i] -> IN3 ;
-            int valQ   = digitalBlock[i] -> Q ;
-            Serial.println( valIn1 ) ; 
-            Serial.print( valIn2 ) ; Serial.print("         ");Serial.println( valQ) ;
-            Serial.println( valIn3 ) ;Serial.println();
-        } 
-        Serial.println("\r\n") ;
-        for( int i = 0 ; i <  nAnalogBlocks ; i ++ )
-        {
-            int valIn1 = analogBlock[i] -> IN1 ;
-            int valIn2 = analogBlock[i] -> IN2 ;
-            int valIn3 = analogBlock[i] -> IN3 ;
-            int valQ   = analogBlock[i] -> Q ;
-            Serial.println( valIn1 ) ; 
-            Serial.print( valIn2 ) ; Serial.print("          ");Serial.println( valQ) ;
-            Serial.println( valIn3 ) ;Serial.println();
-            
-        } 
-    }
-    END_REPEAT
-*/	

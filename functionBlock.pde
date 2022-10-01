@@ -106,8 +106,8 @@ public class FunctionBlock
             case       OR: txt =   "OR" ;                     box = 0x0F ; break ;
             case      DELAY: txt ="DELAY\r\n\r\n" + delayTime;box = 0x0A ; break ;
             case      NOT: txt =  "NOT" ;                     box = 0x0A ; break ; // text replaced by clock symbol
-            case    INPUT: txt = "IN-\r\nPUT\r\nD" + pin;     box = 0x08 ; break ;
-            case   OUTPUT: txt ="OUT-\r\nPUT\r\nD" + pin;     box = 0x02 ; break ;
+            case    INPUT: txt = "INPUT\r\nD" + pin;     box = 0x08 ; break ;
+            case   OUTPUT: txt ="OUTPUT\r\nD" + pin;     box = 0x02 ; break ;
             case       JK: txt =  "J    \r\nK    \r\nCLK";    box = 0x0F ; break ;
             case        M: txt = "S      \r\nM\r\nR      ";   box = 0x0D ; break ;
             case    PULSE: txt= "\r\n" +  delayTime;          box = 0x08 ; break ;
