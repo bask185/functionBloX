@@ -104,16 +104,20 @@ V let textSize change appropiate with gridSize for all function blox
 
 
 CURRENT WORK:
-- add the texts for serial blocks, use the upper texts..
+text base is added. Setting texts does work. There are remaining issues though
+- saving and storing is not yet added
+- removing the last charachter of the string using backspace does not work
+- the texts show the global 'serialText' variable. This does not work for shit.
+
 - test servo's
-- find usb microphone/camera and make recording
+- find usb microphone/camera and make video
 
 STUFF TO ADD
 
 
 BEACON
 
-PROGRAM FUNCTIONS IN ORDER
+PROGRAM FUNCTIONS IN ORDE
 void setup()
 
 void draw()
@@ -134,16 +138,12 @@ updateCursor() ;
 void mousePressed()
 
     void leftMousePress() 
-        drawBackground() ;
-        checkFunctionBlocks() ;
-        checkLinePoints() ;
-        printTexts() ;
-        updateBlocks() ;
-        drawBlocks() ;
-        updateLinks() ;
-        drawLinks() ;
-        controlButtons() ;
-        updateCursor() ;
+        addFunctionBlock() ;
+        moveItem() ;
+        alterNumber() ;
+        createLink() ;
+        finishLink() ;
+        addNodeToLink() ;
 
     void rightMousePress()
         void deleteObject() ;
@@ -197,16 +197,16 @@ ArrayList <FunctionBlock> demoBlocks = new ArrayList() ;
 ArrayList <FunctionBlock>     blocks = new ArrayList() ;
 ArrayList <Link>              links  = new ArrayList() ;
 
-final int   idle             = 0 ;
-final int   movingItem       = 1 ;
-final int   deletingItem     = 2 ;
-final int   makingLinks      = 3 ;
-final int   addingLinePoints = 4 ;
-final int   settingPin       = 5 ;
-final int   settingDelayTime = 6 ;
-final int   settingPulseTime = 7 ;
-final int   settingMapValues = 8 ;
-final int   settingMessage   = 9 ;
+final int   idle             =  0 ;
+final int   movingItem       =  1 ;
+final int   deletingItem     =  2 ;
+final int   makingLinks      =  3 ;
+final int   addingLinePoints =  4 ;
+final int   settingPin       =  5 ;
+final int   settingDelayTime =  6 ;
+final int   settingPulseTime =  7 ;
+final int   settingMapValues =  8 ;
+final int   settingText      =  9 ;
 
 int         gridSize = 60 ;
 
@@ -254,21 +254,21 @@ checklist adding new block
 
 */
 
-int      col ;
-int      row ;
-int      subCol ;
-int      subRow ;
-int      nItems ;
-boolean  locked ;
-int      index ;
-int      mode = idle ;
-int      linkIndex = 0 ;
-int      foundLinkIndex ;
-int      currentType ;
-int      pinNumber ;
-int      delayTime ;
-int      mapState ;
-int      in1, in2, out1, out2 ;
+int     col ;
+int     row ;
+int     subCol ;
+int     subRow ;
+int     nItems ;
+boolean locked ;
+int     index ;
+int     mode = idle ;
+int     linkIndex = 0 ;
+int     foundLinkIndex ;
+int     currentType ;
+int     pinNumber ;
+int     delayTime ;
+int     mapState ;
+int     in1, in2, out1, out2 ;
 
 int     linkQ ;
 int     linkIn ;
@@ -277,8 +277,10 @@ int     analogQ ;
 int     analogIn ;
 int     indexOfBlock ;
 
-int      nAnalogBlocks ;
-int      nDigitalBlocks ;
+int     nAnalogBlocks ;
+int     nDigitalBlocks ;
+
+String  serialText = "hi";
 
 boolean  hoverOverFB ;
 boolean  hoverOverPoint ;
@@ -653,6 +655,16 @@ void printTexts()
                 text1 = "SET PULSE TIME" ;
                 text2 = "" ;
             }
+            else if( type == SER_IN || type == SER_OUT )
+            {
+                text1 = "ENTER MESSAGE" ;
+                text2 = serialText ;
+            }
+        }
+        else if( mode == settingText )
+        {
+            text1 = "ENTER MESSAGE" ;
+            text2 = serialText ;
         }
         else if( mode == settingPulseTime )
         {
@@ -729,6 +741,8 @@ void alterNumber()
     {
         pinNumber = 0 ;
         delayTime = 0 ;
+        in1 = in2 = out1 = out2 = 0 ;
+        serialText = "" ;
 
         FunctionBlock block = blocks.get( index ) ;
         int type = block.getType() ;
@@ -741,13 +755,14 @@ void alterNumber()
         if( type ==     MAP ) mode = settingMapValues ;
 
         if( type ==  SER_IN
-        ||  type == SER_OUT ) mode = settingMessage ;
+        ||  type == SER_OUT ) mode = settingText ;
 
         if( type ==   INPUT
         ||  type ==  OUTPUT
         ||  type ==  ANA_IN
         ||  type ==   SERVO
         ||  type == ANA_OUT ) mode = settingPin ;
+
 
     } catch (IndexOutOfBoundsException e) {}
 }
@@ -830,7 +845,7 @@ void dragLine()
 void leftMousePress()
 {
     if( mode == settingPin || mode == settingDelayTime || mode == settingPulseTime 
-    ||  mode == settingMapValues || mode == settingMessage ) return ;                               // as long as a number is set, LMB nor RMB must do anything
+    ||  mode == settingMapValues || mode == settingText ) return ;                               // as long as a number is set, LMB nor RMB must do anything
 
     if(      mode == idle && (mouseX > (width-2*60)) )                           addFunctionBlock() ;
     else if( mode == idle )                                                      moveItem() ;
@@ -904,12 +919,9 @@ int makeNumber(int _number, int lowerLimit, int upperLimit )
 void keyPressed()
 {
     // PRINT LINKS FOR DEBUGGING
-    if (key == ESC) 
-    {
-        println("escape pressed");
-        key = 0 ;
-    }
-    if( key == 'd')
+    if (key == ESC) key = 0 ;           // discard escape key
+
+    if( key == 'd') // debug
     {
         for( int  i = 0 ; i < links.size() ; i ++ )
         {
@@ -927,7 +939,7 @@ void keyPressed()
     
     if( mode == settingPin       || mode == settingDelayTime 
     ||  mode == settingPulseTime || mode == settingMapValues 
-    ||  mode == settingMessage   )
+    ||  mode == settingText   )
     {
         if( keyCode == ENTER )
         {
@@ -963,6 +975,24 @@ void keyPressed()
                 block.setDelay( delayTime ) ; // used for delay and pulse generator
             }
         }
+    }
+    if( mode == settingText )
+    {
+        if( keyCode == BACKSPACE 
+        &&  serialText.length() > 1 )
+        {
+            serialText.substring(0, serialText.length() - 1 ) ;
+        }
+        else if( keyCode == ENTER )
+        {
+            mode = idle ;
+        }
+        else if( key >= 20 && key <= 128 )
+        {
+            serialText += key ;
+        }
+        FunctionBlock block = blocks.get( index ) ;
+        block.setText( serialText ) ;
     }
 }
 
