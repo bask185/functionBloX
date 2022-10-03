@@ -14,6 +14,10 @@ public class FunctionBlock
     int delayTime ;
     int constVal ;
 
+    char a, b, c ;
+
+    String serialText ;
+
     int in1, in2, out1, out2 ;
 
     int isAnalog ;
@@ -98,6 +102,14 @@ public class FunctionBlock
 
         byte box = 0 ;
         String txt = "" ;
+        try
+        {
+            a = serialText.charAt(0) ;
+            b = serialText.charAt(1) ;
+            c = serialText.charAt(2) ;
+        }
+        catch( NullPointerException e ) {}
+        catch( StringIndexOutOfBoundsException e) {}
 
         // draw the input and output connection lines and make up the text inside the block
         switch( type )
@@ -106,16 +118,16 @@ public class FunctionBlock
             case       OR: txt =   "OR" ;                     box = 0x0F ; break ;
             case      DELAY: txt ="DELAY\r\n\r\n" + delayTime;box = 0x0A ; break ;
             case      NOT: txt =  "NOT" ;                     box = 0x0A ; break ; // text replaced by clock symbol
-            case    INPUT: txt = "IN-\r\nPUT\r\nD" + pin;     box = 0x08 ; break ;
-            case   OUTPUT: txt ="OUT-\r\nPUT\r\nD" + pin;     box = 0x02 ; break ;
+            case    INPUT: txt = "INPUT\r\nD" + pin;     box = 0x08 ; break ;
+            case   OUTPUT: txt ="OUTPUT\r\nD" + pin;     box = 0x02 ; break ;
             case       JK: txt =  "J    \r\nK    \r\nCLK";    box = 0x0F ; break ;
             case        M: txt = "S      \r\nM\r\nR      ";   box = 0x0D ; break ;
             case    PULSE: txt= "\r\n" +  delayTime;          box = 0x08 ; break ;
             case   ANA_IN: txt= "ADC\r\n\r\nA" + pin;         box = 0x08 ; break ;
             case  ANA_OUT: txt= "PWM\r\n\r\nD" + pin;         box = 0x02 ; break ;
             case    SERVO: txt= "SERVO\r\n"  + pin;           box = 0x02 ; break ;
-            case   SER_IN: txt= "MESS\r\nIN" ;                box = 0x08 ; break ;
-            case  SER_OUT: txt= "MESS\r\nOUT" ;               box = 0x02 ; break ;
+            case   SER_IN: txt= "MESS\r\nIN\r\n"+a+b+c;       box = 0x08 ; break ;
+            case  SER_OUT: txt= "MESS\r\nOUT\r\n"+a+b+c ;     box = 0x02 ; break ;
             case      MAP: txt= in1 + "  " + in2 + "\r\nMAP\r\n"
                              + out1 + "  " + out2 ;           box = 0x0A ; break ;
             case     COMP: txt = "+      \r\n-      ";        box = 0x0D ; break ;
@@ -138,11 +150,11 @@ public class FunctionBlock
         line(x1, y2, x2, y2) ;                          // line of Q
         fill(textColor);
 
-        textSize( gridSize / 5 ) ; 
         
         int x = xPos * gridSize + gridSize/2 ;
         int y = yPos * gridSize + gridSize/2 ;
 
+        textSize( gridSize / 6 ) ; 
         text( txt, x , y ) ;
         textSize( gridSize / 5 ) ; 
     }
@@ -184,4 +196,7 @@ public class FunctionBlock
     int  getIn2()  { return  in2 ; }
     int  getOut1() { return out1 ; }
     int  getOut2() { return out2 ; }
+
+    void setText(String serialText) { this.serialText = serialText ; }
+    String getText() { return serialText ; }
 }
