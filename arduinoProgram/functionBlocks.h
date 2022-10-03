@@ -148,6 +148,7 @@ public:
 
     void run()
     {
+        //Serial.print("my message: "); Serial.print(message) ; Serial.print(" received message: "); Serial.println( getMessage() ) ;
         if( message == getMessage() ) Q = 1 ;
         else                          Q = 0 ;
     }
@@ -231,7 +232,7 @@ public:
             {
                 if( IN2 < Q ) Q -- ;                     // if so, adopt the new state
                 if( IN2 > Q ) Q ++ ;
-                Serial.println(Q) ;
+                //Serial.println(Q) ;
                 prevTime = millis() ;
             }
         }
@@ -341,7 +342,7 @@ public:
         
             servoPos = constrain( servoPos, 0, 180 ) ;
             motor.write(servoPos) ;
-            Serial.print(pin) ; Serial.write(' ') ;Serial.println(servoPos) ;
+            //Serial.print(pin) ; Serial.write(' ') ;Serial.println(servoPos) ;
         }
     }
 
