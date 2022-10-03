@@ -198,5 +198,4 @@ public class FunctionBlock
     int  getOut2() { return out2 ; }
 
     void setText(String serialText) { this.serialText = serialText ; }
-    String getText() { return serialText ; }
-}
+    String getText() { return serialText ; }}

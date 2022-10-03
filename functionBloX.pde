@@ -108,6 +108,7 @@ text base is added. Setting texts does work. There are remaining issues though
 - saving and storing is not yet added
 - removing the last charachter of the string using backspace does not work
 - the texts show the global 'serialText' variable. This does not work for shit.
+- ADD CONTROL BUTTON.PDE TO REPO!
 
 - test servo's
 - find usb microphone/camera and make video
@@ -1015,7 +1016,8 @@ void saveLayout()
                       + block.getType() + "," + block.getPin()  + "," 
                       + block.getDelay()+ "," 
                       + block.getIn1()  + "," + block.getIn2()  + "," 
-                      + block.getOut1() + "," + block.getOut2() + "," ) ;
+                      + block.getOut1() + "," + block.getOut2() + ","
+                      + block.getText()  ) ;
     }
 
     output.println(links.size());           // the amount of links is saved
@@ -1078,6 +1080,8 @@ void loadLayout()
         int  in2  = Integer.parseInt( pieces[6] );
         int out1  = Integer.parseInt( pieces[7] );
         int out2  = Integer.parseInt( pieces[8] );
+        String serText = pieces[9] ;
+        // if( setText == 0 ) serText = "" ;? propably nonsense
 
         blocks.add( new FunctionBlock(X, Y, type, gridSize ) ) ;
 
@@ -1091,6 +1095,7 @@ void loadLayout()
         block.setIn2( in2 ) ;
         block.setOut1( out1 ) ;
         block.setOut2( out2 ) ;
+        block.setText( serText ) ;
     } 
 
     try { line = input.readLine(); } 
