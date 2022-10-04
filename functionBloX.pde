@@ -98,11 +98,8 @@ V let textSize change appropiate with gridSize for all function blox
 
 
 CURRENT WORK:
-text base is added. Setting texts does work. There are remaining issues though
-- saving and storing is not yet added
 - removing the last charachter of the string using backspace does not work
-- the texts show the global 'serialText' variable. This does not work for shit.
-- ADD CONTROL BUTTON.PDE TO REPO!
+- new blocks are noy yet revognized as digital or analog blox
 
 - test servo's
 - find usb microphone/camera and make video
@@ -111,20 +108,21 @@ text base is added. Setting texts does work. There are remaining issues though
 BEACON
 
 PROGRAM FUNCTIONS IN ORDE
+
 void setup()
 
-void draw()
 // ROUND ROBIN TASKS
-drawBackground() ;
-checkFunctionBlocks() ;
-checkLinePoints() ;
-printTexts() ;
-updateBlocks() ;
-drawBlocks() ;
-updateLinks() ;
-drawLinks() ;
-controlButtons() ;
-updateCursor() ;
+void draw()
+    drawBackground() ;
+    checkFunctionBlocks() ;
+    checkLinePoints() ;
+    printTexts() ;
+    updateBlocks() ;
+    drawBlocks() ;
+    updateLinks() ;
+    drawLinks() ;
+    controlButtons() ;
+    updateCursor() ;
 
 // MOUSE EVENTS
 
@@ -153,12 +151,13 @@ void mouseReleased()
 
 void mouseWheel(MouseEvent event)
 
-// keyboard event
+// KEYBOARD EVENT
 void keyPressed()
 
 void saveLayout() ;
 void loadLayout() ;
 void assembleProgram() ;
+void clearProgram() ;
 
 // helper functions
 void makeNumber()
@@ -323,9 +322,9 @@ void setup()
     demoBlocks.add( new FunctionBlock((width-1*gridSize)/gridSize, 10,      DIV, gridSize ) ) ;
     demoBlocks.add( new FunctionBlock((width-1*gridSize)/gridSize, 11,      MUL, gridSize ) ) ;
 
-    saveButton    = new ControlButton(  10, height - 100, "SAVE" ) ;
-    programButton = new ControlButton( 120, height - 100, "PROGRAM") ;
-    clearButton   = new ControlButton( 230, height - 100, "CLEAR") ;
+    saveButton    = new ControlButton(        10, height - 100, "SAVE" ) ;
+    programButton = new ControlButton(       120, height - 100, "PROGRAM") ;
+    clearButton   = new ControlButton(       230, height - 100, "CLEAR") ;
     quitButton    = new ControlButton( width-110, height - 100, "QUIT") ;
 }
 
@@ -366,33 +365,21 @@ void controlButtons()
     if( saveButton.draw() ) 
     {
         text1 = "SAVE LAYOUT" ;
-        if( mousePressed )
-        {
-            saveLayout() ;
-            delay( 1000 ) ;
-        }
+        if( mousePressed ) saveLayout() ; 
     }
     if( programButton.draw() ) 
     {
-        text1 = "ASSEMBLE\r\nPROGRAM" ;
-        if( mousePressed )
-        {
-            assembleProgram() ;
-            delay( 1000 ) ;
-        }
+        text1 = "ASSEMBLE PROGRAM" ;
+        if( mousePressed ) assembleProgram() ; 
     }
     if( clearButton.draw() ) 
     {
-        text1 = "CLEAR\r\nPROGRAM" ;
-        if( mousePressed )
-        {
-            clearProgram() ;
-            delay( 1000 ) ;
-        }
+        text1 = "CLEAR PROGRAM" ;
+        if( mousePressed ) clearProgram() ; 
     }
     if( quitButton.draw() )
     {
-        text1 = "QUIT PROGRAM" ;
+        text1 = "SAVE AND QUIT PROGRAM" ;
         if( mousePressed )
         {
             saveLayout() ;
@@ -413,7 +400,6 @@ void updateBlocks()
     {
         FunctionBlock block = blocks.get(i) ;
         int type = block.getType() ;
-        //if( type == CONSTANT ) continue ;
         if( type >= ANA_IN ) { block.setIndex(  analogIndex ++ ) ; }
         else                 { block.setIndex( digitalIndex ++ ) ; }
     }

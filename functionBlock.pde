@@ -30,9 +30,7 @@ public class FunctionBlock
         this.gridSize   = gridSize ;
         isAnalog        = 0 ;
 
-        if( type == ANA_IN || type == ANA_OUT || type == SERVO
-        ||  type ==    MAP || type == COMP    || type == DELAY
-        ||  type ==  CONSTANT ) isAnalog = 1 ;
+        if( type > ANALOG_BLOCKS ) isAnalog = 1 ;
     }
 
     void draw()
