@@ -545,7 +545,7 @@ void updateCursor()
         subRow = mouseY / (gridSize/3) % 3 ;
     }  
    
-/*
+
     textAlign(LEFT,TOP);
     textSize(20);    
     text("X: " + col,10,50);                                                         // row and col on screen.
@@ -567,7 +567,7 @@ void updateCursor()
         arc(mouseX, mouseY, 10, 10, 0, 2*PI );
     }
     fill(0);
-    */
+
 }
 
 void printTexts()
@@ -1009,7 +1009,7 @@ void saveLayout()
     output = createWriter("program.csv");
 
     output.println(blocks.size());          // the amount of elements is saved first, this is used for the loading
-    for (int i = 0; i < blocks.size(); i++ )
+    for (int i = 0; i < blocks.size() - 1; i++ ) // SK: BUG added the minus 1 to prevent a false entry of some non existing block...
     {
         FunctionBlock block = blocks.get(i) ;
         output.println( block.getXpos() + "," + block.getYpos() + "," 
@@ -1017,7 +1017,7 @@ void saveLayout()
                       + block.getDelay()+ "," 
                       + block.getIn1()  + "," + block.getIn2()  + "," 
                       + block.getOut1() + "," + block.getOut2() + ","
-                      + block.getText()  ) ;
+                      + block.getText() ) ;
     }
 
     output.println(links.size());           // the amount of links is saved
@@ -1063,7 +1063,7 @@ void loadLayout()
     catch (IOException e) { return ;}
     catch (NullPointerException e ) {return ;}
     
-    int size = Integer.parseInt(line);
+    int size = Integer.parseInt(line) - 1; // SK: BUG added the minus 1 to prevent a false entry of some non existing block...
     
     for( int j = 0 ; j < size ; j++ )
     {
@@ -1071,17 +1071,16 @@ void loadLayout()
         catch (IOException e) {return ;}
         
         String[] pieces = split(line, ',');
-        int X     = Integer.parseInt( pieces[0] );
-        int Y     = Integer.parseInt( pieces[1] );
-        int type  = Integer.parseInt( pieces[2] );
-        int  pin  = Integer.parseInt( pieces[3] );
-        int time  = Integer.parseInt( pieces[4] );
-        int  in1  = Integer.parseInt( pieces[5] );
-        int  in2  = Integer.parseInt( pieces[6] );
-        int out1  = Integer.parseInt( pieces[7] );
-        int out2  = Integer.parseInt( pieces[8] );
-        String serText = pieces[9] ;
-        // if( setText == 0 ) serText = "" ;? propably nonsense
+        int X     = Integer.parseInt( pieces[0] ) ;
+        int Y     = Integer.parseInt( pieces[1] ) ;
+        int type  = Integer.parseInt( pieces[2] ) ;
+        int  pin  = Integer.parseInt( pieces[3] ) ;
+        int time  = Integer.parseInt( pieces[4] ) ;
+        int  in1  = Integer.parseInt( pieces[5] ) ;
+        int  in2  = Integer.parseInt( pieces[6] ) ;
+        int out1  = Integer.parseInt( pieces[7] ) ;
+        int out2  = Integer.parseInt( pieces[8] ) ;
+        String message =              pieces[9]   ;
 
         blocks.add( new FunctionBlock(X, Y, type, gridSize ) ) ;
 
@@ -1095,7 +1094,7 @@ void loadLayout()
         block.setIn2( in2 ) ;
         block.setOut1( out1 ) ;
         block.setOut2( out2 ) ;
-        block.setText( serText ) ;
+        block.setText( message ) ;
     } 
 
     try { line = input.readLine(); } 
@@ -1156,9 +1155,10 @@ void assembleProgram()
     for( int i = 0 ; i < blocks.size() ; i ++ )     // store digital components
     {
         FunctionBlock block = blocks.get( i ) ;
-        int  type = block.getType() ;
-        int  time = block.getDelay() ;
-        int   pin = block.getPin() ;
+        int    type = block.getType() ;
+        int    time = block.getDelay() ;
+        int     pin = block.getPin() ;
+        String mess = block.getText() ;
 
         // Add code to keep track of servo objects, their indices need to be stored
         
@@ -1172,8 +1172,8 @@ void assembleProgram()
             case   INPUT: file.println("static        Input d"+(index+1)+" = Input("+  pin +") ;") ;        index++ ; break ;
             case  OUTPUT: file.println("static       Output d"+(index+1)+" = Output("+  pin +") ;") ;       index++ ; break ;
             case   PULSE: file.println("static        Pulse d"+(index+1)+" = Pulse("+ time +") ;") ;        index++ ; break ;  
-            case  SER_IN: file.println("static     SerialIn d"+(index+1)+" = SerialIn("+ time +") ;") ;     index++ ; break ;  
-            case SER_OUT: file.println("static    SerialOut d"+(index+1)+" = SerialOut("+ time +") ;") ;    index++ ; break ;  
+            case  SER_IN: file.println("static     SerialIn d"+(index+1)+" = SerialIn(\""+ mess +"\") ;") ;     index++ ; break ;  
+            case SER_OUT: file.println("static    SerialOut d"+(index+1)+" = SerialOut(\""+ mess +"\") ;") ;    index++ ; break ;  
         }
     }
     nDigitalBlocks = index ; 
@@ -1264,7 +1264,7 @@ void assembleProgram()
     file.println("    if( Serial.available() ) // <== incomming message ;") ;
     file.println("    {") ;
     file.println("        lastMessage = \"\" ;          ") ;
-    file.println("        delay(3) ;          // use dirty delay to receive entire message") ;
+    file.println("        delay(1) ;          // use dirty delay to receive entire message") ;
     file.println("") ;
     file.println("        while( Serial.available() )") ;
     file.println("        {") ;
@@ -1278,7 +1278,7 @@ void assembleProgram()
     file.println("") ;
     file.println("void setup()") ;
     file.println("{") ;
-    file.println("    Serial.begin( 9600 ) ;") ;
+    file.println("    Serial.begin( 115200 ) ;") ;
     file.println("}") ;
     file.println("") ;
     file.println("void loop()") ;
