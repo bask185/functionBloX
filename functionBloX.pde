@@ -114,6 +114,11 @@ text base is added. Setting texts does work. There are remaining issues though
 - find usb microphone/camera and make video
 
 STUFF TO ADD
+RISING FLANK
+FALLING FLANK  <-- these should pulse for ~20ms or so
+aritmatic stuff.
+I need atlease a comparison block
+might as well add +, -, /, *
 
 
 BEACON

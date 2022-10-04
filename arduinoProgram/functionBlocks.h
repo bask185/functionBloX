@@ -18,6 +18,56 @@ public:
     virtual void run() ;
 } ;
 
+class Rising: public DigitalBlock
+{
+public:
+    void run()
+    {
+        if( Q == 1 )                                                            // if pulse is active...
+        {
+            if( millis() - prevTime >= interval ) Q = 0 ;                       // kill Q after 20ms ( <== pulse length )
+        }
+        else if( IN2 != IN_prev )
+        {        IN_prev = IN2 ;
+
+            if( IN2 )                                                           // if rising flank, set Q
+            {
+                prevTime = millis() ;
+                Q = 1 ;
+            }
+        }
+    }
+private:
+    uint32_t       prevTime ;
+    uint8_t        IN_prev  ;
+    const uint32_t interval = 20 ;
+} ;
+
+class Falling: public DigitalBlock
+{
+public:
+    void run()
+    {
+        if( Q == 1 )                                                            // if pulse is active...
+        {
+            if( millis() - prevTime >= interval ) Q = 0 ;                       // kill Q after 20ms ( <== pulse length )
+        }
+        else if( IN2 != IN_prev )
+        {        IN_prev = IN2 ;
+
+            if( IN2 == 0 )                                                      // if falling flank, set Q
+            {
+                prevTime = millis() ;
+                Q = 1 ;
+            }
+        }
+    }
+private:
+    uint32_t       prevTime ;
+    uint8_t        IN_prev  ;
+    const uint32_t interval = 20 ;
+} ;
+
 class And : public DigitalBlock
 {
 public:
@@ -365,7 +415,7 @@ public:
     {}
 
     void run()
-    {               // IN2
+    {
         Q = map( IN2, in1, in2, out1, out2 ) ;
     }
 
@@ -375,6 +425,54 @@ private:
     const int32_t out1 ;
     const int32_t out2 ;
 } ;
+
+class Equals : public AnalogBlock
+{
+public:
+    void run()
+    {
+        if( IN1 == IN3 ) Q = 1 ;
+        else             Q = 0 ;
+    }
+} ;
+
+class Add : public AnalogBlock
+{
+public:
+    void run()
+    {
+        Q = IN1 + IN3 ;
+    }
+} ;
+
+class Substract : public AnalogBlock
+{
+public:
+    void run()
+    {
+        Q = IN1 - IN3 ;
+    }
+} ;
+
+class Mul : public AnalogBlock
+{
+public:
+    void run()
+    {
+        Q = IN1 * IN3 ;
+    }
+} ;
+
+class Div : public AnalogBlock
+{
+public:
+    void run()
+    {
+        Q = IN1 / IN3 ;
+    }
+} ;
+
+
 /*
 class Constant : public AnalogBlock     // I really should not do this, but try to hardcode the constants in the .ino file instead
 {                                       // This uses atleast 12 bytes of memory when a constant does not use bytes in the first place
