@@ -139,9 +139,8 @@ public class FunctionBlock
                              + out1 + "  " + out2 ;           box = 0x0A ; break ;
             case     COMP: txt = "+      \r\n-      ";        box = 0x0D ; break ;
             case CONSTANT: txt = "CONST\r\n\r\n"+ delayTime;  box = 0x08 ; break ;
-
-            case RISING:    txt = "ROSE";                     box = 0x0A ; break ;
-            case FALLING:   txt = "FELL";                     box = 0x0A ; break ;
+            case RISING:    txt = "RISE";                     box = 0x0A ; break ;
+            case FALLING:   txt = "FALL";                     box = 0x0A ; break ;
             case EQUALS:    txt = "EQUAL";                    box = 0x0D ; break ;
             case ADDITION:  txt = "ADD";                      box = 0x0D ; break ;
             case SUB:       txt = "SUB";                      box = 0x0D ; break ;

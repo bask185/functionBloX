@@ -48,27 +48,26 @@ V finalize the arduino code with the latest added components. (also replace cons
 V Servo's still need a pin variable
 V fix that new function blocks are created more to the left, and limit the cursor not to include the left colomn of default blocks
 V store the new values of a map block.
-- refactor the code and add comments somewhere to show how it is organized. The comments must be able to be used to find the code easily.
+V refactor the code and add comments somewhere to show how it is organized. The comments must be able to be used to find the code easily.
     perhaps also a list with commented function prototypes of all functions?
 V Texts on main screen are related to gridSize... kill that!
 V if not yet done, Links cannot be removed by right mousing buttoning on the last node
 V map values need to be rearanged, so like 
   in1   in2
-      in
       MAP
-      out
  out1   out2
  V map values are not set int he arduino program
 V insert messages for serial input and output
 V if gridSize is not 60, placing compenents suck balls
 V initialize servo objects
-- enter the texts for serial blocks
+V enter the texts for serial blocks
   setup
   loop
   mouse functions
   keyboard functions
   round robin tasks
   saving and storeing
+V add control button to remove all FB and links
 
 LIST OF BLOCKS TO ADD
 - loconet -> loco drive
@@ -78,7 +77,6 @@ LIST OF BLOCKS TO ADD
 - loconet -> feedback
 - loconet -> railcom (must be simultaneous with the feedback)
 
-- arithmatic blocks? +, -, /, *
 
 
 BACKLOG
@@ -86,16 +84,12 @@ V make comperator for usage with analog input
 X make separate arrays for AND, NOR and MEMORIES. , unsure if actually needed, it may help with generating organized source code.
 V let textSize change appropiate with gridSize for all function blox
 V split the 2 columns on the right, 1 for analog, 1 for digital.
-- make a list for the things to add
+V make a list for the things to add
 V find a way to let a digital Q set an IN of an analog block. 0-1 can be remapped to lets say 0-180..
 V similarly a comperator must be able to set a digital IN
-- remove obsolete debug texts
-
-EXTRA
-X make separate arrays for AND, NOR and MEMORIES. , unsure if actually needed, it may help with generating organized source code.
-- also add NAND or NOR gates or implement inverted outputs !Q
-V let textSize change appropiate with gridSize for all function blox
 - add panning for larger layouts
+X make separate arrays for AND, NOR and MEMORIES. , unsure if actually needed, it may help with generating organized source code.
+V let textSize change appropiate with gridSize for all function blox
 - exclude top row and first column for cosmetic purposes. It would be neat if we can stuff control buttons there.
 - move node of a line by dragging it with LMB
 - implement inverted outputs !Q
@@ -112,13 +106,6 @@ text base is added. Setting texts does work. There are remaining issues though
 
 - test servo's
 - find usb microphone/camera and make video
-
-STUFF TO ADD
-RISING FLANK
-FALLING FLANK  <-- these should pulse for ~20ms or so
-aritmatic stuff.
-I need atlease a comparison block
-might as well add +, -, /, *
 
 
 BEACON
@@ -194,6 +181,7 @@ PImage          mouse;
 
 ControlButton saveButton    ;
 ControlButton programButton ;
+ControlButton clearButton ;
 ControlButton quitButton ;
 
 String text1 = "" ;
@@ -293,7 +281,7 @@ int     indexOfBlock ;
 int     nAnalogBlocks ;
 int     nDigitalBlocks ;
 
-String  serialText = "hi";
+String  serialText = "";
 
 boolean  hoverOverFB ;
 boolean  hoverOverPoint ;
@@ -337,6 +325,7 @@ void setup()
 
     saveButton    = new ControlButton(  10, height - 100, "SAVE" ) ;
     programButton = new ControlButton( 120, height - 100, "PROGRAM") ;
+    clearButton   = new ControlButton( 230, height - 100, "CLEAR") ;
     quitButton    = new ControlButton( width-110, height - 100, "QUIT") ;
 }
 
@@ -389,6 +378,15 @@ void controlButtons()
         if( mousePressed )
         {
             assembleProgram() ;
+            delay( 1000 ) ;
+        }
+    }
+    if( clearButton.draw() ) 
+    {
+        text1 = "CLEAR\r\nPROGRAM" ;
+        if( mousePressed )
+        {
+            clearProgram() ;
             delay( 1000 ) ;
         }
     }
@@ -545,6 +543,7 @@ void checkLinePoints()
             }
         }
     }
+    foundLinkIndex = 0 ;
 }
 
 void updateCursor()
@@ -579,6 +578,7 @@ void updateCursor()
     text("linkRow " + linkRow, 10, 230);
     text("analogQ " + analogQ, 10, 250);
     text("analogIn " + analogIn, 10, 270);
+    text("link index " + foundLinkIndex, 10, 290);
 
     if( text1 != "" || text2 != "" )
     {
@@ -596,9 +596,12 @@ void printTexts()
         FunctionBlock block = blocks.get(index);
 
         int type = block.getType() ;
+        serialText = block.getText() ;
+        if( serialText == null ) serialText = "" ;
 
         text1 = "";
         text2 = "";
+        mouse = loadImage("images/mouse1.png") ;
 
         if(mouseX > (width-2*gridSize) 
         && mouseY < (height - 150) 
@@ -702,18 +705,13 @@ void printTexts()
             }
             text2 = "PRESS <ENTER> WHEN READY" ;
         }
-        else
-        {
-            text1 = "" ;
-            text2 = "" ;
-            mouse = loadImage("images/mouse1.png") ;
-        }
+
         if(      text1 == "" && text2 != "" ) mouse = loadImage("images/mouse4.png") ;
         else if( text1 != "" && text2 == "" ) mouse = loadImage("images/mouse2.png") ;
         else if( text1 != "" && text2 != "" ) mouse = loadImage("images/mouse3.png") ;
         else                                  mouse = loadImage("images/mouse1.png") ;
 
-        image(mouse, width/2-gridSize, gridSize/5,gridSize,gridSize);
+        if( mode != settingText ) image(mouse, width/2-gridSize, gridSize/5,gridSize,gridSize);
         textSize(30);  
         textAlign(RIGHT,TOP);
         text( text1,  width/2 - 60, 10 ) ;
@@ -843,7 +841,7 @@ void removeNode()
 
 void removeLink()
 {
-    println("foundLinkIndex: " + foundLinkIndex) ;
+    //println("foundLinkIndex: " + foundLinkIndex) ;
     links.remove( foundLinkIndex ) ;
     linkIndex -- ;
 }
@@ -940,22 +938,6 @@ void keyPressed()
 {
     // PRINT LINKS FOR DEBUGGING
     if (key == ESC) key = 0 ;           // discard escape key
-
-    if( key == 'd') // debug
-    {
-        for( int  i = 0 ; i < links.size() ; i ++ )
-        {
-            Link link = links.get(i) ;
-            int Q = link.getQ() ;
-            int IN1 = link.getIn(0) ;
-            int IN2 = link.getIn(1) ;
-            int IN3 = link.getIn(2) ;
-            println("\r\nQ: " +Q) ;
-            println("IN1: "  + IN1 ) ;
-            println("IN2: "  + IN2 ) ;
-            println("IN3: "  + IN3 ) ;
-        }
-    }
     
     if( mode == settingPin       || mode == settingDelayTime 
     ||  mode == settingPulseTime || mode == settingMapValues 
@@ -1118,7 +1100,6 @@ void loadLayout()
 
     try { line = input.readLine(); } 
     catch (IOException e) {}
-    println(line)  ;
 
     size = Integer.parseInt(line);
 
@@ -1159,6 +1140,19 @@ void loadLayout()
         link.removePoint() ;
         linkIndex ++ ;
     }
+}
+
+void clearProgram()
+{
+    for( int i = blocks.size() ; i > 0 ; i -- )
+    {
+        blocks.remove(i-1);		                                            // DELETE THE OBJECT
+    }
+    for( int i = links.size() ; i > 0 ; i -- )
+    {
+        links.remove(i-1);		                                            // DELETE THE OBJECT
+    }
+    linkIndex = 0 ;
 }
 
 void assembleProgram() 
