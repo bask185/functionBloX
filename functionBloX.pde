@@ -71,8 +71,10 @@ V add control button to remove all FB and links
 - panning works for the FB but the links are to be done. Panning works by manipulating the X and Y coordinates of all blocks
 - to panning add a limit so you cannot pan more than lets say 25 blocks in either direction
 V let backspace work to remove last charachter of serial messages
-- make sure that a check is done if a new function block is created. Now faulty non existing function blocks can be added to the array list
-  if clicked below the FB
+V make sure that a check is done if a new function block is created. Now faulty non existing function blocks can be added to the array list
+  if clicked below the FB NOTE, now it is done with a dirty hack. mouseY is examined while I should examine if I am hovering over a demo block
+- alter serial receiving to look for newline char and discard \r or other non printables. This eliminates the dirty delay
+
 
 
 
@@ -100,8 +102,8 @@ V let textSize change appropiate with gridSize for all function blox
 - exclude top row and first column for cosmetic purposes. It would be neat if we can stuff control buttons there.
 - move node of a line by dragging it with LMB
 - implement inverted outputs !Q
-- if zoomed in, the components can be drawn in the yellow zone.. and
-  if zoomed out we cannot reach the bottom right zone of the blue zone...
+- if zoomed in/out, the components can be drawn on places were it shouldnt be possible
+- components with larger x, y coordinates than the field should be done. A max X and max Y should be calculated with regards to gridSize
 
 
 CURRENT WORK:
@@ -1283,24 +1285,31 @@ void assembleProgram()
     file.println("{") ;
     file.println("    Serial.println( S ) ;") ;
     file.println("}") ;
+    file.println("") ;
     file.println("String getMessage()") ;
     file.println("{") ;
     file.println("    static String lastMessage ;") ;
+    file.println("    static bool messReceived = true ;") ;
     file.println("") ;
-    file.println("    if( Serial.available() ) // <== incomming message ;") ;
-    file.println("    {") ;
-    file.println("        lastMessage = \"\" ;          ") ;
-    file.println("        delay(1) ;          // use dirty delay to receive entire message") ;
+    file.println("    if( Serial.available() )") ;
+    file.println("    {    ") ;
+    file.println("        if( messReceived )") ;
+    file.println("        {   messReceived = false ;") ;
     file.println("") ;
-    file.println("        while( Serial.available() )") ;
+    file.println("            lastMessage = \"\" ;") ;
+    file.println("        }") ;
+    file.println("        char c = Serial.read() ;") ;
+    file.println("        if( c == '\\n')") ;
     file.println("        {") ;
-    file.println("            char c = Serial.read() ;") ;
+    file.println("            messReceived = true ;") ;
+    file.println("        }") ;
+    file.println("        else if( c >= ' ' )   // discard all non printable characters except newline") ;
+    file.println("        {") ;
     file.println("            lastMessage += c ;") ;
     file.println("        }") ;
     file.println("    }") ;
-    file.println("") ;
     file.println("    return lastMessage ;") ;
-    file.println("}   ") ;
+    file.println("}") ;
     file.println("") ;
     file.println("void setup()") ;
     file.println("{") ;
