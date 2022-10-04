@@ -68,6 +68,13 @@ V enter the texts for serial blocks
   round robin tasks
   saving and storeing
 V add control button to remove all FB and links
+- panning works for the FB but the links are to be done. Panning works by manipulating the X and Y coordinates of all blocks
+- to panning add a limit so you cannot pan more than lets say 25 blocks in either direction
+V let backspace work to remove last charachter of serial messages
+- make sure that a check is done if a new function block is created. Now faulty non existing function blocks can be added to the array list
+  if clicked below the FB
+
+
 
 LIST OF BLOCKS TO ADD
 - loconet -> loco drive
@@ -98,9 +105,7 @@ V let textSize change appropiate with gridSize for all function blox
 
 
 CURRENT WORK:
-- removing the last charachter of the string using backspace does not work
-- new blocks are noy yet revognized as digital or analog blox
-
+- BUG found When pressing quit, a new item is formed which much not exist. That is number 37
 - test servo's
 - find usb microphone/camera and make video
 
@@ -565,6 +570,7 @@ void updateCursor()
     text("analogQ " + analogQ, 10, 250);
     text("analogIn " + analogIn, 10, 270);
     text("link index " + foundLinkIndex, 10, 290);
+    text("mouseY " + mouseY, 10, 310);
 
     if( text1 != "" || text2 != "" )
     {
@@ -590,7 +596,7 @@ void printTexts()
         mouse = loadImage("images/mouse1.png") ;
 
         if(mouseX > (width-2*gridSize) 
-        && mouseY < (height - 150) 
+        && mouseY < (height - 6*60) 
         && mode == idle ) // seems to work very well
         {
             text1 = "NEW FUNCTION BLOCK" ;
@@ -697,7 +703,7 @@ void printTexts()
         else if( text1 != "" && text2 != "" ) mouse = loadImage("images/mouse3.png") ;
         else                                  mouse = loadImage("images/mouse1.png") ;
 
-        if( mode != settingText ) image(mouse, width/2-gridSize, gridSize/5,gridSize,gridSize);
+        if( mode != settingText ) image(mouse, width/2-60, 60/5,60,60);
         textSize(30);  
         textAlign(RIGHT,TOP);
         text( text1,  width/2 - 60, 10 ) ;
@@ -851,7 +857,7 @@ void leftMousePress()
     if( mode == settingPin || mode == settingDelayTime || mode == settingPulseTime 
     ||  mode == settingMapValues || mode == settingText ) return ;                               // as long as a number is set, LMB nor RMB must do anything
 
-    if(      mode == idle && (mouseX > (width-2*60)) )                           addFunctionBlock() ;
+    if(      mode == idle && (mouseX > (width-2*60)) && mouseY < height-6*60)    addFunctionBlock() ;
     else if( mode == idle )                                                      moveItem() ;
     if (     mode == idle && subCol == 1 && subRow == 2 && hoverOverFB == true ) alterNumber() ;
     else if( mode == idle && subCol == 2 && subRow == 1 && hoverOverFB == true ) createLink() ;
@@ -878,7 +884,9 @@ void mousePressed()
 }
 void mouseDragged()
 {
-    if( mode == movingItem )                dragItem() ;
+    if( mouseButton ==  LEFT 
+    &&  mode == movingItem )                dragItem() ;
+    if( mouseButton ==  CENTER )            println("panning");
 }
 void mouseMoved()
 {
@@ -923,7 +931,7 @@ int makeNumber(int _number, int lowerLimit, int upperLimit )
 void keyPressed()
 {
     // PRINT LINKS FOR DEBUGGING
-    if (key == ESC) key = 0 ;           // discard escape key
+    if (key == ESC) key = 0 ;           // discard escape key, prevents accidently terminating and lose things..
     
     if( mode == settingPin       || mode == settingDelayTime 
     ||  mode == settingPulseTime || mode == settingMapValues 
@@ -967,9 +975,9 @@ void keyPressed()
     if( mode == settingText )
     {
         if( keyCode == BACKSPACE 
-        &&  serialText.length() > 1 )
+        &&  serialText.length() > 0 )
         {
-            serialText.substring(0, serialText.length() - 1 ) ;
+            serialText = serialText.substring( 0, serialText.length()-1 ); 
         }
         else if( keyCode == ENTER )
         {
@@ -981,6 +989,22 @@ void keyPressed()
         }
         FunctionBlock block = blocks.get( index ) ;
         block.setText( serialText ) ;
+    }
+
+    int Yoffset = 0 ;
+    int Xoffset = 0 ;
+    if(keyCode == DOWN ) Yoffset = +1;
+    if(keyCode == UP)	 Yoffset = -1;
+    if(keyCode == LEFT ) Xoffset = -1;
+    if(keyCode == RIGHT) Xoffset = +1; 
+
+    if( Xoffset != 0 || Yoffset != 0 )
+    {
+        for (int i = 0; i < blocks.size(); i++)
+        {
+            FunctionBlock block = blocks.get(i);        
+            block.setPos(block.getXpos() + Xoffset, block.getYpos() + Yoffset);
+        }
     }
 }
 
@@ -995,8 +1019,9 @@ void saveLayout()
 
     output = createWriter("program.csv");
 
-    output.println(blocks.size());          // the amount of elements is saved first, this is used for the loading
-    for (int i = 0; i < blocks.size() - 1; i++ ) // SK: BUG added the minus 1 to prevent a false entry of some non existing block...
+    output.println( blocks.size() ) ;          // the amount of elements is saved first, this is used for the loading
+
+    for (int i = 0; i < blocks.size() ; i++ ) // SK: BUG sometimes false entry of some non existing block...
     {
         FunctionBlock block = blocks.get(i) ;
         output.println( block.getXpos() + "," + block.getYpos() + "," 
@@ -1011,8 +1036,6 @@ void saveLayout()
     for (int i = 0; i < links.size(); i++ )
     {
         Link link = links.get(i) ;
-        println("N nodes = " + (link.getNlinks()-1) ) ;
-
         int   Q      = link.getQ() ;
         int IN1      = link.getIn(0) ;
         int IN2      = link.getIn(1) ;
@@ -1028,7 +1051,6 @@ void saveLayout()
                               + link.getSubX(j) + "," + link.getSubY(j) ) ;
         }
         output.println( "," + isAnalog ) ;
-        if( isAnalog > 0 ) { println("ANALOG LINK stored BRUH!!") ; }
         
         //output.println() ;  // newline
     }  
@@ -1050,7 +1072,7 @@ void loadLayout()
     catch (IOException e) { return ;}
     catch (NullPointerException e ) {return ;}
     
-    int size = Integer.parseInt(line) - 1; // SK: BUG added the minus 1 to prevent a false entry of some non existing block...
+    int size = Integer.parseInt(line) ;
     
     for( int j = 0 ; j < size ; j++ )
     {
