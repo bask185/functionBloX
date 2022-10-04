@@ -1,109 +1,30 @@
 /* THINGS TODO
-V finalize part to create, move and delete all items, re-use things from NX GUI (DONER)
-V create link if we are hovering about a Q output..
-V change boxes to stripes, make extra stripe for not. And make 3 stripes per item
-V create all GPIO items, inputs, outputs, ~~~pwm out, analog in~~~.
-X make onscreen keypad to click on numbers so one may enter a number for an input for instance
-V create the arduino framework
-V make 3 inputs for and and or gates
-V limit the X and Y limits to exlude the right and bottom side (DONER)
-V auto set modes, depending on where one clicks. I no longer want to use the kayboard. (DONER)
-V remove subclasses and change the functionBlock class to contain type variable.. (DONER, seems to work)
-V add a dynamic message box which tells you what LMB and RMB does at any time
-V organize update cursor with functions.
-V try to remove the locked variable, may unneeded <== was useless
-V organize all texts
-V use keyboard to enter numbers, also make sure that the current index does not change
-V need some interlocking while creating and moving blocks. It happens alot that
-we get index out of bounds error with the first block. 
-You can draw 2 blocks on eachother which is really annoying
-sometimes while making and dragging a new block, you are removing the previous block.
-It seems that the index lags behind..
-V you can delete an item while creating a line
-V pressing LMB on a block while adding link points, causes the mode to switch to moving
-V you can 'finish' a link on every row, as long as the column is ok...
-I think over over FB is always true?
-V entering a number works, but as soon as you touch a new function block
-the number is overwritten. It seems that all blocks share the pin number -_-
-V create special items like servo motors, blinking lights (auto toggling IO): servo exists but only in arduino. Blinking lights can be done via pulse generator
-V make variable gridsize workable
-V store and load layout, add buttons.
-V add small sphere to mouse if there is anything to click. perhaps half green and half red to indicate which buttons can be pressed
-V make small nodes along link nodes, so you can see when lines just simply cross
-V may need to refactor to separate classes so it becomes easier to add the new analog items
-V ID of Function blocks also need to be stored for the input and output blocks
-V add method to update all links' Qs and INs for when a FB is removed or replaced. Currently links will point to the old index
-  and this may or may not be correct...
-V if mouse is clicked to alter pin/time number, the number should be initialized to 0. To work from the current value does not
-  work as intuitive as I imagined.
-V ditch the triangles for input/output and make them square like the others
-V add serial input and serial output blocks, to send and receive messages over the serial port
-V add D for all digital Pin numbers
-V check if #error can be used to test the PWM pins for being an actual PWM pin note: it can be done
-  but the syntax behind it is abysmal. I need like 3 helper function with vague c++ syntax to get it done
-V add mouse images to git
-V for the analog stuff, make a map block
-V add code to insert constants for map block and constant block
-V finalize the arduino code with the latest added components. (also replace constant class by an actual number in the generated links)
-V Servo's still need a pin variable
-V fix that new function blocks are created more to the left, and limit the cursor not to include the left colomn of default blocks
-V store the new values of a map block.
-V refactor the code and add comments somewhere to show how it is organized. The comments must be able to be used to find the code easily.
-    perhaps also a list with commented function prototypes of all functions?
-V Texts on main screen are related to gridSize... kill that!
-V if not yet done, Links cannot be removed by right mousing buttoning on the last node
-V map values need to be rearanged, so like 
-  in1   in2
-      MAP
- out1   out2
- V map values are not set int he arduino program
-V insert messages for serial input and output
-V if gridSize is not 60, placing compenents suck balls
-V initialize servo objects
-V enter the texts for serial blocks
-  setup
-  loop
-  mouse functions
-  keyboard functions
-  round robin tasks
-  saving and storeing
-V add control button to remove all FB and links
 - panning works for the FB but the links are to be done. Panning works by manipulating the X and Y coordinates of all blocks
 - to panning add a limit so you cannot pan more than lets say 25 blocks in either direction
-V let backspace work to remove last charachter of serial messages
-V make sure that a check is done if a new function block is created. Now faulty non existing function blocks can be added to the array list
+ PANNING IS TEMPORARILY NOT WORKING WELL.
+- make sure that a check is done if a new function block is created. Now faulty non existing function blocks can be added to the array list
   if clicked below the FB NOTE, now it is done with a dirty hack. mouseY is examined while I should examine if I am hovering over a demo block
-- alter serial receiving to look for newline char and discard \r or other non printables. This eliminates the dirty delay
-
-
-
-
-LIST OF BLOCKS TO ADD
-- loconet -> loco drive
-- loconet -> loco function
-- loconet -> point (send)
-- loconet -> point (received)
-- loconet -> feedback
-- loconet -> railcom (must be simultaneous with the feedback)
-
+- if zoomed in/out, the components can be drawn on places were it shouldnt be possible
+- reformat printTexts to make it more compact.
 
 
 BACKLOG
-V make comperator for usage with analog input
 X make separate arrays for AND, NOR and MEMORIES. , unsure if actually needed, it may help with generating organized source code.
-V let textSize change appropiate with gridSize for all function blox
-V split the 2 columns on the right, 1 for analog, 1 for digital.
-V make a list for the things to add
-V find a way to let a digital Q set an IN of an analog block. 0-1 can be remapped to lets say 0-180..
-V similarly a comperator must be able to set a digital IN
 - add panning for larger layouts
 X make separate arrays for AND, NOR and MEMORIES. , unsure if actually needed, it may help with generating organized source code.
-V let textSize change appropiate with gridSize for all function blox
 - exclude top row and first column for cosmetic purposes. It would be neat if we can stuff control buttons there.
 - move node of a line by dragging it with LMB
 - implement inverted outputs !Q
-- if zoomed in/out, the components can be drawn on places were it shouldnt be possible
 - components with larger x, y coordinates than the field should be done. A max X and max Y should be calculated with regards to gridSize
+- instead of using arrow keys for panning, use RMB drag instead.
+
+
+LIST OF BLOCKS TO ADD
+- loconet -> loco drive      Rx + Tx
+- loconet -> loco function   Rx + Tx
+- loconet -> point (send)    Rx + Tx
+- loconet -> feedback        Rx + Tx
+- loconet -> railcom (must be simultaneous with the feedback)
 
 
 CURRENT WORK:
@@ -122,13 +43,14 @@ void setup()
 void draw()
     drawBackground() ;
     checkFunctionBlocks() ;
+    checkDemoBlocks() ;
     checkLinePoints() ;
     printTexts() ;
     updateBlocks() ;
     drawBlocks() ;
     updateLinks() ;
     drawLinks() ;
-    controlButtons() ;
+    drawControlButtons() ;
     updateCursor() ;
 
 // MOUSE EVENTS
@@ -142,6 +64,9 @@ void mousePressed()
         createLink() ;
         finishLink() ;
         addNodeToLink() ;
+        saveLayout() ;
+        assembleProgram() ;
+        clearProgram() ;
 
     void rightMousePress()
         void deleteObject() ;
@@ -208,7 +133,11 @@ final int   settingPulseTime =  7 ;
 final int   settingMapValues =  8 ;
 final int   settingText      =  9 ;
 
-int         gridSize = 60 ;
+final int   defaultGridSize  = 60 ;
+
+int         gridSize = defaultGridSize ;
+int         xOffset ;
+int         yOffset ;
 
 final int DIGITAL_BLOCKS = 0 ;
 
@@ -262,7 +191,9 @@ checklist adding new block
 */
 
 int     col ;
+int     col_raw ;
 int     row ;
+int     row_raw ;
 int     subCol ;
 int     subRow ;
 int     nItems ;
@@ -290,6 +221,7 @@ int     nDigitalBlocks ;
 String  serialText = "";
 
 boolean  hoverOverFB ;
+boolean  hoverOverDemo ;
 boolean  hoverOverPoint ;
 boolean  blockMiddle ;
 
@@ -339,13 +271,14 @@ void draw()
 {
     drawBackground() ;
     checkFunctionBlocks() ;
+    checkDemoBlocks() ;
     checkLinePoints() ;
     printTexts() ;
     updateBlocks() ;
     drawBlocks() ;
     updateLinks() ;
     drawLinks() ;
-    controlButtons() ;
+    drawControlButtons() ;
     updateCursor() ;
 }
 
@@ -364,39 +297,17 @@ void drawBackground()
     }
 }
 
-void controlButtons()
+void drawControlButtons()
 {
     text1 = "" ;
     textSize(30);  
-    
-    if( saveButton.draw() ) 
-    {
-        text1 = "SAVE LAYOUT" ;
-        if( mousePressed ) saveLayout() ; 
-    }
-    if( programButton.draw() ) 
-    {
-        text1 = "ASSEMBLE PROGRAM" ;
-        if( mousePressed ) assembleProgram() ; 
-    }
-    if( clearButton.draw() ) 
-    {
-        text1 = "CLEAR PROGRAM" ;
-        if( mousePressed ) clearProgram() ; 
-    }
-    if( quitButton.draw() )
-    {
-        text1 = "SAVE AND QUIT PROGRAM" ;
-        if( mousePressed )
-        {
-            saveLayout() ;
-            assembleProgram() ;
-            exit() ;
-        }
-    }
+    saveButton.draw() ;
+    programButton.draw() ;
+    clearButton.draw() ;
+    quitButton.draw() ;
     textSize(30);  
     textAlign(RIGHT,TOP);
-    text( text1,  width/2 - 60, 10 ) ;
+    text( text1,  width/2 - defaultGridSize, 10 ) ;
 }
 
 void updateBlocks()
@@ -514,6 +425,25 @@ void checkFunctionBlocks()
     }
 }
 
+void checkDemoBlocks()
+{
+    if( mode == movingItem ) return ;
+
+    for (int i = 0; i < demoBlocks.size(); i++)                                     // loop over all function blocks, sets index according and sets or clears 'hoverOverFB'
+    { 
+        hoverOverDemo = false ;
+
+        FunctionBlock block = demoBlocks.get(i);
+        
+        if( col_raw == block.getXpos() 
+        &&  row_raw == block.getYpos() )
+        {
+            hoverOverDemo = true ;
+            return ;
+        }
+    }
+}
+
 // determens if the cursor hovers above 
 void checkLinePoints()
 {
@@ -541,11 +471,13 @@ void checkLinePoints()
 
 void updateCursor()
 {
-
+    // SK find some method to prevent drawing boxes were it should not during zooming out
+    col_raw = mouseX / defaultGridSize ;
     col = mouseX / gridSize ;
     int max_col = (width - 3*gridSize) / gridSize ;
     col = constrain( col, 0, max_col ) ;
 
+    row_raw =    mouseY / defaultGridSize ;
     row =    mouseY / gridSize ;
     int max_row = (height - 3*gridSize ) / gridSize ;
     row = constrain( row, 0, max_row ) ;
@@ -572,7 +504,9 @@ void updateCursor()
     text("analogQ " + analogQ, 10, 250);
     text("analogIn " + analogIn, 10, 270);
     text("link index " + foundLinkIndex, 10, 290);
-    text("mouseY " + mouseY, 10, 310);
+    text("X offset " + xOffset, 10, 310);
+    text("Y offset " + yOffset, 10, 330);
+    text("hoverOverDemo " + hoverOverDemo, 10, 350);
 
     if( text1 != "" || text2 != "" )
     {
@@ -598,7 +532,7 @@ void printTexts()
         mouse = loadImage("images/mouse1.png") ;
 
         if(mouseX > (width-2*gridSize) 
-        && mouseY < (height - 6*60) 
+        && hoverOverDemo  
         && mode == idle ) // seems to work very well
         {
             text1 = "NEW FUNCTION BLOCK" ;
@@ -699,16 +633,21 @@ void printTexts()
             }
             text2 = "PRESS <ENTER> WHEN READY" ;
         }
+        else if( saveButton.hoveringOver() )       {text1 = "SAVE PROGRAM" ;}
+        else if( programButton.hoveringOver() )    {text1 = "ASSEMBLE PROGRAM" ;}
+        else if( clearButton.hoveringOver() )      {text1 = "CLEAR PROGRAM" ;}
+        else if( quitButton.hoveringOver() )       {text1 = "SAVE AND QUIT PROGRAM" ;}
+
 
         if(      text1 == "" && text2 != "" ) mouse = loadImage("images/mouse4.png") ;
         else if( text1 != "" && text2 == "" ) mouse = loadImage("images/mouse2.png") ;
         else if( text1 != "" && text2 != "" ) mouse = loadImage("images/mouse3.png") ;
         else                                  mouse = loadImage("images/mouse1.png") ;
 
-        if( mode != settingText ) image(mouse, width/2-60, 60/5,60,60);
+        if( mode != settingText ) image(mouse, width/2-defaultGridSize, defaultGridSize/5,defaultGridSize,defaultGridSize);
         textSize(30);  
         textAlign(RIGHT,TOP);
-        text( text1,  width/2 - 60, 10 ) ;
+        text( text1,  width/2 - defaultGridSize, 10 ) ;
         textAlign(LEFT,TOP);
         text( text2, width/2, 10 ) ;
         textAlign(CENTER,CENTER);
@@ -720,15 +659,15 @@ void printTexts()
 // mouse PRESSED FUNCTIONS
 void addFunctionBlock()
 {
-    int row =    mouseY / 60 ;
+    int row =    mouseY / defaultGridSize ;
     mode = movingItem ;
 
-    if( mouseX > (width-60)) currentType = row + 21 ; // hover over analog things
+    if( mouseX > (width-defaultGridSize)) currentType = row + 21 ; // hover over analog things
     else                     currentType = row +  1 ; // hover over digital things
 
     pinNumber = 0 ;
 
-    blocks.add( new FunctionBlock(( width- 3*60) / 60, row, currentType, 60 )) ;    
+    blocks.add( new FunctionBlock(( width- 3*defaultGridSize) / defaultGridSize, row, currentType, defaultGridSize )) ;    
 
     index = blocks.size() - 1 ;
 }
@@ -859,12 +798,17 @@ void leftMousePress()
     if( mode == settingPin || mode == settingDelayTime || mode == settingPulseTime 
     ||  mode == settingMapValues || mode == settingText ) return ;                               // as long as a number is set, LMB nor RMB must do anything
 
-    if(      mode == idle && (mouseX > (width-2*60)) && mouseY < height-6*60)    addFunctionBlock() ;
+    if(      mode == idle && hoverOverDemo )                                     addFunctionBlock() ;
     else if( mode == idle )                                                      moveItem() ;
     if (     mode == idle && subCol == 1 && subRow == 2 && hoverOverFB == true ) alterNumber() ;
     else if( mode == idle && subCol == 2 && subRow == 1 && hoverOverFB == true ) createLink() ;
     else if( mode == addingLinePoints && subCol == 0    && hoverOverFB == true ) finishLink() ;
     else if( mode == addingLinePoints )                                          addNodeToLink() ; 
+    else if( saveButton.hoveringOver() )                                         saveLayout() ;
+    else if( programButton.hoveringOver() )                                      assembleProgram() ;
+    else if( clearButton.hoveringOver() )                                        clearProgram() ;
+    else if( quitButton.hoveringOver() )                                       { saveLayout() ; assembleProgram() ; exit() ; }
+
 }
 
 void rightMousePress()
@@ -888,7 +832,14 @@ void mouseDragged()
 {
     if( mouseButton ==  LEFT 
     &&  mode == movingItem )                dragItem() ;
-    if( mouseButton ==  CENTER )            println("panning");
+    // if( mouseButton ==  CENTER )
+    // {
+    //     if( row != row_prev || col != col_prev)
+    //     {   row_prev = row ;   col_prev = col ;
+
+
+        
+    // }
 }
 void mouseMoved()
 {
@@ -905,7 +856,6 @@ void mouseWheel(MouseEvent event)
     if(( e > 0 && gridSize <  35 )
     || ( e < 0 && gridSize > 135 )) return ;
     gridSize -= 15* (int) e ;
-    println( gridSize ) ;
 }
 
 
@@ -961,15 +911,15 @@ void keyPressed()
             {
                 switch( mapState )
                 {
-                    case 0: in1  = makeNumber(  in1, 0, 60000 ) ;block.setIn1( in1) ; break ;
-                    case 1: in2  = makeNumber(  in2, 0, 60000 ) ;block.setIn2( in2) ; break ;
-                    case 2: out1 = makeNumber( out1, 0, 60000 ) ;block.setOut1(out1) ; break ;
-                    case 3: out2 = makeNumber( out2, 0, 60000 ) ;block.setOut2(out2) ; break ;
+                    case 0: in1  = makeNumber(  in1, 0, 65000 ) ;block.setIn1( in1) ; break ;
+                    case 1: in2  = makeNumber(  in2, 0, 65000 ) ;block.setIn2( in2) ; break ;
+                    case 2: out1 = makeNumber( out1, 0, 65000 ) ;block.setOut1(out1) ; break ;
+                    case 3: out2 = makeNumber( out2, 0, 65000 ) ;block.setOut2(out2) ; break ;
                 }
             }
             else
             {
-                delayTime = makeNumber( delayTime, 0, 60000 ) ;
+                delayTime = makeNumber( delayTime, 0, 65000 ) ;
                 block.setDelay( delayTime ) ; // used for delay and pulse generator
             }
         }
@@ -993,20 +943,17 @@ void keyPressed()
         block.setText( serialText ) ;
     }
 
-    int Yoffset = 0 ;
-    int Xoffset = 0 ;
-    if(keyCode == DOWN ) Yoffset = +1;
-    if(keyCode == UP)	 Yoffset = -1;
-    if(keyCode == LEFT ) Xoffset = -1;
-    if(keyCode == RIGHT) Xoffset = +1; 
+    
+    if(keyCode ==  DOWN && yOffset > -25 ) yOffset -- ;
+    if(keyCode ==    UP && yOffset <  25 ) yOffset ++ ;
+    if(keyCode ==  LEFT && xOffset > -25 ) xOffset -- ;
+    if(keyCode == RIGHT && xOffset <  25 ) xOffset ++ ; 
 
-    if( Xoffset != 0 || Yoffset != 0 )
+    for (int i = 0; i < blocks.size(); i++)
     {
-        for (int i = 0; i < blocks.size(); i++)
-        {
-            FunctionBlock block = blocks.get(i);        
-            block.setPos(block.getXpos() + Xoffset, block.getYpos() + Yoffset);
-        }
+        FunctionBlock block = blocks.get(i);        
+        block.setPos(block.getXpos() + xOffset, block.getYpos() + yOffset) ;
+        //block.setOffset( xOffset, yOffset ) ; 
     }
 }
 
@@ -1017,7 +964,7 @@ void keyPressed()
 /***************** SAVING, LOADING AND GENERATING SOURCE ***********/
 void saveLayout()
 {
-    println("LAYOUT SAVED");
+    //println("LAYOUT SAVED");
 
     output = createWriter("program.csv");
 
@@ -1063,7 +1010,7 @@ void saveLayout()
 
 void loadLayout()
 {
-    println("LAYOUT LOADED");
+    //println("LAYOUT LOADED");
     String line = "" ;
 
     try
@@ -1156,11 +1103,11 @@ void clearProgram()
 {
     for( int i = blocks.size() ; i > 0 ; i -- )
     {
-        blocks.remove(i-1);		                                            // DELETE THE OBJECT
+        blocks.remove(i-1);
     }
     for( int i = links.size() ; i > 0 ; i -- )
     {
-        links.remove(i-1);		                                            // DELETE THE OBJECT
+        links.remove(i-1);
     }
     linkIndex = 0 ;
 }

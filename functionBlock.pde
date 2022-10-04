@@ -5,7 +5,8 @@ public class FunctionBlock
     int type ;
     int gridSize ;
     int index ;
-
+    int xOffset ;
+    int yOffset ;
     int IN1 ;
     int IN2 ;
     int IN3 ;
@@ -210,4 +211,11 @@ public class FunctionBlock
     int  getOut2() { return out2 ; }
 
     void setText(String serialText) { this.serialText = serialText ; }
-    String getText() { return serialText ; }}
+    String getText() { return serialText ; }
+ 
+    void setOffset(int x, int y )
+    {
+        this.xOffset = x ;
+        this.yOffset = y ;
+    }
+}

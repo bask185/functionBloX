@@ -11,7 +11,7 @@ public class ControlButton
 		this.boxText = boxText ;
 	}
 
-	boolean draw()
+	void draw()
 	{
 		textSize(15); 
 		fill(fbColor);
@@ -19,7 +19,10 @@ public class ControlButton
 		fill(0);
 		textAlign(CENTER, CENTER);
 		text( boxText, x+50, y+25 ) ;
+	}
 
+	boolean hoveringOver()
+	{
 		if( mouseX > x && mouseX < x+100
 		&&  mouseY > y && mouseY < y+50 ) return true ;
 		else return false ;
