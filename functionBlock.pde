@@ -57,9 +57,16 @@ public class FunctionBlock
         case   INPUT:
         case   SERVO:
         case     MAP:
-        case SER_IN:
+        case  SER_IN:
         case SER_OUT:
         case CONSTANT:
+        case  RISING:
+        case FALLING:
+        case ADDITION:
+        case MUL:
+        case SUB:
+        case DIV:
+        case EQUALS:
             rect( 
                 xPos * gridSize + (gridSize/5), 
                 yPos * gridSize + 1, 
@@ -118,8 +125,8 @@ public class FunctionBlock
             case       OR: txt =   "OR" ;                     box = 0x0F ; break ;
             case      DELAY: txt ="DELAY\r\n\r\n" + delayTime;box = 0x0A ; break ;
             case      NOT: txt =  "NOT" ;                     box = 0x0A ; break ; // text replaced by clock symbol
-            case    INPUT: txt = "INPUT\r\nD" + pin;     box = 0x08 ; break ;
-            case   OUTPUT: txt ="OUTPUT\r\nD" + pin;     box = 0x02 ; break ;
+            case    INPUT: txt = "INPUT\r\nD" + pin;          box = 0x08 ; break ;
+            case   OUTPUT: txt ="OUTPUT\r\nD" + pin;          box = 0x02 ; break ;
             case       JK: txt =  "J    \r\nK    \r\nCLK";    box = 0x0F ; break ;
             case        M: txt = "S      \r\nM\r\nR      ";   box = 0x0D ; break ;
             case    PULSE: txt= "\r\n" +  delayTime;          box = 0x08 ; break ;
@@ -132,6 +139,14 @@ public class FunctionBlock
                              + out1 + "  " + out2 ;           box = 0x0A ; break ;
             case     COMP: txt = "+      \r\n-      ";        box = 0x0D ; break ;
             case CONSTANT: txt = "CONST\r\n\r\n"+ delayTime;  box = 0x08 ; break ;
+
+            case RISING:    txt = "ROSE";                     box = 0x0A ; break ;
+            case FALLING:   txt = "FELL";                     box = 0x0A ; break ;
+            case EQUALS:    txt = "EQUAL";                    box = 0x0D ; break ;
+            case ADDITION:  txt = "ADD";                      box = 0x0D ; break ;
+            case SUB:       txt = "SUB";                      box = 0x0D ; break ;
+            case MUL:       txt = "MUL";                      box = 0x0D ; break ;
+            case DIV:       txt = "DIV";                      box = 0x0D ; break ;
         }
 
         x1 = xPos * gridSize + gridSize/8 ;

@@ -228,6 +228,8 @@ final int         JK =  7 ;
 final int      PULSE =  8 ;
 final int     SER_IN =  9 ;
 final int    SER_OUT = 10 ;
+final int     RISING = 11 ;
+final int    FALLING = 12 ;
 
 final int ANALOG_BLOCKS = 20 ;
 
@@ -238,6 +240,11 @@ final int        MAP = 24 ;
 final int       COMP = 25 ;
 final int      DELAY = 26 ;
 final int   CONSTANT = 27 ;
+final int     EQUALS = 28 ;
+final int   ADDITION = 29 ;
+final int        SUB = 30 ;
+final int        DIV = 31 ;
+final int        MUL = 32 ;
 
 
 // 23,5,0,0,0,0,0,  servo
@@ -311,6 +318,8 @@ void setup()
     demoBlocks.add( new FunctionBlock((width-2*gridSize)/gridSize,  7,   PULSE, gridSize ) ) ;
     demoBlocks.add( new FunctionBlock((width-2*gridSize)/gridSize,  8,  SER_IN, gridSize ) ) ;
     demoBlocks.add( new FunctionBlock((width-2*gridSize)/gridSize,  9, SER_OUT, gridSize ) ) ;
+    demoBlocks.add( new FunctionBlock((width-2*gridSize)/gridSize, 10,  RISING, gridSize ) ) ;
+    demoBlocks.add( new FunctionBlock((width-2*gridSize)/gridSize, 11, FALLING, gridSize ) ) ;
 
     // RIGHT COLUMN ANALOG STUFFS
     demoBlocks.add( new FunctionBlock((width-1*gridSize)/gridSize,  0,   ANA_IN, gridSize ) ) ;
@@ -320,6 +329,11 @@ void setup()
     demoBlocks.add( new FunctionBlock((width-1*gridSize)/gridSize,  4,     COMP, gridSize ) ) ;
     demoBlocks.add( new FunctionBlock((width-1*gridSize)/gridSize,  5,    DELAY, gridSize ) ) ;
     demoBlocks.add( new FunctionBlock((width-1*gridSize)/gridSize,  6, CONSTANT, gridSize ) ) ;
+    demoBlocks.add( new FunctionBlock((width-1*gridSize)/gridSize,  7,   EQUALS, gridSize ) ) ;
+    demoBlocks.add( new FunctionBlock((width-1*gridSize)/gridSize,  8, ADDITION, gridSize ) ) ;
+    demoBlocks.add( new FunctionBlock((width-1*gridSize)/gridSize,  9,      SUB, gridSize ) ) ;
+    demoBlocks.add( new FunctionBlock((width-1*gridSize)/gridSize, 10,      DIV, gridSize ) ) ;
+    demoBlocks.add( new FunctionBlock((width-1*gridSize)/gridSize, 11,      MUL, gridSize ) ) ;
 
     saveButton    = new ControlButton(  10, height - 100, "SAVE" ) ;
     programButton = new ControlButton( 120, height - 100, "PROGRAM") ;
@@ -1177,8 +1191,10 @@ void assembleProgram()
             case   INPUT: file.println("static        Input d"+(index+1)+" = Input("+  pin +") ;") ;        index++ ; break ;
             case  OUTPUT: file.println("static       Output d"+(index+1)+" = Output("+  pin +") ;") ;       index++ ; break ;
             case   PULSE: file.println("static        Pulse d"+(index+1)+" = Pulse("+ time +") ;") ;        index++ ; break ;  
-            case  SER_IN: file.println("static     SerialIn d"+(index+1)+" = SerialIn(\""+ mess +"\") ;") ;     index++ ; break ;  
-            case SER_OUT: file.println("static    SerialOut d"+(index+1)+" = SerialOut(\""+ mess +"\") ;") ;    index++ ; break ;  
+            case  SER_IN: file.println("static     SerialIn d"+(index+1)+" = SerialIn( \""+ mess +"\") ;") ;index++ ; break ;  
+            case SER_OUT: file.println("static    SerialOut d"+(index+1)+" = SerialOut(\""+ mess +"\") ;") ;index++ ; break ;  
+            case RISING:  file.println("static       Rising d"+(index+1)+" = Rising()  ;") ;                index++ ; break ;  
+            case FALLING: file.println("static      Falling d"+(index+1)+" = Falling() ;") ;                index++ ; break ;  
         }
     }
     nDigitalBlocks = index ; 
@@ -1204,7 +1220,11 @@ void assembleProgram()
             case       DELAY:  file.println( "static        Delay a"+(index+1)+" = Delay("+ time +") ;") ;          index++ ; break ;
             case         MAP:  file.println( "static          Map a"+(index+1)+" = Map("+in1+","+in2+","+out1+","+out2+") ;") ;   index++ ; break ;
             case    CONSTANT:  file.println( "static     Constant a"+(index+1)+" = Constant("+time+") ;") ;         index++ ; break ;
-            //case    CONSTANT:  index++ ; break ;
+            case      EQUALS:  file.println( "static       Equals a"+(index+1)+" = Equals() ;") ;                   index++ ; break ;
+            case    ADDITION:  file.println( "static          Add a"+(index+1)+" = Add() ;") ;                      index++ ; break ;
+            case         SUB:  file.println( "static          Sub a"+(index+1)+" = Sub() ;") ;                      index++ ; break ;
+            case         MUL:  file.println( "static          Mul a"+(index+1)+" = Mul() ;") ;                      index++ ; break ;
+            case         DIV:  file.println( "static          Div a"+(index+1)+" = Div() ;") ;                      index++ ; break ;
         }
     }
     nAnalogBlocks = index ;
@@ -1225,8 +1245,7 @@ void assembleProgram()
     
     for ( int i = 0 ; i < links.size() ; i ++ ) 
     {
-        Link  link = links.get( i ) ;
-
+        Link    link = links.get( i ) ;
         int         Q = link.getQ() ;
         int    subrow = link.getSubrow() ;
         int        IN = link.getIn( subrow ) ;
