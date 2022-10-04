@@ -445,7 +445,7 @@ public:
     }
 } ;
 
-class Substract : public AnalogBlock
+class Sub : public AnalogBlock
 {
 public:
     void run()

@@ -2,20 +2,15 @@
 - panning works for the FB but the links are to be done. Panning works by manipulating the X and Y coordinates of all blocks
 - to panning add a limit so you cannot pan more than lets say 25 blocks in either direction
  PANNING IS TEMPORARILY NOT WORKING WELL.
-- make sure that a check is done if a new function block is created. Now faulty non existing function blocks can be added to the array list
-  if clicked below the FB NOTE, now it is done with a dirty hack. mouseY is examined while I should examine if I am hovering over a demo block
 - if zoomed in/out, the components can be drawn on places were it shouldnt be possible
 - reformat printTexts to make it more compact.
 
 
 BACKLOG
 X make separate arrays for AND, NOR and MEMORIES. , unsure if actually needed, it may help with generating organized source code.
-- add panning for larger layouts
-X make separate arrays for AND, NOR and MEMORIES. , unsure if actually needed, it may help with generating organized source code.
-- exclude top row and first column for cosmetic purposes. It would be neat if we can stuff control buttons there.
+X exclude top row and first column for cosmetic purposes. It would be neat if we can stuff control buttons there.
 - move node of a line by dragging it with LMB
 - implement inverted outputs !Q
-- components with larger x, y coordinates than the field should be done. A max X and max Y should be calculated with regards to gridSize
 - instead of using arrow keys for panning, use RMB drag instead.
 
 
@@ -28,7 +23,7 @@ LIST OF BLOCKS TO ADD
 
 
 CURRENT WORK:
-- BUG found When pressing quit, a new item is formed which much not exist. That is number 37
+- make panning for links ( if possible ) 
 - test servo's
 - find usb microphone/camera and make video
 
