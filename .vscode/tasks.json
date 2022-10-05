@@ -4,10 +4,28 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build",
+            "label": "run",
             "type": "shell",
             // "command": "processing-java --sketch=\"c:\\Users\\Gebruiker\\Documents\\Projects\\functionBlox\" --run"
             "command": "processing-java --sketch=\"c:\\Users\\sknippels\\Documents\\hobbyProjects\\functionBloX\" --run"
+        },
+        {
+            "label": "export",
+            "type": "shell",
+            // "command": "processing-java --sketch=\"c:\\Users\\Gebruiker\\Documents\\Projects\\functionBlox\" --run"
+            "command": "./export.sh"
+        },
+        {
+            "label": "build",
+            "type": "shell",
+            // "command": "processing-java --sketch=\"c:\\Users\\Gebruiker\\Documents\\Projects\\functionBlox\" --run"
+            "command": "processing-java --sketch=\"c:\\Users\\sknippels\\Documents\\hobbyProjects\\functionBloX\" --build"
+        },
+        {
+            "label": "Run binary",
+            "type": "shell",
+            // "command": "processing-java --sketch=\"c:\\Users\\Gebruiker\\Documents\\Projects\\functionBlox\" --run"
+            "command": "./windows-amd64/functionBlox.exe"
         }
     ]
 }

@@ -222,9 +222,9 @@ boolean  blockMiddle ;
 
 void setup()
 { 
-    //fullScreen() ;
+    fullScreen() ;
     loadLayout() ;
-    size(displayWidth, displayHeight) ;
+    //size(displayWidth, displayHeight) ;
     textSize( 20 );
     background(255) ;
     
@@ -469,15 +469,16 @@ void updateCursor()
     // SK find some method to prevent drawing boxes were it should not during zooming out
     col_raw = mouseX / defaultGridSize ;
 
-    col = mouseX / gridSize + xOffset ;
+    col = mouseX / gridSize - xOffset ;
     int max_col = (width - 3*gridSize) / gridSize ;
     col = constrain( col, 0, max_col ) ;
 
     row_raw =    mouseY / defaultGridSize ;
 
-    row =    mouseY / gridSize + yOffset ;
+    row =    mouseY / gridSize - yOffset ;
     int max_row = (height - 3*gridSize ) / gridSize ;
     row = constrain( row, 0, max_row ) ;
+
 
     if( mode != movingItem )
     {
@@ -779,7 +780,7 @@ void removeLink()
 void dragItem() 
 {
     FunctionBlock block = blocks.get(index);
-    block.setPos(col,row);
+    block.setPos(col-xOffset,row-yOffset); // these offsets work...
 }
 
 void dragLine()
@@ -847,13 +848,13 @@ void mouseReleased()
     if( mode == movingItem )                mode = idle ;
 }
 
-void mouseWheel(MouseEvent event)
-{
-    float e = event.getCount();
-    if(( e > 0 && gridSize <  60 )
-    || ( e < 0 && gridSize >  60 )) return ;
-    gridSize -= 15* (int) e ;
-}
+// void mouseWheel(MouseEvent event)
+// {
+//     float e = event.getCount();
+//     if(( e > 0 && gridSize <  60 )
+//     || ( e < 0 && gridSize >  60 )) return ;
+//     gridSize -= 15* (int) e ;
+// }
 
 
 
@@ -939,12 +940,11 @@ void keyPressed()
         FunctionBlock block = blocks.get( index ) ;
         block.setText( serialText ) ;
     }
-
     
-    if(keyCode ==    UP && yOffset >   0 ) yOffset -- ;
-    if(keyCode ==  DOWN && yOffset <  50 ) yOffset ++ ;
-    if(keyCode ==  LEFT && xOffset >   0 ) xOffset -- ;
-    if(keyCode == RIGHT && xOffset <  50 ) xOffset ++ ; 
+    // if(keyCode ==    UP && yOffset >   0 ) yOffset -- ;
+    // if(keyCode ==  DOWN && yOffset <  50 ) yOffset ++ ;
+    // if(keyCode ==  LEFT && xOffset >   0 ) xOffset -- ;
+    // if(keyCode == RIGHT && xOffset <  50 ) xOffset ++ ; 
 }
 
 
@@ -1276,10 +1276,11 @@ TEACHIN CODE
 I2C EEPROM
 H BRIDGE FOR DCC OR DCC.
 
+
 CONTROL PANEL MODULE WITH LOCONET INTERFACE AND OPTIONAL IO EXTENDERS
 
 SET POINTS AND SIGNALS
-MATCH LEDS WITH POINTS
+MATCH LEDS WITH POINTS // in case of extern feedback
 EXTRA LEDS FOR OCCUPANCY THINGS
 TEACHIN CODE
 I2C EEPROM
