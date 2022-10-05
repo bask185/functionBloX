@@ -5,8 +5,6 @@ public class FunctionBlock
     int type ;
     int gridSize ;
     int index ;
-    int xOffset ;
-    int yOffset ;
     int IN1 ;
     int IN2 ;
     int IN3 ;
@@ -39,8 +37,8 @@ public class FunctionBlock
         int x1,x2,x3,x4,x5,x6 ;
         int y1,y2,y3,y4,y5,y6 ;
 
-        int xPosTemp = xPos - xOffset ;
-        int yPosTemp = yPos - yOffset ;
+        int xPosTemp = xPos ;
+        int yPosTemp = yPos ;
 
         textAlign( CENTER, CENTER ) ;
         fill(fbColor); //dark red boxes
@@ -215,10 +213,4 @@ public class FunctionBlock
 
     void setText(String serialText) { this.serialText = serialText ; }
     String getText() { return serialText ; }
- 
-    void setOffset(int x, int y )
-    {
-        this.xOffset = x ;
-        this.yOffset = y ;
-    }
 }

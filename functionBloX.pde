@@ -468,12 +468,14 @@ void updateCursor()
 {
     // SK find some method to prevent drawing boxes were it should not during zooming out
     col_raw = mouseX / defaultGridSize ;
-    col = mouseX / gridSize ;
+
+    col = mouseX / gridSize + xOffset ;
     int max_col = (width - 3*gridSize) / gridSize ;
     col = constrain( col, 0, max_col ) ;
 
     row_raw =    mouseY / defaultGridSize ;
-    row =    mouseY / gridSize ;
+
+    row =    mouseY / gridSize + yOffset ;
     int max_row = (height - 3*gridSize ) / gridSize ;
     row = constrain( row, 0, max_row ) ;
 
@@ -943,17 +945,6 @@ void keyPressed()
     if(keyCode ==  DOWN && yOffset <  50 ) yOffset ++ ;
     if(keyCode ==  LEFT && xOffset >   0 ) xOffset -- ;
     if(keyCode == RIGHT && xOffset <  50 ) xOffset ++ ; 
-
-    for (int i = 0; i < blocks.size(); i++)
-    {
-        FunctionBlock block = blocks.get(i);        
-        block.setOffset( xOffset, yOffset ) ;
-    }
-    for (int i = 0; i < links.size(); i++)
-    {
-        Link link = links.get(i);        
-        link.setOffset( xOffset, yOffset ) ;
-    }
 }
 
 

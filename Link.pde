@@ -40,9 +40,6 @@ class Link
         IN2 = 0 ;
         IN3 = 0 ;
 
-        int xOffset ;
-        int yOffset ;
-
         startPosX = x ;
         startPosY = y ;
         startSubX = subX = 2 ;
@@ -179,10 +176,4 @@ class Link
     int getPosY( int index ) { return positions[1][index] >> 8 ;   }
     int getSubX( int index ) { return positions[0][index] & 0xFF ; }
     int getSubY( int index ) { return positions[1][index] & 0xFF ; }
-
-    void setOffset( int x, int y)
-    {
-        xOffset = x ;
-        yOffset = y ;
-    }
 }
