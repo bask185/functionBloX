@@ -39,6 +39,9 @@ public class FunctionBlock
         int x1,x2,x3,x4,x5,x6 ;
         int y1,y2,y3,y4,y5,y6 ;
 
+        int xPosTemp = xPos - xOffset ;
+        int yPosTemp = yPos - yOffset ;
+
         textAlign( CENTER, CENTER ) ;
         fill(fbColor); //dark red boxes
 
@@ -67,15 +70,15 @@ public class FunctionBlock
         case DIV:
         case EQUALS:
             rect( 
-                xPos * gridSize + (gridSize/5), 
-                yPos * gridSize + 1, 
+                xPosTemp * gridSize + (gridSize/5), 
+                yPosTemp * gridSize + 1, 
                 3*gridSize/5, 
                 gridSize - 2 ) ; // main box
             break ;
 
         case COMP: // comperator TRIANGLE SYMBOL
-            x1 = xPos * gridSize + (gridSize/5) ;
-            y1 = yPos * gridSize ;
+            x1 = xPosTemp * gridSize + (gridSize/5) ;
+            y1 = yPosTemp * gridSize ;
             x2 = x1 ;
             y2 = y1 + gridSize ;
             x3 = x1 + 3*gridSize/5 ;
@@ -84,18 +87,18 @@ public class FunctionBlock
             break ;
 
         case PULSE: // CICLE PLUS PULSE SYMBOL
-            ellipse( xPos * gridSize + (gridSize/2), yPos * gridSize + (gridSize/2), 3*gridSize/5, 3*gridSize/5 ) ; // perhaps replace by image?
-            x1 = xPos*gridSize + 3*gridSize/9;
-            y1 = yPos*gridSize+ gridSize/2;
-            x2 = xPos*gridSize + 4*gridSize/9;
+            ellipse( xPosTemp * gridSize + (gridSize/2), yPosTemp * gridSize + (gridSize/2), 3*gridSize/5, 3*gridSize/5 ) ; // perhaps replace by image?
+            x1 = xPosTemp*gridSize + 3*gridSize/9;
+            y1 = yPosTemp*gridSize+ gridSize/2;
+            x2 = xPosTemp*gridSize + 4*gridSize/9;
             y2 = y1 ;
             x3 = x2 ;
-            y3 = yPos*gridSize + 3*gridSize/9;
-            x4 = xPos*gridSize + 5*gridSize/9;
+            y3 = yPosTemp*gridSize + 3*gridSize/9;
+            x4 = xPosTemp*gridSize + 5*gridSize/9;
             y4 = y3 ;
             x5 = x4 ;
             y5 = y1 ;
-            x6 = xPos*gridSize + 6*gridSize/9;
+            x6 = xPosTemp*gridSize + 6*gridSize/9;
             y6 = y1 ;
             line(x1,y1,x2,y2);
             line(x2,y2,x3,y3);
@@ -147,25 +150,25 @@ public class FunctionBlock
             case DIV:       txt = "DIV";                      box = 0x0D ; break ;
         }
 
-        x1 = xPos * gridSize + gridSize/8 ;
-        x2 = xPos * gridSize + gridSize/5 ;
-        y1 = yPos * gridSize + gridSize/6 + 0 * gridSize / 3 ;
-        y2 = yPos * gridSize + gridSize/6 + 1 * gridSize / 3 ;
-        y3 = yPos * gridSize + gridSize/6 + 2 * gridSize / 3 ;
+        x1 = xPosTemp * gridSize + gridSize/8 ;
+        x2 = xPosTemp * gridSize + gridSize/5 ;
+        y1 = yPosTemp * gridSize + gridSize/6 + 0 * gridSize / 3 ;
+        y2 = yPosTemp * gridSize + gridSize/6 + 1 * gridSize / 3 ;
+        y3 = yPosTemp * gridSize + gridSize/6 + 2 * gridSize / 3 ;
 
         if( (box & 0x01) > 0 ) line(x1, y1, x2, y1) ; //rect( xPos * gridSize,                yPos * gridSize +   gridSize/5, gridSize/5, gridSize/5 ) ; // top left
         if( (box & 0x02) > 0 ) line(x1, y2, x2, y2) ; //rect( xPos * gridSize,                yPos * gridSize + 3*gridSize/5, gridSize/5, gridSize/5 ) ; // bottom left
         if( (box & 0x04) > 0 ) line(x1, y3, x2, y3) ; //rect( xPos * gridSize + 4*gridSize/5, yPos * gridSize +   gridSize/5, gridSize/5, gridSize/5 ) ; // top right
         
-        x1 = xPos * gridSize + 4*gridSize/5 ;
-        x2 = xPos * gridSize + 8*gridSize/9 ;
+        x1 = xPosTemp * gridSize + 4*gridSize/5 ;
+        x2 = xPosTemp * gridSize + 8*gridSize/9 ;
         if( (box & 0x08) > 0 )//if( type == 5 )          line(x1, y1, x2, y1) ; //ellipse( xPos * gridSize + 7*gridSize/8, yPos * gridSize +   gridSize/3, gridSize/5, gridSize/5 ) ; // ellipse for not
         line(x1, y2, x2, y2) ;                          // line of Q
         fill(textColor);
 
         
-        int x = xPos * gridSize + gridSize/2 ;
-        int y = yPos * gridSize + gridSize/2 ;
+        int x = xPosTemp * gridSize + gridSize/2 ;
+        int y = yPosTemp * gridSize + gridSize/2 ;
 
         textSize( gridSize / 6 ) ; 
         text( txt, x , y ) ;

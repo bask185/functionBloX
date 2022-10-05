@@ -848,8 +848,8 @@ void mouseReleased()
 void mouseWheel(MouseEvent event)
 {
     float e = event.getCount();
-    if(( e > 0 && gridSize <  35 )
-    || ( e < 0 && gridSize > 135 )) return ;
+    if(( e > 0 && gridSize <  60 )
+    || ( e < 0 && gridSize >  60 )) return ;
     gridSize -= 15* (int) e ;
 }
 
@@ -939,16 +939,20 @@ void keyPressed()
     }
 
     
-    if(keyCode ==  DOWN && yOffset > -25 ) yOffset -- ;
-    if(keyCode ==    UP && yOffset <  25 ) yOffset ++ ;
-    if(keyCode ==  LEFT && xOffset > -25 ) xOffset -- ;
-    if(keyCode == RIGHT && xOffset <  25 ) xOffset ++ ; 
+    if(keyCode ==    UP && yOffset >   0 ) yOffset -- ;
+    if(keyCode ==  DOWN && yOffset <  50 ) yOffset ++ ;
+    if(keyCode ==  LEFT && xOffset >   0 ) xOffset -- ;
+    if(keyCode == RIGHT && xOffset <  50 ) xOffset ++ ; 
 
     for (int i = 0; i < blocks.size(); i++)
     {
         FunctionBlock block = blocks.get(i);        
-        block.setPos(block.getXpos() + xOffset, block.getYpos() + yOffset) ;
-        //block.setOffset( xOffset, yOffset ) ; 
+        block.setOffset( xOffset, yOffset ) ;
+    }
+    for (int i = 0; i < links.size(); i++)
+    {
+        Link link = links.get(i);        
+        link.setOffset( xOffset, yOffset ) ;
     }
 }
 

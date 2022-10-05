@@ -40,6 +40,9 @@ class Link
         IN2 = 0 ;
         IN3 = 0 ;
 
+        int xOffset ;
+        int yOffset ;
+
         startPosX = x ;
         startPosY = y ;
         startSubX = subX = 2 ;
@@ -59,21 +62,21 @@ class Link
             //  x * gridSize + gridSize/6 + subX * gridSize / 3 ;
             //  y * gridSize + gridSize/6 + subY * gridSize / 3 ;
 
-            int xPos = (positions[0][ i ] >>   8 ) ;
+            int xPos = (positions[0][ i ] >>   8 ) - xOffset ;
             int xSub = (positions[0][ i ] & 0xFF ) ;
-            int yPos = (positions[1][ i ] >>   8 ) ;
+            int yPos = (positions[1][ i ] >>   8 ) - yOffset ;
             int ySub = (positions[1][ i ] & 0xFF ) ;
 
-            int x1 = xPos * gridSize + xSub * gridSize / 3 + gridSize/6;
-            int y1 = yPos * gridSize + ySub * gridSize / 3 + gridSize/6;
+            int x1 = (xPos)  * gridSize + xSub * gridSize / 3 + gridSize/6;
+            int y1 = (yPos)  * gridSize + ySub * gridSize / 3 + gridSize/6;
 
-            xPos = (positions[0][ i+1 ] >>   8 ) ;
+            xPos = (positions[0][ i+1 ] >>   8 ) - xOffset ;
             xSub = (positions[0][ i+1 ] & 0xFF ) ;
-            yPos = (positions[1][ i+1 ] >>   8 ) ;
+            yPos = (positions[1][ i+1 ] >>   8 ) - yOffset ;
             ySub = (positions[1][ i+1 ] & 0xFF ) ;
 
-            int x2 = xPos * gridSize + xSub * gridSize / 3 + gridSize/6 ;
-            int y2 = yPos * gridSize + ySub * gridSize / 3 + gridSize/6 ;
+            int x2 = (xPos) * gridSize + xSub * gridSize / 3 + gridSize/6 ;
+            int y2 = (yPos) * gridSize + ySub * gridSize / 3 + gridSize/6 ;
 
             line( x1, y1, x2, y2 ) ;
             fill(255) ;
@@ -176,4 +179,10 @@ class Link
     int getPosY( int index ) { return positions[1][index] >> 8 ;   }
     int getSubX( int index ) { return positions[0][index] & 0xFF ; }
     int getSubY( int index ) { return positions[1][index] & 0xFF ; }
+
+    void setOffset( int x, int y)
+    {
+        xOffset = x ;
+        yOffset = y ;
+    }
 }
