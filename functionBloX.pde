@@ -222,9 +222,9 @@ boolean  blockMiddle ;
 
 void setup()
 { 
-    fullScreen() ;
+    //fullScreen() ;
     loadLayout() ;
-    //size(displayWidth, displayHeight) ;
+    size(displayWidth, displayHeight) ;
     textSize( 20 );
     background(255) ;
     

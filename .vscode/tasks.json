@@ -7,7 +7,7 @@
             "label": "run",
             "type": "shell",
             // "command": "processing-java --sketch=\"c:\\Users\\Gebruiker\\Documents\\Projects\\functionBlox\" --run"
-            "command": "processing-java --sketch=\"c:\\Users\\sknippels\\Documents\\hobbyProjects\\functionBloX\" --run"
+            "command": "folder=$(pwd);processing-java --sketch=$folder --run"
         },
         {
             "label": "export",
@@ -19,7 +19,7 @@
             "label": "build",
             "type": "shell",
             // "command": "processing-java --sketch=\"c:\\Users\\Gebruiker\\Documents\\Projects\\functionBlox\" --run"
-            "command": "processing-java --sketch=\"c:\\Users\\sknippels\\Documents\\hobbyProjects\\functionBloX\" --build"
+            "command": "folder=$(pwd);processing-java --sketch=$folder --build"
         },
         {
             "label": "Run binary",
