@@ -487,30 +487,30 @@ void updateCursor()
     }  
    
 
-    textAlign(LEFT,TOP);
-    textSize(20);    
-    text("X: " + col,10,50);                                                         // row and col on screen.
-    text("Y: " + row,10,70);
-    text("index: "+ index,10,90);  text("index2: "+ indexOfBlock,200,90);
-    text("mode " + mode,10,110);
-    text("subCol " + subCol,10,130);
-    text("subRow " + subRow,10,150);
-    if(hoverOverPoint == true ) text("line detected ",10,170);
-    text("linkQ   " + linkQ, 10, 190);
-    text("linkIn  " + linkIn, 10, 210);
-    text("linkRow " + linkRow, 10, 230);
-    text("analogQ " + analogQ, 10, 250);
-    text("analogIn " + analogIn, 10, 270);
-    text("link index " + foundLinkIndex, 10, 290);
-    text("X offset " + xOffset, 10, 310);
-    text("Y offset " + yOffset, 10, 330);
-    text("hoverOverDemo " + hoverOverDemo, 10, 350);
+    // textAlign(LEFT,TOP);
+    // textSize(20);    
+    // text("X: " + col,10,50);                                                         // row and col on screen.
+    // text("Y: " + row,10,70);
+    // text("index: "+ index,10,90);  text("index2: "+ indexOfBlock,200,90);
+    // text("mode " + mode,10,110);
+    // text("subCol " + subCol,10,130);
+    // text("subRow " + subRow,10,150);
+    // if(hoverOverPoint == true ) text("line detected ",10,170);
+    // text("linkQ   " + linkQ, 10, 190);
+    // text("linkIn  " + linkIn, 10, 210);
+    // text("linkRow " + linkRow, 10, 230);
+    // text("analogQ " + analogQ, 10, 250);
+    // text("analogIn " + analogIn, 10, 270);
+    // text("link index " + foundLinkIndex, 10, 290);
+    // text("X offset " + xOffset, 10, 310);
+    // text("Y offset " + yOffset, 10, 330);
+    // text("hoverOverDemo " + hoverOverDemo, 10, 350);
 
-    if( text1 != "" || text2 != "" )
-    {
-        fill(255) ;
-        arc(mouseX, mouseY, 10, 10, 0, 2*PI );
-    }
+    // if( text1 != "" || text2 != "" )
+    // {
+    //     fill(255) ;
+    //     arc(mouseX, mouseY, 10, 10, 0, 2*PI );
+    // }
     fill(0);
 
 }

@@ -1,14 +1,23 @@
 #!/bin/bash
 
 folder=$(pwd)
-processing-java --sketch=$folder --export
-mkdir windows-amd64/images
-mkdir windows-amd64/arduinoProgram
-rm -r windows-amd64/source
-cp arduinoProgram/functionBlocks.h windows-amd64/arduinoProgram/
-cp -r images/* windows-amd64/images/
-touch windows-amd64/program.csv
-echo "0" >> windows-amd64/program.csv
-echo "0" >> windows-amd64/program.csv
-7z.exe a binary.zip ./windows-amd64/*
-rm -r windows-amd64
+processing-java --sketch=$folder --platform="windows" --export
+mkdir application.windows64/images
+mkdir application.linux64/images
+mkdir application.windows64/arduinoProgram
+mkdir application.linux64/arduinoProgram
+rm -r application.windows64/source
+rm -r application.linux64/source
+cp arduinoProgram/functionBlocks.h application.windows64/arduinoProgram/
+cp arduinoProgram/functionBlocks.h application.linux64/arduinoProgram/
+cp -r images/* application.windows64/images/
+cp -r images/* application.linux64/images/
+touch application.windows64/program.csv
+touch application.linux64/program.csv
+echo "0" >> application.windows64/program.csv
+echo "0" >> application.windows64/program.csv
+echo "0" >> application.linux64/program.csv
+echo "0" >> application.linux64/program.csv
+7z.exe a FunctionBloX.zip ./application.windows64/*
+7z.exe a FunctionBloX_linux.zip ./application.linux64/*
+rm -r application*
