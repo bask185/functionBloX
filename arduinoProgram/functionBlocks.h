@@ -377,30 +377,31 @@ public:
     {
         pin = _pin ;
         initialized = 0 ;
+        IN3 = 1 ;                   // not used is always on
     }
 
     void run()
     {
-        if( !initialized )
-        {   initialized = true ;
-
-            motor.attach(pin) ;
-        }
-
-        if( servoPos != IN2 )
+        if( servoPos != IN2 && IN3 == 0 ) // In3 acts as a latch pin
         {   servoPos  = IN2 ;
+
+            fallOffTime = millis() ;
         
             servoPos = constrain( servoPos, 0, 180 ) ;
             motor.write(servoPos) ;
-            //Serial.print(pin) ; Serial.write(' ') ;Serial.println(servoPos) ;
+            if( motor.attached() == 0 ) motor.attach(pin) ;
+        }
+        else if( millis() - fallOffTime >= 500 )
+        {
+            motor.detach() ;
         }
     }
 
 private:
     Servo motor ;
     uint8_t servoPos ;
+    uint32_t fallOffTime ;
     uint8_t pin : 7 ;
-    uint8_t initialized : 1 ;
 } ;
 
 

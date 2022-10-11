@@ -13,7 +13,7 @@ public class FunctionBlock
     int delayTime ;
     int constVal ;
 
-    char a, b, c ;
+    char a, b, c, d, e;
 
     String serialText ;
 
@@ -111,6 +111,8 @@ public class FunctionBlock
             a = serialText.charAt(0) ;
             b = serialText.charAt(1) ;
             c = serialText.charAt(2) ;
+            d = serialText.charAt(3) ;
+            e = serialText.charAt(4) ;
         }
         catch( NullPointerException e ) {}
         catch( StringIndexOutOfBoundsException e) {}
@@ -129,9 +131,9 @@ public class FunctionBlock
             case    PULSE: txt= "\r\n" +  delayTime;          box = 0x08 ; break ;
             case   ANA_IN: txt= "ADC\r\n\r\nA" + pin;         box = 0x08 ; break ;
             case  ANA_OUT: txt= "PWM\r\n\r\nD" + pin;         box = 0x02 ; break ;
-            case    SERVO: txt= "SERVO\r\n"  + pin;           box = 0x02 ; break ;
-            case   SER_IN: txt= "MESS\r\nIN\r\n"+a+b+c;       box = 0x08 ; break ;
-            case  SER_OUT: txt= "MESS\r\nOUT\r\n"+a+b+c ;     box = 0x02 ; break ;
+            case    SERVO: txt= "SERVO\r\n"+pin+"\r\nLATCH";  box = 0x06 ; break ;
+            case   SER_IN: txt= "MESS\r\nIN\r\n"+a+b+c+d+e ;  box = 0x08 ; break ;
+            case  SER_OUT: txt= "MESS\r\nOUT\r\n"+a+b+c+d+e ; box = 0x02 ; break ;
             case      MAP: txt= in1 + "  " + in2 + "\r\nMAP\r\n"
                              + out1 + "  " + out2 ;           box = 0x0A ; break ;
             case     COMP: txt = "+      \r\n-      ";        box = 0x0D ; break ;
