@@ -4,7 +4,7 @@
  PANNING IS TEMPORARILY NOT WORKING WELL.
 - if zoomed in/out, the components can be drawn on places were it shouldnt be possible
 - reformat printTexts to make it more compact.
-
+- alter new cursor to snap to row, column, subX and subY coordinates
 
 BACKLOG
 X make separate arrays for AND, NOR and MEMORIES. , unsure if actually needed, it may help with generating organized source code.
@@ -12,6 +12,7 @@ X exclude top row and first column for cosmetic purposes. It would be neat if we
 - move node of a line by dragging it with LMB
 - implement inverted outputs !Q
 - instead of using arrow keys for panning, use RMB drag instead.
+- make panning for links ( if possible ) 
 
 
 LIST OF BLOCKS TO ADD
@@ -23,9 +24,8 @@ LIST OF BLOCKS TO ADD
 
 
 CURRENT WORK:
-- make panning for links ( if possible ) 
 - test servo's
-- find usb microphone/camera and make video
+- make video
 
 
 BEACON
@@ -275,6 +275,7 @@ void draw()
     drawLinks() ;
     drawControlButtons() ;
     updateCursor() ;
+    drawCursor() ;
 }
 
 void drawBackground()
@@ -787,6 +788,15 @@ void dragLine()
 {
     Link link = links.get( linkIndex ) ;
     link.updatePoint( col, row, subCol, subRow  ) ;
+}
+
+void drawCursor()
+{
+    int x = (col) * gridSize + subCol * gridSize / 3 + gridSize/6 ;
+    int y = (row) * gridSize + subRow * gridSize / 3 + gridSize/6 ;
+
+    line(0,y,width,y) ;
+    line(x, 0, x, height) ;
 }
 // helper functions
 

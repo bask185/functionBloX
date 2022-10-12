@@ -122,7 +122,7 @@ public class FunctionBlock
         {                                       // box bits: Q, in1, in2, in3,
             case      AND: txt =  "AND" ;                     box = 0x0F ; break ;
             case       OR: txt =   "OR" ;                     box = 0x0F ; break ;
-            case      DELAY: txt ="DELAY\r\n\r\n" + delayTime;box = 0x0A ; break ;
+            case    DELAY: txt ="DELAY\r\n\r\n" + delayTime;  box = 0x0A ; break ;
             case      NOT: txt =  "NOT" ;                     box = 0x0A ; break ; // text replaced by clock symbol
             case    INPUT: txt = "INPUT\r\nD" + pin;          box = 0x08 ; break ;
             case   OUTPUT: txt ="OUTPUT\r\nD" + pin;          box = 0x02 ; break ;
