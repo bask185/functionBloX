@@ -17,6 +17,11 @@
             "label": "build",
             "type": "shell",
             "command": "folder=$(pwd);processing-java --sketch=$folder --build"
+        },
+        {
+            "label": "deploy",
+            "type": "shell",
+            "command": "./deploy.py"
         }
     ]
 }

@@ -4,7 +4,7 @@
  PANNING IS TEMPORARILY NOT WORKING WELL.
 - if zoomed in/out, the components can be drawn on places were it shouldnt be possible
 - reformat printTexts to make it more compact.
-- alter new cursor to snap to row, column, subX and subY coordinates
+- add version number and add a release script. For this project I will be needing a proper changelog and version releasing.
 
 BACKLOG
 X make separate arrays for AND, NOR and MEMORIES. , unsure if actually needed, it may help with generating organized source code.
@@ -276,6 +276,7 @@ void draw()
     drawControlButtons() ;
     updateCursor() ;
     drawCursor() ;
+    printVersion() ;
 }
 
 void drawBackground()
@@ -1306,3 +1307,5 @@ arduino board with 485 interface
 
 
 */
+
+void printVersion() { text("V1.0.0", width/2, height - 2*gridSize) ; }
