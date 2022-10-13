@@ -805,7 +805,7 @@ void drawCursor()
 void leftMousePress()
 {
     if( mode == settingPin || mode == settingDelayTime || mode == settingPulseTime 
-    ||  mode == settingMapValues || mode == settingText ) return ;                               // as long as a number is set, LMB nor RMB must do anything
+    ||  mode == settingMapValues || mode == settingText ) mode = idle ;                               // as long as a number is set, LMB nor RMB must do anything
 
     if(      mode == idle && hoverOverDemo )                                     addFunctionBlock() ;
     else if( mode == idle )                                                      moveItem() ;
@@ -1308,4 +1308,4 @@ arduino board with 485 interface
 
 */
 
-void printVersion() { text("V1.0.0", width/2, height - 2*gridSize) ; }
+void printVersion() { text("V0.0.0", width/2, height - 2*gridSize) ; }
