@@ -45,7 +45,6 @@ def updateVersionNumber():
 
 def buildProject():
     os.system("folder=$(pwd);processing-java --sketch=$folder --build")            # Build project, before commiting and releasing
-    os.system("./export.sh")
 
 def commit():
     answer = input("Do you wish to perform a git commit?[y/n] (recommended for version.h)\n")
@@ -81,6 +80,9 @@ def push():
     else:
         print("REPOSITORY NOT PUSHED\n")
 
+def export():
+    os.system("./export.sh")
+
 ################# MAIN PROGRAM #################
 versionNumber = getVersion()
 getCommitText()
@@ -90,6 +92,7 @@ commit()
 tag()
 changelog()
 push()
+export()
 
 print("\nNEW VERSION SUCCUSFULLY RELEASED!")
 
