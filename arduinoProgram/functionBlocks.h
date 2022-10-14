@@ -376,13 +376,12 @@ public:
     ServoMotor( uint8_t _pin ) 
     {
         pin = _pin ;
-        initialized = 0 ;
         IN3 = 1 ;                   // not used is always on
     }
 
     void run()
     {
-        if( servoPos != IN2 && IN3 == 0 ) // In3 acts as a latch pin
+        if( servoPos != IN2 && IN3 == 1 ) // In3 acts as a latch pin
         {   servoPos  = IN2 ;
 
             fallOffTime = millis() ;

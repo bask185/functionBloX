@@ -20,4 +20,6 @@ echo "0" >> application.linux64/program.csv
 echo "0" >> application.linux64/program.csv
 7z.exe a FunctionBloX.zip ./application.windows64/*
 7z.exe a FunctionBloX_linux.zip ./application.linux64/*
+cp FunctionBloX.zip /c/Users/Gebruiker/Dropbox/FunctionBloX/
+cp FunctionBloX_linux.zip /c/Users/Gebruiker/Dropbox/FunctionBloX/
 rm -r application*

@@ -1,10 +1,11 @@
 /* THINGS TODO
-- panning works for the FB but the links are to be done. Panning works by manipulating the X and Y coordinates of all blocks
-- to panning add a limit so you cannot pan more than lets say 25 blocks in either direction
- PANNING IS TEMPORARILY NOT WORKING WELL.
+- panning
 - if zoomed in/out, the components can be drawn on places were it shouldnt be possible
 - reformat printTexts to make it more compact.
-- add version number and add a release script. For this project I will be needing a proper changelog and version releasing.
+- add texts for all name/number editing.
+- changelog controlleren op mee kopieren (en de inhoud controlleren...)
+- make new videos with audio
+
 
 BACKLOG
 X make separate arrays for AND, NOR and MEMORIES. , unsure if actually needed, it may help with generating organized source code.
