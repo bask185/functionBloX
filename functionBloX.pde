@@ -5,7 +5,8 @@
 - add texts for all name/number editing.
 - changelog controlleren op mee kopieren (en de inhoud controlleren...)
 - make new videos with audio
-
+- update website with new videos and update servo motor block with latch.\
+- multi file
 
 BACKLOG
 X make separate arrays for AND, NOR and MEMORIES. , unsure if actually needed, it may help with generating organized source code.
@@ -15,19 +16,9 @@ X exclude top row and first column for cosmetic purposes. It would be neat if we
 - instead of using arrow keys for panning, use RMB drag instead.
 - make panning for links ( if possible ) 
 
-
-LIST OF BLOCKS TO ADD
-- loconet -> loco drive      Rx + Tx
-- loconet -> loco function   Rx + Tx
-- loconet -> point (send)    Rx + Tx
-- loconet -> feedback        Rx + Tx
-- loconet -> railcom (must be simultaneous with the feedback)
-
-
 CURRENT WORK:
-- test servo's
-- make video
-
+- new videos for website
+- multi files
 
 BEACON
 
@@ -106,6 +97,7 @@ PrintWriter     output;
 BufferedReader  input;
 PImage          mouse;
 
+ControlButton loadButton    ;
 ControlButton saveButton    ;
 ControlButton programButton ;
 ControlButton clearButton ;
@@ -220,11 +212,17 @@ boolean  hoverOverFB ;
 boolean  hoverOverDemo ;
 boolean  hoverOverPoint ;
 boolean  blockMiddle ;
+boolean  lastTime ;
+
+String   inputFile ;
+String   outputFile ;
+
+
 
 void setup()
 { 
+    selectInput("Open file", "inputSelected");
     //fullScreen() ;
-    loadLayout() ;
     size(displayWidth, displayHeight) ;
     textSize( 20 );
     background(255) ;
@@ -257,9 +255,10 @@ void setup()
     demoBlocks.add( new FunctionBlock((width-1*gridSize)/gridSize, 10,      DIV, gridSize ) ) ;
     demoBlocks.add( new FunctionBlock((width-1*gridSize)/gridSize, 11,      MUL, gridSize ) ) ;
 
-    saveButton    = new ControlButton(        10, height - 100, "SAVE" ) ;
-    programButton = new ControlButton(       120, height - 100, "PROGRAM") ;
-    clearButton   = new ControlButton(       230, height - 100, "CLEAR") ;
+    loadButton    = new ControlButton(        10, height - 100, "LOAD" ) ;
+    saveButton    = new ControlButton(       120, height - 100, "SAVE" ) ;
+    programButton = new ControlButton(       230, height - 100, "PROGRAM") ;
+    //clearButton   = new ControlButton(       340, height - 100, "CLEAR") ;
     quitButton    = new ControlButton( width-110, height - 100, "QUIT") ;
 }
 
@@ -300,8 +299,9 @@ void drawControlButtons()
     text1 = "" ;
     textSize(30);  
     saveButton.draw() ;
+    loadButton.draw() ;
     programButton.draw() ;
-    clearButton.draw() ;
+    //clearButton.draw() ;
     quitButton.draw() ;
     textSize(30);  
     textAlign(RIGHT,TOP);
@@ -634,9 +634,10 @@ void printTexts()
             }
             text2 = "PRESS <ENTER> WHEN READY" ;
         }
+        else if( loadButton.hoveringOver() )       {text1 = "LOAD PROGRAM" ;}
         else if( saveButton.hoveringOver() )       {text1 = "SAVE PROGRAM" ;}
         else if( programButton.hoveringOver() )    {text1 = "ASSEMBLE PROGRAM" ;}
-        else if( clearButton.hoveringOver() )      {text1 = "CLEAR PROGRAM" ;}
+       // else if( clearButton.hoveringOver() )      {text1 = "CLEAR PROGRAM" ;}
         else if( quitButton.hoveringOver() )       {text1 = "SAVE AND QUIT PROGRAM" ;}
 
 
@@ -813,11 +814,12 @@ void leftMousePress()
     if (     mode == idle && subCol == 1 && subRow == 2 && hoverOverFB == true ) alterNumber() ;
     else if( mode == idle && subCol == 2 && subRow == 1 && hoverOverFB == true ) createLink() ;
     else if( mode == addingLinePoints && subCol == 0    && hoverOverFB == true ) finishLink() ;
-    else if( mode == addingLinePoints )                                          addNodeToLink() ; 
-    else if( saveButton.hoveringOver() )                                         saveLayout() ;
+    else if( mode == addingLinePoints )                                          addNodeToLink() ;
+    else if( loadButton.hoveringOver() )                                         selectInput("Open file", "inputSelected");
+    else if( saveButton.hoveringOver() )                                         selectOutput("Save file", "outputSelected");
     else if( programButton.hoveringOver() )                                      assembleProgram() ;
-    else if( clearButton.hoveringOver() )                                        clearProgram() ;
-    else if( quitButton.hoveringOver() )                                       { saveLayout() ; assembleProgram() ; exit() ; }
+    //else if( clearButton.hoveringOver() )                                        clearProgram() ;
+    else if( quitButton.hoveringOver() )                                       { selectOutput("Save file", "outputSelected"); assembleProgram() ; lastTime = true ; }
 
 }
 
@@ -960,15 +962,23 @@ void keyPressed()
 }
 
 
+void outputSelected( File output ) 
+{
+    outputFile = output.getAbsolutePath() ;
+    println( outputFile ) ;
 
+    saveLayout() ;
 
+    if( lastTime == true ) exit() ;
+}
 
 /***************** SAVING, LOADING AND GENERATING SOURCE ***********/
 void saveLayout()
 {
+    
     //println("LAYOUT SAVED");
 
-    output = createWriter("program.csv");
+    output = createWriter( outputFile ) ;
 
     output.println( blocks.size() ) ;          // the amount of elements is saved first, this is used for the loading
 
@@ -1008,7 +1018,12 @@ void saveLayout()
     output.close();
 }
 
-
+void inputSelected(File selection)
+{
+    inputFile = selection.getPath() ;
+    clearProgram() ;
+    loadLayout() ;
+}
 
 void loadLayout()
 {
@@ -1017,7 +1032,7 @@ void loadLayout()
 
     try
     {
-        input = createReader("program.csv"); 
+        input = createReader( inputFile ); 
         line = input.readLine();
     } 
     catch (IOException e) { return ;}
@@ -1309,4 +1324,4 @@ arduino board with 485 interface
 
 */
 
-void printVersion() { text("V0.0.0", width/2, height - 2*gridSize) ; }
+void printVersion() { text("V1.0.0", width/2, height - 2*gridSize) ; }
