@@ -18,7 +18,7 @@ X exclude top row and first column for cosmetic purposes. It would be neat if we
 
 CURRENT WORK:
 - new videos for website
-- multi files
+
 
 BEACON
 
@@ -212,7 +212,8 @@ boolean  hoverOverFB ;
 boolean  hoverOverDemo ;
 boolean  hoverOverPoint ;
 boolean  blockMiddle ;
-boolean  lastTime ;
+boolean  exitFlag ;
+boolean  saved ;
 
 String   inputFile ;
 String   outputFile ;
@@ -574,12 +575,12 @@ void printTexts()
         }
         else if( mode == settingPin )
         {
-            text1 = "SET PIN NUMBER" ;
+            text1 = "SET PIN NUMBER: " + pinNumber ;
             text2 = "PRESS <ENTER> WHEN READY" ;
         }
         else if( mode == settingDelayTime )
         {
-            text1 = "ENTER DELAY TIME" ;
+            text1 = "ENTER DELAY TIME: " + delayTime ;
             text2 = "PRESS <ENTER> WHEN READY" ;
         }
         else if( subCol == 1 && subRow == 2 && hoverOverFB == true && mode == idle )
@@ -620,17 +621,17 @@ void printTexts()
         }
         else if( mode == settingPulseTime )
         {
-            text1 = "ENTER PULSE SWITCH TIME" ;
+            text1 = "ENTER PULSE SWITCH TIME: " + delayTime ;
             text2 = "PRESS <ENTER> WHEN READY" ;
         }
         else if( mode == settingMapValues )
         {
             switch( mapState )
             {
-                case 0: text1 = "SET IN 1"  ; break ;
-                case 1: text1 = "SET IN 2"  ; break ;
-                case 2: text1 = "SET OUT 1" ; break ;
-                case 3: text1 = "SET OUT 2" ; break ;
+                case 0: text1 = "SET IN 1: "  +  in1 ; break ;
+                case 1: text1 = "SET IN 2: "  +  in2 ; break ;
+                case 2: text1 = "SET OUT 1: " + out1 ; break ;
+                case 3: text1 = "SET OUT 2: " + out2 ; break ;
             }
             text2 = "PRESS <ENTER> WHEN READY" ;
         }
@@ -819,7 +820,16 @@ void leftMousePress()
     else if( saveButton.hoveringOver() )                                         selectOutput("Save file", "outputSelected");
     else if( programButton.hoveringOver() )                                      assembleProgram() ;
     //else if( clearButton.hoveringOver() )                                        clearProgram() ;
-    else if( quitButton.hoveringOver() )                                       { selectOutput("Save file", "outputSelected"); assembleProgram() ; lastTime = true ; }
+    else if( quitButton.hoveringOver() )                                        
+    { 
+        assembleProgram() ;
+        if( saved == true) exit() ; 
+        else
+        {
+            exitFlag = true ;
+            selectOutput("Save file", "outputSelected");
+        }
+    }
 
 }
 
@@ -839,6 +849,7 @@ void mousePressed()
 {	
     if( mouseButton ==  LEFT )              leftMousePress() ;
     if( mouseButton == RIGHT )              rightMousePress() ;
+    saved = false ;
 }
 void mouseDragged()
 {
@@ -862,13 +873,13 @@ void mouseReleased()
     if( mode == movingItem )                mode = idle ;
 }
 
-// void mouseWheel(MouseEvent event)
-// {
-//     float e = event.getCount();
-//     if(( e > 0 && gridSize <  60 )
-//     || ( e < 0 && gridSize >  60 )) return ;
-//     gridSize -= 15* (int) e ;
-// }
+void mouseWheel(MouseEvent event)
+{
+    float e = event.getCount();
+    if(( e > 0 && gridSize <  60 )
+    || ( e < 0 && gridSize >  60 )) return ;
+    gridSize -= 15* (int) e ;
+}
 
 
 
@@ -969,7 +980,9 @@ void outputSelected( File output )
 
     saveLayout() ;
 
-    if( lastTime == true ) exit() ;
+    saved = true ;
+
+    if( exitFlag == true ) exit() ;
 }
 
 /***************** SAVING, LOADING AND GENERATING SOURCE ***********/
@@ -1114,6 +1127,8 @@ void loadLayout()
         link.removePoint() ;
         linkIndex ++ ;
     }
+
+    saved = true ;
 }
 
 void clearProgram()
@@ -1324,4 +1339,4 @@ arduino board with 485 interface
 
 */
 
-void printVersion() { text("V1.0.0", width/2, height - 2*gridSize) ; }
+void printVersion() { text("V1.1.0", width/2, height - 2*gridSize) ; }
