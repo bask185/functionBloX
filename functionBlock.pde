@@ -63,6 +63,7 @@ public class FunctionBlock
         case MUL:
         case SUB:
         case DIV:
+        case DCC:
         case EQUALS:
             rect( 
                 xPos * gridSize + (gridSize/5), 
@@ -145,6 +146,7 @@ public class FunctionBlock
             case SUB:       txt = "SUB";                      box = 0x0D ; break ;
             case MUL:       txt = "MUL";                      box = 0x0D ; break ;
             case DIV:       txt = "DIV";                      box = 0x0D ; break ;
+            case DCC:       txt = "DCC";                      box = 0x08 ; break ;
         }
 
         x1 = xPos * gridSize + gridSize/8 ;

@@ -156,6 +156,7 @@ final int   ADDITION = 29 ;
 final int        SUB = 30 ;
 final int        DIV = 31 ;
 final int        MUL = 32 ;
+final int        DCC = 33 ;
 
 
 // 23,5,0,0,0,0,0,  servo
@@ -241,6 +242,7 @@ void setup()
     demoBlocks.add( new FunctionBlock((width-2*gridSize)/gridSize,  9, SER_OUT, gridSize ) ) ;
     demoBlocks.add( new FunctionBlock((width-2*gridSize)/gridSize, 10,  RISING, gridSize ) ) ;
     demoBlocks.add( new FunctionBlock((width-2*gridSize)/gridSize, 11, FALLING, gridSize ) ) ;
+    demoBlocks.add( new FunctionBlock((width-2*gridSize)/gridSize, 12,     DCC, gridSize ) ) ;
 
     // RIGHT COLUMN ANALOG STUFFS
     demoBlocks.add( new FunctionBlock((width-1*gridSize)/gridSize,  0,   ANA_IN, gridSize ) ) ;
@@ -666,7 +668,7 @@ void addFunctionBlock()
     mode = movingItem ;
 
     if( mouseX > (width-defaultGridSize)) currentType = row + 21 ; // hover over analog things
-    else                     currentType = row +  1 ; // hover over digital things
+    else                                  currentType = row +  1 ; // hover over digital things
 
     pinNumber = 0 ;
 
@@ -1176,8 +1178,9 @@ void assembleProgram()
             case   PULSE: file.println("static        Pulse d"+(index+1)+" = Pulse("+ time +") ;") ;        index++ ; break ;  
             case  SER_IN: file.println("static     SerialIn d"+(index+1)+" = SerialIn( \""+ mess +"\") ;") ;index++ ; break ;  
             case SER_OUT: file.println("static    SerialOut d"+(index+1)+" = SerialOut(\""+ mess +"\") ;") ;index++ ; break ;  
-            case RISING:  file.println("static       Rising d"+(index+1)+" = Rising()  ;") ;                index++ ; break ;  
-            case FALLING: file.println("static      Falling d"+(index+1)+" = Falling() ;") ;                index++ ; break ;  
+            case  RISING: file.println("static       Rising d"+(index+1)+" = Rising()  ;") ;                index++ ; break ;  
+            case FALLING: file.println("static      Falling d"+(index+1)+" = Falling() ;") ;                index++ ; break ;
+            case     DCC: file.println("static          DCC d"+(index+1)+" = DCC() ; " ) ;                  index++ ; break ;
         }
     }
     nDigitalBlocks = index ; 
@@ -1260,6 +1263,9 @@ void assembleProgram()
     }
     file.println("}") ;
     file.println("") ;
+    file.println("#include NmraDcc.h") ;
+    file.println("NmraDcc dcc ;") ;
+    file.println("") ;
     file.println("void sendMessage( String S )") ;
     file.println("{") ;
     file.println("    Serial.println( S ) ;") ;
@@ -1293,10 +1299,12 @@ void assembleProgram()
     file.println("void setup()") ;
     file.println("{") ;
     file.println("    Serial.begin( 115200 ) ;") ;
+    file.println("    dcc.init( MAN_ID_DIY, 0, FLAGS_OUTPUT_ADDRESS_MODE | FLAGS_DCC_ACCESSORY_DECODER, 0 ) ;") ;
     file.println("}") ;
     file.println("") ;
     file.println("void loop()") ;
     file.println("{") ;
+    file.println("    dcc.process() ;") ;
     file.println("/***************** UPDATE FUNCTION BLOCKS *****************/") ;
     file.println("    for( int i = 0 ; i < nDigitalBlocks ; i ++ ) { digitalBlock[i] -> run() ; updateLinks() ; }") ;
     file.println("    for( int i = 0 ; i <  nAnalogBlocks ; i ++ ) {  analogBlock[i] -> run() ; updateLinks() ; }") ;
