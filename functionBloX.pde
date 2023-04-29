@@ -141,6 +141,7 @@ final int     SER_IN =  9 ;
 final int    SER_OUT = 10 ;
 final int     RISING = 11 ;
 final int    FALLING = 12 ;
+final int        DCC = 13 ;
 
 final int ANALOG_BLOCKS = 20 ;
 
@@ -156,7 +157,7 @@ final int   ADDITION = 29 ;
 final int        SUB = 30 ;
 final int        DIV = 31 ;
 final int        MUL = 32 ;
-final int        DCC = 33 ;
+
 
 
 // 23,5,0,0,0,0,0,  servo
@@ -589,7 +590,7 @@ void printTexts()
         {
             if( type == INPUT  || type == OUTPUT 
             ||  type == ANA_IN || type == ANA_OUT 
-            ||  type == SERVO )
+            ||  type == SERVO  || type == DCC )
             {
                 text1 = "SET PIN NUMBER" ;
                 text2 = "" ;
@@ -717,6 +718,7 @@ void alterNumber()
         ||  type ==  OUTPUT
         ||  type ==  ANA_IN
         ||  type ==   SERVO
+        ||  type ==     DCC
         ||  type == ANA_OUT ) mode = settingPin ;
 
 
@@ -1180,7 +1182,7 @@ void assembleProgram()
             case SER_OUT: file.println("static    SerialOut d"+(index+1)+" = SerialOut(\""+ mess +"\") ;") ;index++ ; break ;  
             case  RISING: file.println("static       Rising d"+(index+1)+" = Rising()  ;") ;                index++ ; break ;  
             case FALLING: file.println("static      Falling d"+(index+1)+" = Falling() ;") ;                index++ ; break ;
-            case     DCC: file.println("static          DCC d"+(index+1)+" = DCC() ; " ) ;                  index++ ; break ;
+            case     DCC: file.println("static          DCC d"+(index+1)+" = DCC("+ pin +") ; " ) ;         index++ ; break ;
         }
     }
     nDigitalBlocks = index ; 
@@ -1263,8 +1265,23 @@ void assembleProgram()
     }
     file.println("}") ;
     file.println("") ;
-    file.println("#include NmraDcc.h") ;
+    file.println("#include \"NmraDcc.h\"") ;
     file.println("NmraDcc dcc ;") ;
+    file.println("uint16_t lastSetAddress ;") ;
+    file.println("uint8_t  lastSetState ;") ;
+    file.println("") ;
+    file.println("void notifyDccAccTurnoutOutput ( uint16_t Addr, uint8_t Direction, uint8_t OutputPower ) // called from DCC lib") ;
+    file.println("{") ;
+    file.println("    lastSetAddress = Addr ;") ;
+    file.println("    lastSetState   = Direction ;") ;
+    file.println("    if( lastSetState > 1 ) lastSetState = 1 ;") ;
+    file.println("}") ;
+    file.println("") ;
+    file.println("uint8_t getDCCstate( uint16_t address ) // called by DCC function blox") ;
+    file.println("{") ;
+    file.println("    if( address != lastSetAddress ) return 2 ;") ;
+    file.println("    else return lastSetState ;") ;
+    file.println("}") ;
     file.println("") ;
     file.println("void sendMessage( String S )") ;
     file.println("{") ;
@@ -1347,4 +1364,4 @@ arduino board with 485 interface
 
 */
 
-void printVersion() { text("V1.1.0", width/2, height - 2*gridSize) ; }
+void printVersion() { text("V1.2.0", width/2, height - 2*gridSize) ; }

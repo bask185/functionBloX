@@ -422,9 +422,9 @@ public:
     Call-back functions
 ************************************************************************************/
 
-#if defined (__cplusplus)
-extern "C" {
-#endif
+// #if defined (__cplusplus)
+// extern "C" {
+// #endif
 
 /*+
  *  notifyDccReset(uint8_t hardReset) Callback for a DCC reset command.
@@ -752,8 +752,8 @@ extern void    notifyServiceMode (bool) __attribute__ ( (weak));
 extern void notifyDccAccState (uint16_t Addr, uint16_t BoardAddr, uint8_t OutputAddr, uint8_t State) __attribute__ ( (weak));
 extern void notifyDccSigState (uint16_t Addr, uint8_t OutputIndex, uint8_t State) __attribute__ ( (weak));
 
-#if defined (__cplusplus)
-}
-#endif
+// #if defined (__cplusplus)
+// }
+// #endif
 
 #endif

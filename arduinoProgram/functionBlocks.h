@@ -2,8 +2,10 @@
 #include <Servo.h>
 
 
-extern void sendMessage( String S ) __attribute__((weak)) ;
-extern String getMessage()          __attribute__((weak)) ;
+extern void    sendMessage( String S )  __attribute__((weak)) ;
+extern String  getMessage()             __attribute__((weak)) ;
+extern uint8_t getDCCstate( uint16_t )  __attribute__((weak)) ;
+
 const int ANALOG_SAMPLE_TIME = 20 ;
 
 class DigitalBlock
@@ -205,6 +207,26 @@ public:
 
 private:
     const String message ;
+} ;
+
+class DCC: public DigitalBlock
+{
+public:
+    DCC( uint16_t _address )
+    {
+        address = _address ;
+    }
+
+    void run()
+    {
+        uint8_t state  = getDCCstate( address ) ;
+        if( state == 0 ) Q = 0 ;
+        if( state == 1 ) Q = 1 ;
+        // state can be 2, which means different address is set -> no change of my Q
+    }
+
+private:
+    uint16_t address ;
 } ;
 
 class Input : public DigitalBlock
