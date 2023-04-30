@@ -12,6 +12,7 @@ public class FunctionBlock
     int pin ;
     int delayTime ;
     int constVal ;
+    int address ;
 
     char a, b, c, d, e;
 
@@ -146,7 +147,7 @@ public class FunctionBlock
             case SUB:      txt = "SUB";                       box = 0x0D ; break ;
             case MUL:      txt = "MUL";                       box = 0x0D ; break ;
             case DIV:      txt = "DIV";                       box = 0x0D ; break ;
-            case DCC:      txt = "DCC\r\n" + pin ;            box = 0x08 ; break ;
+            case DCC:      txt = "DCC\r\n" + address ;        box = 0x08 ; break ;
         }
 
         x1 = xPos * gridSize + gridSize/8 ;
@@ -202,6 +203,9 @@ public class FunctionBlock
 
     void setConst( int constVal ) { this.constVal = constVal ; }
     int  getConst() { return constVal ; }
+
+    void setAddress( int address ) { this.address = address ;println("DCC addr set"); }
+    int  getAddress() { return address ; }
 
     void setIn1(  int x) { this.in1  = x ; }
     void setIn2(  int x) { this.in2  = x ; }

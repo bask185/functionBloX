@@ -1,25 +1,4 @@
-/* THINGS TODO
-- panning
-- if zoomed in/out, the components can be drawn on places were it shouldnt be possible
-- reformat printTexts to make it more compact.
-- add texts for all name/number editing.
-- changelog controlleren op mee kopieren (en de inhoud controlleren...)
-- make new videos with audio
-- update website with new videos and update servo motor block with latch.\
-- multi file
-
-BACKLOG
-X make separate arrays for AND, NOR and MEMORIES. , unsure if actually needed, it may help with generating organized source code.
-X exclude top row and first column for cosmetic purposes. It would be neat if we can stuff control buttons there.
-- move node of a line by dragging it with LMB
-- implement inverted outputs !Q
-- instead of using arrow keys for panning, use RMB drag instead.
-- make panning for links ( if possible ) 
-
-CURRENT WORK:
-- new videos for website
-
-
+/*
 BEACON
 
 PROGRAM FUNCTIONS IN ORDE
@@ -120,6 +99,7 @@ final int   settingDelayTime =  6 ;
 final int   settingPulseTime =  7 ;
 final int   settingMapValues =  8 ;
 final int   settingText      =  9 ;
+final int   settingAddress   = 10 ;
 
 final int   defaultGridSize  = 60 ;
 
@@ -189,7 +169,7 @@ int     subRow ;
 int     nItems ;
 boolean locked ;
 int     index ;
-int     mode = idle ;
+int     mode = idle, prevMode = 255 ;
 int     linkIndex = 0 ;
 int     foundLinkIndex ;
 int     currentType ;
@@ -197,6 +177,7 @@ int     pinNumber ;
 int     delayTime ;
 int     mapState ;
 int     in1, in2, out1, out2 ;
+int     currentAddress ;
 
 int     linkQ ;
 int     linkIn ;
@@ -281,6 +262,16 @@ void draw()
     updateCursor() ;
     drawCursor() ;
     printVersion() ;
+
+    if( mode != prevMode )
+    {
+        println("mode changed!") ;
+        println("old: " + str(prevMode))  ;
+        println("new: " + str(mode)) ;
+
+        prevMode = mode ;
+    }
+
 }
 
 void drawBackground()
@@ -590,7 +581,7 @@ void printTexts()
         {
             if( type == INPUT  || type == OUTPUT 
             ||  type == ANA_IN || type == ANA_OUT 
-            ||  type == SERVO  || type == DCC )
+            ||  type == SERVO )
             {
                 text1 = "SET PIN NUMBER" ;
                 text2 = "" ;
@@ -611,6 +602,11 @@ void printTexts()
                 text1 = "SET PULSE TIME" ;
                 text2 = "" ;
             }
+            else if( type == DCC )
+            {
+                text1 = "SET DCC ADDRESS" ;
+                text2 = "" ;
+            }
             else if( type == SER_IN || type == SER_OUT )
             {
                 text1 = "ENTER MESSAGE" ;
@@ -621,6 +617,11 @@ void printTexts()
         {
             text1 = "ENTER MESSAGE" ;
             text2 = serialText ;
+        }
+        else if( mode == settingAddress )
+        {
+            text1 = "ENTER ADDRESS" ;
+            text2 = "" ;
         }
         else if( mode == settingPulseTime )
         {
@@ -714,11 +715,12 @@ void alterNumber()
         if( type ==  SER_IN
         ||  type == SER_OUT ) mode = settingText ;
 
+        if( type == DCC )     {mode = settingAddress ; println("setting DCC address") ;}
+
         if( type ==   INPUT
         ||  type ==  OUTPUT
         ||  type ==  ANA_IN
         ||  type ==   SERVO
-        ||  type ==     DCC
         ||  type == ANA_OUT ) mode = settingPin ;
 
 
@@ -812,7 +814,7 @@ void drawCursor()
 void leftMousePress()
 {
     if( mode == settingPin || mode == settingDelayTime || mode == settingPulseTime 
-    ||  mode == settingMapValues || mode == settingText ) mode = idle ;                               // as long as a number is set, LMB nor RMB must do anything
+    ||  mode == settingMapValues || mode == settingText || mode == settingAddress ) mode = idle ;                       // as long as a number is set, LMB nor RMB must do anything
 
     if(      mode == idle && hoverOverDemo )                                     addFunctionBlock() ;
     else if( mode == idle )                                                      moveItem() ;
@@ -914,13 +916,13 @@ void keyPressed()
     
     if( mode == settingPin       || mode == settingDelayTime 
     ||  mode == settingPulseTime || mode == settingMapValues 
-    ||  mode == settingText   )
+    ||  mode == settingText      || mode == settingAddress   )
     {
         if( keyCode == ENTER )
         {
             if( mode == settingMapValues )
             {
-                if( ++ mapState == 4 ) mapState = 0 ;
+                if( ++ mapState == 4 ) mapState = 0 ; // handles the four numbers in a map block
                 else return ;
             }
             mode = idle ;
@@ -933,6 +935,11 @@ void keyPressed()
             {
                 pinNumber = makeNumber( pinNumber, 0, 31) ;
                 block.setPin( pinNumber ) ;
+            }
+            else if( mode == settingAddress )
+            {
+                currentAddress = makeNumber( currentAddress, 1, 2048 ) ;
+                block.setAddress( currentAddress ) ;
             }
             else if( mode == settingMapValues )
             {
@@ -1007,7 +1014,8 @@ void saveLayout()
                       + block.getDelay()+ "," 
                       + block.getIn1()  + "," + block.getIn2()  + "," 
                       + block.getOut1() + "," + block.getOut2() + ","
-                      + block.getText() ) ;
+                      + block.getText() + ","
+                      + block.getAddress() ) ;
     }
 
     output.println(links.size());           // the amount of links is saved
@@ -1063,6 +1071,7 @@ void loadLayout()
         catch (IOException e) {return ;}
         
         String[] pieces = split(line, ',');
+        int       dataLen = pieces.length ;
         int X     = Integer.parseInt( pieces[0] ) ;
         int Y     = Integer.parseInt( pieces[1] ) ;
         int type  = Integer.parseInt( pieces[2] ) ;
@@ -1073,6 +1082,11 @@ void loadLayout()
         int out1  = Integer.parseInt( pieces[7] ) ;
         int out2  = Integer.parseInt( pieces[8] ) ;
         String message =              pieces[9]   ;
+        int addr = 0 ;
+        if( dataLen > 10 )
+        {
+            addr  = Integer.parseInt( pieces[10] ) ;
+        }
 
         blocks.add( new FunctionBlock(X, Y, type, gridSize ) ) ;
 
@@ -1087,6 +1101,7 @@ void loadLayout()
         block.setOut1( out1 ) ;
         block.setOut2( out2 ) ;
         block.setText( message ) ;
+        block.setAddress( addr ) ;
     } 
 
     try { line = input.readLine(); } 
@@ -1165,6 +1180,7 @@ void assembleProgram()
         int    time = block.getDelay() ;
         int     pin = block.getPin() ;
         String mess = block.getText() ;
+        int address = block.getAddress() ;
 
         // Add code to keep track of servo objects, their indices need to be stored
         
@@ -1182,7 +1198,7 @@ void assembleProgram()
             case SER_OUT: file.println("static    SerialOut d"+(index+1)+" = SerialOut(\""+ mess +"\") ;") ;index++ ; break ;  
             case  RISING: file.println("static       Rising d"+(index+1)+" = Rising()  ;") ;                index++ ; break ;  
             case FALLING: file.println("static      Falling d"+(index+1)+" = Falling() ;") ;                index++ ; break ;
-            case     DCC: file.println("static          DCC d"+(index+1)+" = DCC("+ pin +") ; " ) ;         index++ ; break ;
+            case     DCC: file.println("static          DCC d"+(index+1)+" = DCC("+ address +") ; " ) ;     index++ ; break ;
         }
     }
     nDigitalBlocks = index ; 
@@ -1316,7 +1332,7 @@ void assembleProgram()
     file.println("void setup()") ;
     file.println("{") ;
     file.println("    Serial.begin( 115200 ) ;") ;
-    file.println("    dcc.init( MAN_ID_DIY, 0, FLAGS_OUTPUT_ADDRESS_MODE | FLAGS_DCC_ACCESSORY_DECODER, 0 ) ;") ;
+    file.println("    dcc.init( MAN_ID_DIY, 10, CV29_ACCESSORY_DECODER | CV29_OUTPUT_ADDRESS_MODE, 0 );") ;
     file.println("}") ;
     file.println("") ;
     file.println("void loop()") ;
