@@ -14,6 +14,11 @@ rm -r application.linux64/source
 cp arduinoProgram/functionBlocks.h application.windows64/arduinoProgram/
 cp arduinoProgram/functionBlocks.h application.linux64/arduinoProgram/
 
+cp arduinoProgram/NmraDcc.h application.windows64/arduinoProgram/
+cp arduinoProgram/NmraDcc.h application.linux64/arduinoProgram/
+cp arduinoProgram/NmraDcc.cpp application.windows64/arduinoProgram/
+cp arduinoProgram/NmraDcc.cpp application.linux64/arduinoProgram/
+
 cp -r images/* application.windows64/images/
 cp -r images/* application.linux64/images/
 

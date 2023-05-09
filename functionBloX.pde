@@ -174,9 +174,9 @@ int     linkIndex = 0 ;
 int     foundLinkIndex ;
 int     currentType ;
 int     pinNumber ;
-int     delayTime ;
+long    delayTime ;
 int     mapState ;
-int     in1, in2, out1, out2 ;
+long    in1, in2, out1, out2 ;
 int     currentAddress ;
 
 int     linkQ ;
@@ -265,10 +265,7 @@ void draw()
 
     if( mode != prevMode )
     {
-        println("mode changed!") ;
-        println("old: " + str(prevMode))  ;
-        println("new: " + str(mode)) ;
-
+        // debug stuff was here
         prevMode = mode ;
     }
 
@@ -892,7 +889,7 @@ void mouseWheel(MouseEvent event)
 
 
 
-int makeNumber(int _number, int lowerLimit, int upperLimit )
+long makeNumber(long _number, long lowerLimit, long upperLimit )
 {
          if( keyCode ==  LEFT      ) { _number -- ;             }
     else if( keyCode == RIGHT      ) { _number ++ ;             }
@@ -903,8 +900,8 @@ int makeNumber(int _number, int lowerLimit, int upperLimit )
         _number *= 10;
         _number += ( key-'0' );
     }
-
-    _number = constrain(_number,lowerLimit,upperLimit);   
+    //float temp = (long)constrain(_number,lowerLimit,upperLimit);   
+    _number = (long)constrain(_number,lowerLimit,upperLimit);   
     //println(_number);    
     return _number;
 }
@@ -933,27 +930,27 @@ void keyPressed()
             FunctionBlock block = blocks.get( index ) ;
             if( mode == settingPin )
             {
-                pinNumber = makeNumber( pinNumber, 0, 31) ;
+                pinNumber = (int)makeNumber( (int)pinNumber, 0, 31) ;
                 block.setPin( pinNumber ) ;
             }
             else if( mode == settingAddress )
             {
-                currentAddress = makeNumber( currentAddress, 1, 2048 ) ;
+                currentAddress = (int)makeNumber( currentAddress, 1, 2048 ) ;
                 block.setAddress( currentAddress ) ;
             }
             else if( mode == settingMapValues )
             {
                 switch( mapState )
                 {
-                    case 0: in1  = makeNumber(  in1, 0, 65000 ) ;block.setIn1( in1) ; break ;
-                    case 1: in2  = makeNumber(  in2, 0, 65000 ) ;block.setIn2( in2) ; break ;
-                    case 2: out1 = makeNumber( out1, 0, 65000 ) ;block.setOut1(out1) ; break ;
-                    case 3: out2 = makeNumber( out2, 0, 65000 ) ;block.setOut2(out2) ; break ;
+                    case 0: in1  = makeNumber(  in1, 0, 4300000000L ) ;block.setIn1( in1) ; break ; // more than large enough
+                    case 1: in2  = makeNumber(  in2, 0, 4300000000L ) ;block.setIn2( in2) ; break ;
+                    case 2: out1 = makeNumber( out1, 0, 4300000000L ) ;block.setOut1(out1) ; break ;
+                    case 3: out2 = makeNumber( out2, 0, 4300000000L ) ;block.setOut2(out2) ; break ;
                 }
             }
             else
             {
-                delayTime = makeNumber( delayTime, 0, 65000 ) ;
+                delayTime = makeNumber( delayTime, 0, 4300000000L ) ;
                 block.setDelay( delayTime ) ; // used for delay and pulse generator
             }
         }
@@ -1177,7 +1174,7 @@ void assembleProgram()
     {
         FunctionBlock block = blocks.get( i ) ;
         int    type = block.getType() ;
-        int    time = block.getDelay() ;
+        long   time = block.getDelay() ;
         int     pin = block.getPin() ;
         String mess = block.getText() ;
         int address = block.getAddress() ;
@@ -1207,13 +1204,13 @@ void assembleProgram()
     for( int i = 0 ; i < blocks.size() ; i ++ )  // store analog components
     {
         FunctionBlock block = blocks.get( i ) ;
-        int type  = block.getType() ;
-        int time  = block.getDelay() ;
-        int  pin  = block.getPin() ;
-        int  in1  = block.getIn1() ;
-        int  in2  = block.getIn2() ;
-        int out1  = block.getOut1() ;
-        int out2  = block.getOut2() ;
+        int  type  = block.getType() ;
+        long time  = block.getDelay() ;
+        int   pin  = block.getPin() ;
+        long  in1  = block.getIn1() ;
+        long  in2  = block.getIn2() ;
+        long out1  = block.getOut1() ;
+        long out2  = block.getOut2() ;
         
         switch( type )
         {   // analog types

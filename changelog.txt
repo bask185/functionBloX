@@ -1,9 +1,14 @@
-commit 7ac91ca57a636d786b500965187de4b33eadadbc (HEAD -> master, tag: V1.0.0)
+commit 4e8f3db718a48c4340b2b85b5c7f8cdbcc2a363f (HEAD -> master, tag: V1.2.0, origin/master, origin/HEAD)
+Date:   Sun Apr 30 22:27:56 2023 +0200
+
+    DCC code is succesfully tested with hardware. All bugs have been resolved and the code is backward compatible with older csv files.
+
+commit 75a4ba199268f752f176d36ee3588a888241713b (tag: V1.1.0)
+Date:   Fri Oct 14 23:22:31 2022 +0200
+
+    I have loading and saving files working well. Only the quit button no longer saves
+
+commit c0d9787f41f3870c151ae02a56f05ed0f5add838 (tag: V1.0.0)
 Date:   Wed Oct 12 16:10:51 2022 +0200
 
     First official release.
-
-commit 51c1e5b40a8a497fb1ae7a34bb802c31e335ac0d (tag: v0.0.0)
-Date:   Wed Sep 14 12:58:31 2022 +0200
-
-    first commit

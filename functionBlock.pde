@@ -10,7 +10,7 @@ public class FunctionBlock
     int IN3 ;
     int Q ;
     int pin ;
-    int delayTime ;
+    long delayTime ;
     int constVal ;
     int address ;
 
@@ -18,7 +18,7 @@ public class FunctionBlock
 
     String serialText ;
 
-    int in1, in2, out1, out2 ;
+    long in1, in2, out1, out2 ;
 
     int isAnalog ;
 
@@ -191,8 +191,8 @@ public class FunctionBlock
     void setPin( int pin ) { this.pin = pin ; }
     int  getPin()  { return pin  ; }
 
-    void setDelay( int delayTime ) { this.delayTime = delayTime ; }
-    int  getDelay( ) { return delayTime ; }
+    void setDelay( long delayTime ) { this.delayTime = delayTime ; }
+    long getDelay( ) { return delayTime ; }
 
     
     int isAnalog() { return isAnalog ; }
@@ -207,14 +207,14 @@ public class FunctionBlock
     void setAddress( int address ) { this.address = address ;println("DCC addr set"); }
     int  getAddress() { return address ; }
 
-    void setIn1(  int x) { this.in1  = x ; }
-    void setIn2(  int x) { this.in2  = x ; }
-    void setOut1( int x) { this.out1 = x ; }
-    void setOut2( int x) { this.out2 = x ; }
-    int  getIn1()  { return  in1 ; }
-    int  getIn2()  { return  in2 ; }
-    int  getOut1() { return out1 ; }
-    int  getOut2() { return out2 ; }
+    void setIn1(  long x) { this.in1  = x ; }
+    void setIn2(  long x) { this.in2  = x ; }
+    void setOut1( long x) { this.out1 = x ; }
+    void setOut2( long x) { this.out2 = x ; }
+    long getIn2()  { return  in2 ; }
+    long getIn1()  { return  in1 ; }
+    long getOut1() { return out1 ; }
+    long getOut2() { return out2 ; }
 
     void setText(String serialText) { this.serialText = serialText ; }
     String getText() { return serialText ; }
