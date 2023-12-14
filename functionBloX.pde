@@ -53,6 +53,7 @@ void mousePressed()
         addNodeToLink() ;
         saveLayout() ;
         assembleProgram() ;
+        flashProgram() ;
         clearProgram() ;
 
     void rightMousePress()
@@ -97,10 +98,11 @@ PrintWriter     output;
 BufferedReader  input;
 PImage          mouse;
 
-ControlButton loadButton    ;
-ControlButton saveButton    ;
+ControlButton loadButton ;
+ControlButton saveButton ;
 ControlButton programButton ;
 ControlButton clearButton ;
+ControlButton flashButton ;
 ControlButton quitButton ;
 
 String text1 = "" ;
@@ -258,8 +260,9 @@ void setup()
 
     loadButton    = new ControlButton(        10, height - 100, "LOAD" ) ;
     saveButton    = new ControlButton(       120, height - 100, "SAVE" ) ;
-    programButton = new ControlButton(       230, height - 100, "PROGRAM") ;
-    //clearButton   = new ControlButton(       340, height - 100, "CLEAR") ;
+    programButton = new ControlButton(       230, height - 100, "MAKE\r\nPROGRAM") ;
+    flashButton   = new ControlButton(       340, height - 100, "UPLOAD\r\nPROGRAM") ;
+    //clearButton   = new ControlButton(       450, height - 100, "CLEAR") ;
     quitButton    = new ControlButton( width-110, height - 100, "QUIT") ;
 }
 
@@ -302,6 +305,7 @@ void drawControlButtons()
     saveButton.draw() ;
     loadButton.draw() ;
     programButton.draw() ;
+    flashButton.draw() ;
     //clearButton.draw() ;
     quitButton.draw() ;
     textSize(30);  
@@ -635,11 +639,12 @@ void printTexts()
             }
             text2 = "PRESS <ENTER> WHEN READY" ;
         }
-        else if( loadButton.hoveringOver() )       {text1 = "LOAD PROGRAM" ;}
-        else if( saveButton.hoveringOver() )       {text1 = "SAVE PROGRAM" ;}
+        else if(    loadButton.hoveringOver() )    {text1 = "LOAD PROGRAM" ;}
+        else if(    saveButton.hoveringOver() )    {text1 = "SAVE PROGRAM" ;}
         else if( programButton.hoveringOver() )    {text1 = "ASSEMBLE PROGRAM" ;}
+        else if(   flashButton.hoveringOver() )    {text1 = "FLASH PROGRAM" ;}
        // else if( clearButton.hoveringOver() )      {text1 = "CLEAR PROGRAM" ;}
-        else if( quitButton.hoveringOver() )       {text1 = "SAVE AND QUIT PROGRAM" ;}
+        else if(    quitButton.hoveringOver() )    {text1 = "SAVE AND QUIT PROGRAM" ;}
 
 
         if(      text1 == "" && text2 != "" ) mouse = loadImage("images/mouse4.png") ;
@@ -819,6 +824,7 @@ void leftMousePress()
     else if( loadButton.hoveringOver() )                                         selectInput("Open file", "inputSelected");
     else if( saveButton.hoveringOver() )                                         selectOutput("Save file", "outputSelected");
     else if( programButton.hoveringOver() )                                      assembleProgram() ;
+    else if(   flashButton.hoveringOver() )                                      flashProgram() ;
     //else if( clearButton.hoveringOver() )                                        clearProgram() ;
     else if( quitButton.hoveringOver() )                                        
     { 
@@ -1338,5 +1344,26 @@ arduino board with 485 interface
 
 
 */
+void flashProgram()
+{
+    print("trying to run batch thingy") ;
+    try {
+        //launch("./flashArduino.bat");
+        // String myscript = "flashArduino.bat";
+        // Runtime rt = Runtime.getRuntime();
+        // Process pr = rt.exec(myscript); 
+        //open("rundll32 SHELL32.DLL,ShellExec_RunDLL " + "file.bat");
+        launch("rundll32 SHELL32.DLL,ShellExec_RunDLL " + "C:\\Users\\sknippels\\Documents\\hobbyProjects\\functionBloX\\flashArduino.bat") ;
+        //launch("C:\\Windows\\System32\\cmd.exe /D /C C:\\Users\\sknippels\\Documents\\hobbyProjects\\functionBloX\\flashArduino.bat") ;
+    }
+    catch( RuntimeException c )
+    {
+        print("RuntimeException, it fails") ;
+    }
+    // catch( IOException  c )
+    // {
+    //     print("IOException , it fails") ;
+    // }
+}
 
 void printVersion() { text("V1.1.0", width/2, height - 2*gridSize) ; }
