@@ -66,6 +66,11 @@ void makeNumber()
 
 
 */
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader; 
+
+
 color backGroundColor = 100 ; 
 color mainPanel  = 200 ;
 // color mainPanel  = #5C4033 ; dark brown 
@@ -717,7 +722,7 @@ void alterNumber()
         if( type ==  SER_IN
         ||  type == SER_OUT ) mode = settingText ;
 
-        if( type == DCC )     {mode = settingAddress ; println("setting DCC address") ;}
+        if( type == DCC )     {mode = settingAddress ;/* println("setting DCC address") ;*/}
 
         if( type ==   INPUT
         ||  type ==  OUTPUT
@@ -1384,24 +1389,125 @@ arduino board with 485 interface
 */
 void flashProgram()
 {
-    print("trying to run batch thingy") ;
-    try {
-        //launch("./flashArduino.bat");
-        // String myscript = "flashArduino.bat";
-        // Runtime rt = Runtime.getRuntime();
-        // Process pr = rt.exec(myscript); 
-        //open("rundll32 SHELL32.DLL,ShellExec_RunDLL " + "file.bat");
-        launch("rundll32 SHELL32.DLL,ShellExec_RunDLL " + "C:\\Users\\sknippels\\Documents\\hobbyProjects\\functionBloX\\flashArduino.bat") ;
-        //launch("C:\\Windows\\System32\\cmd.exe /D /C C:\\Users\\sknippels\\Documents\\hobbyProjects\\functionBloX\\flashArduino.bat") ;
-    }
-    catch( RuntimeException c )
+    String myPath = sketchPath() ;
+    String fqbn = "" ;
+    String COM_PORT = "";
+    String command ;
+    String line ;
+    String jsonData = "";
+    boolean status = false ;
+
+    String arduinoCliPath = myPath + "\\Arduino-cli\\arduino-cli.exe " ;
+    String sketchPath     = myPath + "\\arduinoProgram" ;
+    String listCommand    = "board list --format json" ;
+
+    BufferedReader in ;
+
+    try
     {
-        print("RuntimeException, it fails") ;
-    }
-    // catch( IOException  c )
-    // {
-    //     print("IOException , it fails") ;
-    // }
+        JSONArray mainArray ;
+        JSONArray secondaryArray ;
+
+        command = arduinoCliPath + listCommand ;
+        println( command ) ;
+        Process p = launch(command);
+        in = new BufferedReader(new InputStreamReader( p.getInputStream()));
+ 
+        while ((line = in.readLine(  )) != null) { jsonData += line ;  }
+        //println("printing all data\r\n" + jsonData ) ;
+
+        println("parsing array") ;
+        mainArray = parseJSONArray(jsonData);
+        // println( mainArray ) ;
+        if (mainArray == null)
+        {
+            println("JSONArray could not be parsed");
+        } 
+        else
+        {
+            println("array parsed") ;
+
+            for (int i = 0; i < mainArray.size(); i++)
+            {
+                JSONObject json = mainArray.getJSONObject(i); 
+                COM_PORT = json.getJSONObject("port").getString("address");
+                
+                if( json.getJSONArray("matching_boards") != null )
+                {
+                    JSONObject subObj = json.getJSONArray("matching_boards").getJSONObject(0);
+                    fqbn = subObj.getString("fqbn") ;
+                    status = true ;
+                    break ;
+                }
+            }
+            if( status == false )
+            {
+                println("ERROR: board not connected") ;
+                return ;
+            }
+            else
+            {
+                println("BOARD FOUND!") ;
+                status = false ;
+            }
+        }
+    } 
+    catch (RuntimeException e) {println("RuntimeException, it fails") ; }
+    catch (IOException e) {println("IOException, it fails") ; }
+
+    
+    String buildCommand   = "compile -b " + fqbn + " " + sketchPath ;
+    String uploadCommand  = "upload " + sketchPath + " -b " + fqbn + " -p "+ COM_PORT ;
+
+    try
+    {
+        command = arduinoCliPath + buildCommand ;
+        Process p = launch(command);
+        in = new BufferedReader(new InputStreamReader( p.getInputStream())); // extra debug stuff
+        while ((line = in.readLine(  )) != null) 
+        {
+            if( line.contains("Sketch uses")) // this line comes by when upload is okay
+            {
+                status = true ;
+                break ;
+            }
+        }
+
+        print("\r\n\r\n\r\nCOMPILING ") ;
+
+        if( status ==  true )
+        {   status  = false ;
+
+            println("SUCCES") ;
+            print("\r\nUPLOADING ") ;
+
+            command = arduinoCliPath + uploadCommand ;
+            p = launch(command);
+            in = new BufferedReader(new InputStreamReader( p.getInputStream())); // extra debug stuff
+            while ((line = in.readLine(  )) != null)
+            {
+                if( line.contains("New upload port"))
+                {
+                    status = true ;
+                }
+            }
+            if( status == true )
+            {
+                println("SUCCES") ;
+            }
+            else
+            {
+                println("FAILED") ;
+            }
+        }
+        else
+        {
+            println("FAILED") ;
+        }
+    } 
+    catch (RuntimeException e) {println("RuntimeException, it fails") ; }
+    catch (IOException e) {println("IOException, it fails") ; }
+    
 }
 
 void printVersion() { text("V1.2.0", width/2, height - 2*gridSize) ; }

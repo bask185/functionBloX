@@ -204,7 +204,7 @@ public class FunctionBlock
     void setConst( int constVal ) { this.constVal = constVal ; }
     int  getConst() { return constVal ; }
 
-    void setAddress( int address ) { this.address = address ;println("DCC addr set"); }
+    void setAddress( int address ) { this.address = address ; }
     int  getAddress() { return address ; }
 
     void setIn1(  long x) { this.in1  = x ; }

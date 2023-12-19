@@ -29,7 +29,7 @@ def getCommitText() :
         temp.write(commitMessage)
         temp.close()
 
-def updateVersionNumber():
+def updateVersionNumber():                          # update the hardcoded version number prior to compilation
     with open("functionBlox.pde", "r") as file:
         lines = file.readlines()
         lines = lines[:-1]
