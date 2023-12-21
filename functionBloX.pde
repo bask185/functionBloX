@@ -18,6 +18,11 @@ void draw()
     drawLinks() ;
     drawControlButtons() ;
     updateCursor() ;
+    drawCursor() ;
+    printVersion() ;
+    drawCheckBoxes() ;
+    showMessage() ;
+    com_port.draw() ;
 
 // MOUSE EVENTS
 
@@ -34,6 +39,7 @@ void mousePressed()
         assembleProgram() ;
         flashProgram() ;
         clearProgram() ;
+        handleCheckBoxes() ;
 
     void rightMousePress()
         void deleteObject() ;
@@ -69,7 +75,9 @@ void makeNumber()
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader; 
+import java.util.concurrent.TimeUnit ;
 
+PImage logo ;
 
 color backGroundColor = 100 ; 
 color mainPanel  = 200 ;
@@ -89,12 +97,20 @@ ControlButton clearButton ;
 ControlButton flashButton ;
 ControlButton quitButton ;
 
+COMPORT com_port = new COMPORT() ;
+// COMPORT com_port = new COMPORT(100,height-200);
+
 String text1 = "" ;
 String text2 = "" ;
+
+String mess1 = "" ;
+String mess2 = "" ;
+String mess3 = "" ;
 
 ArrayList <FunctionBlock> demoBlocks = new ArrayList() ;
 ArrayList <FunctionBlock>     blocks = new ArrayList() ;
 ArrayList <Link>              links  = new ArrayList() ;
+ArrayList <CheckBox>      checkBoxes = new ArrayList() ;
 
 final int   idle             =  0 ;
 final int   movingItem       =  1 ;
@@ -113,6 +129,7 @@ final int   defaultGridSize  = 60 ;
 int         gridSize = defaultGridSize ;
 int         xOffset ;
 int         yOffset ;
+int         selectedBoard ;
 
 final int DIGITAL_BLOCKS = 0 ;
 
@@ -213,7 +230,7 @@ String   outputFile ;
 void setup()
 { 
     selectInput("Open file", "inputSelected");
-    //fullScreen() ;
+    // fullScreen() ;
     size(displayWidth, displayHeight) ;
     textSize( 20 );
     background(255) ;
@@ -247,12 +264,19 @@ void setup()
     demoBlocks.add( new FunctionBlock((width-1*gridSize)/gridSize, 10,      DIV, gridSize ) ) ;
     demoBlocks.add( new FunctionBlock((width-1*gridSize)/gridSize, 11,      MUL, gridSize ) ) ;
 
+    checkBoxes.add( new CheckBox(500,height-100,"MEGA") ) ;
+    checkBoxes.add( new CheckBox(500,height-80,"NANO") ) ;
+    checkBoxes.add( new CheckBox(500,height-60,"UNO" ) ) ;
+    com_port.setPos( 600,height-110); 
+
     loadButton    = new ControlButton(        10, height - 100, "LOAD" ) ;
     saveButton    = new ControlButton(       120, height - 100, "SAVE" ) ;
     programButton = new ControlButton(       230, height - 100, "MAKE\r\nPROGRAM") ;
     flashButton   = new ControlButton(       340, height - 100, "UPLOAD\r\nPROGRAM") ;
     //clearButton   = new ControlButton(       450, height - 100, "CLEAR") ;
     quitButton    = new ControlButton( width-110, height - 100, "QUIT") ;
+
+    logo = loadImage("Train-Science.png") ;
 }
 
 void draw()
@@ -269,6 +293,11 @@ void draw()
     drawControlButtons() ;
     updateCursor() ;
     drawCursor() ;
+    drawCheckBoxes() ;
+    showMessage() ;
+    com_port.draw() ;
+
+    showLogo() ;
     printVersion() ;
 
     if( mode != prevMode )
@@ -276,6 +305,7 @@ void draw()
         // debug stuff was here
         prevMode = mode ;
     }
+
 
 }
 
@@ -831,8 +861,8 @@ void leftMousePress()
     else if( mode == addingLinePoints )                                          addNodeToLink() ;
     else if( loadButton.hoveringOver() )                                         selectInput("Open file", "inputSelected");
     else if( saveButton.hoveringOver() )                                         selectOutput("Save file", "outputSelected");
-    else if( programButton.hoveringOver() )                                      assembleProgram() ;
-    else if(   flashButton.hoveringOver() )                                      flashProgram() ;
+    else if( programButton.hoveringOver() )                                      assembleProgram() ; // obsolete?
+    else if(   flashButton.hoveringOver() )                                      { assembleProgram() ; flashProgram() ;}
     //else if( clearButton.hoveringOver() )                                        clearProgram() ;
     else if( quitButton.hoveringOver() )                                        
     { 
@@ -843,6 +873,10 @@ void leftMousePress()
             exitFlag = true ;
             selectOutput("Save file", "outputSelected");
         }
+    }
+    else
+    {
+        handleCheckBoxes() ;
     }
 
 }
@@ -1389,6 +1423,8 @@ arduino board with 485 interface
 */
 void flashProgram()
 {
+    clearMessages() ;
+
     String myPath = sketchPath() ;
     String fqbn = "" ;
     String COM_PORT = "";
@@ -1416,16 +1452,16 @@ void flashProgram()
         while ((line = in.readLine(  )) != null) { jsonData += line ;  }
         //println("printing all data\r\n" + jsonData ) ;
 
-        println("parsing array") ;
+        //println("parsing array") ;
         mainArray = parseJSONArray(jsonData);
         // println( mainArray ) ;
         if (mainArray == null)
         {
-            println("JSONArray could not be parsed");
+            //println("JSONArray could not be parsed");
         } 
         else
         {
-            println("array parsed") ;
+            //println("array parsed") ;
 
             for (int i = 0; i < mainArray.size(); i++)
             {
@@ -1443,11 +1479,13 @@ void flashProgram()
             if( status == false )
             {
                 println("ERROR: board not connected") ;
+                setMessage(3,  "ERROR: board not connected" ) ;
                 return ;
             }
             else
             {
                 println("BOARD FOUND!") ;
+                setMessage(1,"BOARD FOUND!" ) ;
                 status = false ;
             }
         }
@@ -1455,12 +1493,17 @@ void flashProgram()
     catch (RuntimeException e) {println("RuntimeException, it fails") ; }
     catch (IOException e) {println("IOException, it fails") ; }
 
+    CheckBox box = checkBoxes.get(selectedBoard) ; // get FQBN from selected board..
+    fqbn = "arduino:avr:" + box.getName() ;
     
     String buildCommand   = "compile -b " + fqbn + " " + sketchPath ;
     String uploadCommand  = "upload " + sketchPath + " -b " + fqbn + " -p "+ COM_PORT ;
 
     try
     {
+        print("\r\n\r\n\r\nCOMPILING . . . ") ;
+        setMessage(1,"COMPILING . . . " ) ;
+        
         command = arduinoCliPath + buildCommand ;
         Process p = launch(command);
         in = new BufferedReader(new InputStreamReader( p.getInputStream())); // extra debug stuff
@@ -1473,16 +1516,18 @@ void flashProgram()
             }
         }
 
-        print("\r\n\r\n\r\nCOMPILING ") ;
-
         if( status ==  true )
         {   status  = false ;
 
-            println("SUCCES") ;
-            print("\r\nUPLOADING ") ;
+            setMessage(1,"COMPILING . . . SUCCES " ) ;
+            setMessage(2,"UPLOADING . . . " ) ;
+
+            print("\r\nUPLOADING . . . ") ;
 
             command = arduinoCliPath + uploadCommand ;
             p = launch(command);
+            if(!p.waitFor(10, TimeUnit.SECONDS)) { p.destroy();  }
+
             in = new BufferedReader(new InputStreamReader( p.getInputStream())); // extra debug stuff
             while ((line = in.readLine(  )) != null)
             {
@@ -1493,21 +1538,119 @@ void flashProgram()
             }
             if( status == true )
             {
+                setMessage(2,"UPLOADING . . . SUCCES" ) ;
                 println("SUCCES") ;
             }
             else
             {
+                setMessage(2,"UPLOADING . . . !!! FAIL !!!" ) ;
                 println("FAILED") ;
             }
         }
         else
         {
+            setMessage(1,"COMPILING . . . !!! FAIL !!!" ) ;
             println("FAILED") ;
         }
     } 
     catch (RuntimeException e) {println("RuntimeException, it fails") ; }
     catch (IOException e) {println("IOException, it fails") ; }
+    catch (InterruptedException e) {println("FAILED") ; }
     
 }
+/* steps: 
+- check if we are atleast hovering about one of boxes
+- remember which one was high
+- force all states to zero
+- 
 
-void printVersion() { text("V1.2.0", width/2, height - 2*gridSize) ; }
+*/
+void handleCheckBoxes()
+{
+    int index = 255 ;
+    for (int i = 0; i < checkBoxes.size(); i++) 
+    {
+        CheckBox box = checkBoxes.get(i) ;
+        
+        if( box.hoveringOver() )
+        {
+            index = i ;
+            break ;
+        }
+    }
+
+    if( index != 255 ) // if one box is clicked, deselect all boards
+    {
+        for (int i = 0; i < checkBoxes.size(); i++) 
+        {
+            CheckBox box = checkBoxes.get(i) ;
+            box.setState( 0 ) ;
+        }
+
+        CheckBox box = checkBoxes.get( index ) ;
+        box.setState( 1 ) ;                 // and selected the clicked box
+
+        selectedBoard = index ;
+    }
+}
+
+
+void drawCheckBoxes()
+{
+    fill(255) ;
+    textSize(15);
+    text("BOARD",490,height-110) ;
+
+    for (int i = 0; i < checkBoxes.size(); i++)                                     // loop over all function blocks, sets index according and sets or clears 'hoverOverFB'
+    { 
+        CheckBox box = checkBoxes.get(i) ;
+        box.draw() ;
+    }
+}
+
+void showMessage()
+{
+    stroke(0);
+    fill(255);
+
+    rect(width-650,height - 100, 430, 90);
+
+    textSize(15);
+    fill(0);
+    text( mess1, width-640, height-90 ) ;
+    text( mess2, width-640, height-73 ) ;
+    text( mess3, width-640, height-56 ) ;
+}
+
+void setMessage( int id, String text2be )
+{
+    switch( id ) 
+    {
+        case 1 : mess1 = text2be ; break ;
+        case 2 : mess2 = text2be ; break ;
+        case 3 : mess3 = text2be ; break ;
+    }
+
+    showMessage() ; // force an update after setMessage due to blocking processes
+}
+
+void clearMessages()
+{
+    setMessage(1,"") ;
+    setMessage(2,"") ;
+    setMessage(3,"") ;
+
+    showMessage() ;
+}
+
+void showLogo()
+{
+    textSize(30);
+    fill(0);
+    textAlign(CENTER,BOTTOM);
+    text("FunctionBloX", width/2, height - 80) ;
+
+    image(logo, width/2 + 200, height-110, 70, 70);
+}
+
+void printVersion() { text("V1.2.0", width/2, height - 40) ; }
