@@ -97,15 +97,14 @@ ControlButton clearButton ;
 ControlButton flashButton ;
 ControlButton quitButton ;
 
-COMPORT com_port = new COMPORT() ;
 // COMPORT com_port = new COMPORT(100,height-200);
 
 String text1 = "" ;
 String text2 = "" ;
 
-String mess1 = "" ;
-String mess2 = "" ;
-String mess3 = "" ;
+String mess1 = "1" ;
+String mess2 = "2" ;
+String mess3 = "3" ;
 
 ArrayList <FunctionBlock> demoBlocks = new ArrayList() ;
 ArrayList <FunctionBlock>     blocks = new ArrayList() ;
@@ -224,8 +223,50 @@ boolean  saved ;
 
 String   inputFile ;
 String   outputFile ;
+String COM_PORT = "";
 
 
+void getCOMport()
+{
+    clearMessages() ;
+
+    String myPath = sketchPath() ;
+    String fqbn = "" ;
+    String command ;
+    String line ;
+    String jsonData = "";
+    boolean status = false ;
+
+    String arduinoCliPath = myPath + "\\Arduino-cli\\arduino-cli.exe " ;
+    String sketchPath     = myPath + "\\arduinoProgram" ;
+    String listCommand    = "board list --format json" ;
+
+    BufferedReader in ;
+
+    try
+    {
+        command = arduinoCliPath + listCommand ;
+        
+        Process p = launch(command);
+        in = new BufferedReader(new InputStreamReader( p.getInputStream()));
+        while ((line = in.readLine(  )) != null) { jsonData += line ;  }
+
+        if (parseJSONArray(jsonData) != null)
+        {
+            for (int i = 0; i < parseJSONArray(jsonData).size(); i++)
+            {
+                if( parseJSONArray(jsonData).getJSONObject(i).getJSONObject("port").getString("protocol_label").contains("USB") )
+                {
+                    COM_PORT = parseJSONArray(jsonData).getJSONObject(i).getJSONObject("port").getString("address");
+                    println( COM_PORT ) ;
+                    //com_port.setNumber( number ) ;
+                }
+            }
+        }
+    } 
+    catch (RuntimeException e) {println("RuntimeException, it fails") ; }
+    catch (IOException e) {println("IOException, it fails") ; }
+}
 
 void setup()
 { 
@@ -267,7 +308,6 @@ void setup()
     checkBoxes.add( new CheckBox(500,height-100,"MEGA") ) ;
     checkBoxes.add( new CheckBox(500,height-80,"NANO") ) ;
     checkBoxes.add( new CheckBox(500,height-60,"UNO" ) ) ;
-    com_port.setPos( 600,height-110); 
 
     loadButton    = new ControlButton(        10, height - 100, "LOAD" ) ;
     saveButton    = new ControlButton(       120, height - 100, "SAVE" ) ;
@@ -277,6 +317,8 @@ void setup()
     quitButton    = new ControlButton( width-110, height - 100, "QUIT") ;
 
     logo = loadImage("Train-Science.png") ;
+
+    getCOMport() ;
 }
 
 void draw()
@@ -295,7 +337,7 @@ void draw()
     drawCursor() ;
     drawCheckBoxes() ;
     showMessage() ;
-    com_port.draw() ;
+    showComPort() ;
 
     showLogo() ;
     printVersion() ;
@@ -1388,46 +1430,20 @@ void assembleProgram()
 }
 
 /* IDEAS FOR HARDWARE
-CURRENT DETECTION BOARD WITH LOCONET INTERFACE.
+CURRENT DETECT
 
-GENERAL PURPUSE ARDUINO IO BOARD W. XNET INTERFACE.
-RELAYS
-SERVOS
-INPUTS
-OUTPUT INCL I2C
-POTENTIOMETERS (2)
-(CURRENT SENSORS)
-TEACHIN CODE
-I2C EEPROM
-H BRIDGE FOR DCC OR DCC.
-
-
-CONTROL PANEL MODULE WITH LOCONET INTERFACE AND OPTIONAL IO EXTENDERS
-
-SET POINTS AND SIGNALS
-MATCH LEDS WITH POINTS // in case of extern feedback
-EXTRA LEDS FOR OCCUPANCY THINGS
-TEACHIN CODE
-I2C EEPROM
-
-IO EXTENDERS -> 8X MCP23017, 8 inputs, 8 outputs (push-pull leds).
-
-
-Servo slave module
-RS485 extension module for servo's
-RS485 extension module for coil controllers
-arduino board with 485 interface 
-
-
+TODO:
+  make functions for compiling and uploading alike.
 
 */
 void flashProgram()
 {
     clearMessages() ;
 
+    getCOMport() ;
+
     String myPath = sketchPath() ;
     String fqbn = "" ;
-    String COM_PORT = "";
     String command ;
     String line ;
     String jsonData = "";
@@ -1435,63 +1451,8 @@ void flashProgram()
 
     String arduinoCliPath = myPath + "\\Arduino-cli\\arduino-cli.exe " ;
     String sketchPath     = myPath + "\\arduinoProgram" ;
-    String listCommand    = "board list --format json" ;
 
     BufferedReader in ;
-
-    try
-    {
-        JSONArray mainArray ;
-        JSONArray secondaryArray ;
-
-        command = arduinoCliPath + listCommand ;
-        println( command ) ;
-        Process p = launch(command);
-        in = new BufferedReader(new InputStreamReader( p.getInputStream()));
- 
-        while ((line = in.readLine(  )) != null) { jsonData += line ;  }
-        //println("printing all data\r\n" + jsonData ) ;
-
-        //println("parsing array") ;
-        mainArray = parseJSONArray(jsonData);
-        // println( mainArray ) ;
-        if (mainArray == null)
-        {
-            //println("JSONArray could not be parsed");
-        } 
-        else
-        {
-            //println("array parsed") ;
-
-            for (int i = 0; i < mainArray.size(); i++)
-            {
-                JSONObject json = mainArray.getJSONObject(i); 
-                COM_PORT = json.getJSONObject("port").getString("address");
-                
-                if( json.getJSONArray("matching_boards") != null )
-                {
-                    JSONObject subObj = json.getJSONArray("matching_boards").getJSONObject(0);
-                    fqbn = subObj.getString("fqbn") ;
-                    status = true ;
-                    break ;
-                }
-            }
-            if( status == false )
-            {
-                println("ERROR: board not connected") ;
-                setMessage(3,  "ERROR: board not connected" ) ;
-                return ;
-            }
-            else
-            {
-                println("BOARD FOUND!") ;
-                setMessage(1,"BOARD FOUND!" ) ;
-                status = false ;
-            }
-        }
-    } 
-    catch (RuntimeException e) {println("RuntimeException, it fails") ; }
-    catch (IOException e) {println("IOException, it fails") ; }
 
     CheckBox box = checkBoxes.get(selectedBoard) ; // get FQBN from selected board..
     fqbn = "arduino:avr:" + box.getName() ;
@@ -1500,63 +1461,27 @@ void flashProgram()
     String uploadCommand  = "upload " + sketchPath + " -b " + fqbn + " -p "+ COM_PORT ;
 
     try
-    {
-        print("\r\n\r\n\r\nCOMPILING . . . ") ;
-        setMessage(1,"COMPILING . . . " ) ;
-        
-        command = arduinoCliPath + buildCommand ;
+    {      
+        command = arduinoCliPath + buildCommand ; // compile (can't toss errors really..)
+        println(command);
         Process p = launch(command);
+
+        command = arduinoCliPath + uploadCommand ; // start upload
+        println(command);
+        p = launch(command);
+        //if(!p.waitFor(10, TimeUnit.SECONDS)) { p.destroy();  }
+
         in = new BufferedReader(new InputStreamReader( p.getInputStream())); // extra debug stuff
-        while ((line = in.readLine(  )) != null) 
+        while ((line = in.readLine(  )) != null)
         {
-            if( line.contains("Sketch uses")) // this line comes by when upload is okay
-            {
-                status = true ;
-                break ;
-            }
+            if( line.contains("New upload port")) status = true ; // this particular text comes by when an upload is succesful
         }
-
-        if( status ==  true )
-        {   status  = false ;
-
-            setMessage(1,"COMPILING . . . SUCCES " ) ;
-            setMessage(2,"UPLOADING . . . " ) ;
-
-            print("\r\nUPLOADING . . . ") ;
-
-            command = arduinoCliPath + uploadCommand ;
-            p = launch(command);
-            if(!p.waitFor(10, TimeUnit.SECONDS)) { p.destroy();  }
-
-            in = new BufferedReader(new InputStreamReader( p.getInputStream())); // extra debug stuff
-            while ((line = in.readLine(  )) != null)
-            {
-                if( line.contains("New upload port"))
-                {
-                    status = true ;
-                }
-            }
-            if( status == true )
-            {
-                setMessage(2,"UPLOADING . . . SUCCES" ) ;
-                println("SUCCES") ;
-            }
-            else
-            {
-                setMessage(2,"UPLOADING . . . !!! FAIL !!!" ) ;
-                println("FAILED") ;
-            }
-        }
-        else
-        {
-            setMessage(1,"COMPILING . . . !!! FAIL !!!" ) ;
-            println("FAILED") ;
-        }
+        if( status == true )  { println("SUCCES") ; }
+        else                  { println("FAILED") ; }
     } 
     catch (RuntimeException e) {println("RuntimeException, it fails") ; }
     catch (IOException e) {println("IOException, it fails") ; }
-    catch (InterruptedException e) {println("FAILED") ; }
-    
+    //catch (InterruptedException e) {println("FAILED") ; }
 }
 /* steps: 
 - check if we are atleast hovering about one of boxes
@@ -1631,7 +1556,7 @@ void setMessage( int id, String text2be )
         case 3 : mess3 = text2be ; break ;
     }
 
-    showMessage() ; // force an update after setMessage due to blocking processes
+    showMessage() ; // force an update after //setMessage due to blocking processes
 }
 
 void clearMessages()
@@ -1641,6 +1566,13 @@ void clearMessages()
     setMessage(3,"") ;
 
     showMessage() ;
+}
+
+void showComPort()
+{
+    textSize(20);
+    fill(255) ;
+    text( "Found port: " + COM_PORT, 600, height-100 ) ;
 }
 
 void showLogo()
