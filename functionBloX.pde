@@ -128,7 +128,7 @@ final int   defaultGridSize  = 60 ;
 int         gridSize = defaultGridSize ;
 int         xOffset ;
 int         yOffset ;
-int         selectedBoard ;
+int         selectedBoard = 255 ;
 
 final int DIGITAL_BLOCKS = 0 ;
 
@@ -1453,6 +1453,8 @@ void flashProgram()
     String sketchPath     = myPath + "\\arduinoProgram" ;
 
     BufferedReader in ;
+
+    if( selectedBoard == 255 ) { setMessage(1,"no board selected"); return ; }
 
     CheckBox box = checkBoxes.get(selectedBoard) ; // get FQBN from selected board..
     fqbn = "arduino:avr:" + box.getName() ;
