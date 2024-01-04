@@ -898,13 +898,14 @@ void leftMousePress()
     if(      mode == idle && hoverOverDemo )                                     addFunctionBlock() ;
     else if( mode == idle )                                                      moveItem() ;
     if (     mode == idle && subCol == 1 && subRow == 2 && hoverOverFB == true ) alterNumber() ;
-    else if( mode == idle && subCol == 2 && subRow == 1 && hoverOverFB == true ) createLink() ;
+    else if( mode == idle && subCol == 2 && subRow == 1 && hoverOverFB == true ) createLink() ; // N.B. create link from !Q ? 
     else if( mode == addingLinePoints && subCol == 0    && hoverOverFB == true ) finishLink() ;
     else if( mode == addingLinePoints )                                          addNodeToLink() ;
     else if( loadButton.hoveringOver() )                                         selectInput("Open file", "inputSelected");
     else if( saveButton.hoveringOver() )                                         selectOutput("Save file", "outputSelected");
     else if( programButton.hoveringOver() )                                      assembleProgram() ; // obsolete?
-    else if(   flashButton.hoveringOver() )                                      { assembleProgram() ; flashProgram() ;}
+    else if(   flashButton.hoveringOver() )                                    { assembleProgram() ;
+                                                                                 flashProgram() ; }
     //else if( clearButton.hoveringOver() )                                        clearProgram() ;
     else if( quitButton.hoveringOver() )                                        
     { 
