@@ -13,6 +13,7 @@ public class FunctionBlock
     long delayTime ;
     int constVal ;
     int address ;
+    int pinType ; // 0 = digital pin, 1 is analog pin
 
     char a, b, c, d, e;
 
@@ -119,6 +120,9 @@ public class FunctionBlock
         catch( NullPointerException e ) {}
         catch( StringIndexOutOfBoundsException e) {}
 
+        char pinTypeChr = 'D' ; 
+        if( pinType == 1 ) { pinTypeChr = 'A' ; }
+
         // draw the input and output connection lines and make up the text inside the block
         switch( type )
         {                                       // box bits: Q, in1, in2, in3,
@@ -126,8 +130,8 @@ public class FunctionBlock
             case       OR: txt =   "OR" ;                     box = 0x0F ; break ;
             case    DELAY: txt ="DELAY\r\n\r\n" + delayTime;  box = 0x0A ; break ;
             case      NOT: txt =  "NOT" ;                     box = 0x0A ; break ; // text replaced by clock symbol
-            case    INPUT: txt = "INPUT\r\nD" + pin;          box = 0x08 ; break ;
-            case   OUTPUT: txt ="OUTPUT\r\nD" + pin;          box = 0x02 ; break ;
+            case    INPUT: txt = "INPUT\r\n"+pinTypeChr+ pin; box = 0x08 ; break ;
+            case   OUTPUT: txt ="OUTPUT\r\n"+pinTypeChr+ pin; box = 0x02 ; break ;
             case       JK: txt =  "J    \r\nK    \r\nCLK";    box = 0x0F ; break ;
             case        M: txt = "S      \r\nM\r\nR      ";   box = 0x0D ; break ;
             case    PULSE: txt= "\r\n" +  delayTime;          box = 0x08 ; break ;
@@ -194,7 +198,9 @@ public class FunctionBlock
     void setDelay( long delayTime ) { this.delayTime = delayTime ; }
     long getDelay( ) { return delayTime ; }
 
-    
+    void setPinType( int pinType ) { this.pinType = pinType ; }
+    int  getPinType() { return pinType ; }
+
     int isAnalog() { return isAnalog ; }
 
     void setIndex( int index ) { this.index = index ; }
