@@ -316,8 +316,9 @@ void setup()
     demoBlocks.add( new FunctionBlock((width-1*gridSize)/gridSize, 10,      DIV, gridSize ) ) ;
     demoBlocks.add( new FunctionBlock((width-1*gridSize)/gridSize, 11,      MUL, gridSize ) ) ;
 
-    checkBoxes.add( new CheckBox(500,height-100,"MEGA") ) ;
-    checkBoxes.add( new CheckBox(500,height-80,"NANO") ) ;
+    checkBoxes.add( new CheckBox(500,height-105,"MEGA") ) ;
+    checkBoxes.add( new CheckBox(500,height-90,"NANO") ) ;
+    checkBoxes.add( new CheckBox(500,height-75,"NANO:cpu=atmega328old") ) ;
     checkBoxes.add( new CheckBox(500,height-60,"UNO" ) ) ;
 
     loadButton    = new ControlButton(        10, height - 100, "LOAD" ) ;
@@ -1546,7 +1547,7 @@ void handleCheckBoxes()
 
 void drawCheckBoxes()
 {
-    fill(255) ;
+    fill(0) ;
     textSize(15);
     text("BOARD",490,height-110) ;
 
@@ -1595,7 +1596,7 @@ void clearMessages()
 void showComPort()
 {
     textSize(20);
-    fill(255) ;
+    fill(0) ;
     if( COM_PORT != "" ) text( "Found port: " + COM_PORT, 580, height-100 ) ;
     else                 text( "No port found", 580, height-100 ) ;
 }

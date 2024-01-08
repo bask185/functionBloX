@@ -27,7 +27,7 @@ class CheckBox
         }
 
         textSize(15); 
-        fill(255) ;
+        fill(0) ;
 		textAlign(LEFT, CENTER);
 		text( boxText, x+15, y ) ;
 	}
