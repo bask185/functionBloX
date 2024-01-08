@@ -1,4 +1,9 @@
 /*
+TODO
+digital blocks must be able to use analog pins as well  // SEEMS TO WORK. saving/loading seems to work. .ino files looks okay as well
+current address must be reset after ENTER. (TEST ME)
+make all test programs.
+
 BEACON
 
 PROGRAM FUNCTIONS IN ORDE
@@ -904,13 +909,14 @@ void leftMousePress()
     if(      mode == idle && hoverOverDemo )                                     addFunctionBlock() ;
     else if( mode == idle )                                                      moveItem() ;
     if (     mode == idle && subCol == 1 && subRow == 2 && hoverOverFB == true ) alterNumber() ;
-    else if( mode == idle && subCol == 2 && subRow == 1 && hoverOverFB == true ) createLink() ;
+    else if( mode == idle && subCol == 2 && subRow == 1 && hoverOverFB == true ) createLink() ; // N.B. create link from !Q ? 
     else if( mode == addingLinePoints && subCol == 0    && hoverOverFB == true ) finishLink() ;
     else if( mode == addingLinePoints )                                          addNodeToLink() ;
     else if( loadButton.hoveringOver() )                                         selectInput("Open file", "inputSelected");
     else if( saveButton.hoveringOver() )                                         selectOutput("Save file", "outputSelected");
     else if( programButton.hoveringOver() )                                      assembleProgram() ; // obsolete?
-    else if(   flashButton.hoveringOver() )                                      { assembleProgram() ; flashProgram() ;}
+    else if(   flashButton.hoveringOver() )                                    { assembleProgram() ;
+                                                                                 flashProgram() ; }
     //else if( clearButton.hoveringOver() )                                        clearProgram() ;
     else if( quitButton.hoveringOver() )                                        
     { 
@@ -1015,6 +1021,7 @@ void keyPressed()
                 if( ++ mapState == 4 ) mapState = 0 ; // handles the four numbers in a map block
                 else return ;
             }
+            delayTime = currentAddress = pinNumber = 0 ; // reset working variables.
             mode = idle ;
             return ;
         }
@@ -1025,10 +1032,12 @@ void keyPressed()
             {
                 pinNumber = (int)makeNumber( (int)pinNumber, 0, 31) ;
                 block.setPin( pinNumber ) ;
+                if( key == 'a') block.setPinType( 1 ) ; 
+                if( key == 'd') block.setPinType( 0 ) ; 
             }
             else if( mode == settingAddress )
             {
-                currentAddress = (int)makeNumber( currentAddress, 1, 2048 ) ;
+                currentAddress = (int)makeNumber( currentAddress, 0, 2048 ) ;
                 block.setAddress( currentAddress ) ;
             }
             else if( mode == settingMapValues )
@@ -1105,7 +1114,8 @@ void saveLayout()
                       + block.getIn1()  + "," + block.getIn2()  + "," 
                       + block.getOut1() + "," + block.getOut2() + ","
                       + block.getText() + ","
-                      + block.getAddress() ) ;
+                      + block.getAddress() + ","
+                      + block.getPinType() ) ;
     }
 
     output.println(links.size());           // the amount of links is saved
@@ -1173,10 +1183,11 @@ void loadLayout()
         int out2  = Integer.parseInt( pieces[8] ) ;
         String message =              pieces[9]   ;
         int addr = 0 ;
-        if( dataLen > 10 )
-        {
-            addr  = Integer.parseInt( pieces[10] ) ;
-        }
+        if( dataLen > 10 ) {    addr  = Integer.parseInt( pieces[10] ) ; }
+
+        int pinType = 0 ;
+        if( dataLen > 11 ) { pinType  = Integer.parseInt( pieces[11] ) ; }
+
 
         blocks.add( new FunctionBlock(X, Y, type, gridSize ) ) ;
 
@@ -1192,6 +1203,7 @@ void loadLayout()
         block.setOut2( out2 ) ;
         block.setText( message ) ;
         block.setAddress( addr ) ;
+        block.setPinType( pinType ) ;
     } 
 
     try { line = input.readLine(); } 
@@ -1266,11 +1278,14 @@ void assembleProgram()
     for( int i = 0 ; i < blocks.size() ; i ++ )     // store digital components
     {
         FunctionBlock block = blocks.get( i ) ;
-        int    type = block.getType() ;
-        long   time = block.getDelay() ;
-        int     pin = block.getPin() ;
-        String mess = block.getText() ;
-        int address = block.getAddress() ;
+        int       type = block.getType() ;
+        long      time = block.getDelay() ;
+        int  pinNumber = block.getPin() ;
+        int    pinType = block.getPinType() ;
+        String IO = str( pinNumber ) ;
+        if( pinType == 1 ) IO = "A" + str( pinNumber ) ;
+        String    mess = block.getText() ;
+        int    address = block.getAddress() ;
 
         // Add code to keep track of servo objects, their indices need to be stored
         
@@ -1281,8 +1296,8 @@ void assembleProgram()
             case       M: file.println("static       Memory d"+(index+1)+" = Memory() ;") ;                 index++ ; break ;
             case     NOT: file.println("static          Not d"+(index+1)+" = Not() ;") ;                    index++ ; break ;
             case      JK: file.println("static           Jk d"+(index+1)+" = Jk() ;") ;                     index++ ; break ;    
-            case   INPUT: file.println("static        Input d"+(index+1)+" = Input("+  pin +") ;") ;        index++ ; break ;
-            case  OUTPUT: file.println("static       Output d"+(index+1)+" = Output("+  pin +") ;") ;       index++ ; break ;
+            case   INPUT: file.println("static        Input d"+(index+1)+" = Input("+  IO +") ;") ;         index++ ; break ;
+            case  OUTPUT: file.println("static       Output d"+(index+1)+" = Output("+  IO +") ;") ;        index++ ; break ;
             case   PULSE: file.println("static        Pulse d"+(index+1)+" = Pulse("+ time +") ;") ;        index++ ; break ;  
             case  SER_IN: file.println("static     SerialIn d"+(index+1)+" = SerialIn( \""+ mess +"\") ;") ;index++ ; break ;  
             case SER_OUT: file.println("static    SerialOut d"+(index+1)+" = SerialOut(\""+ mess +"\") ;") ;index++ ; break ;  
