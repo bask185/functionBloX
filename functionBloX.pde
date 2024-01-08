@@ -237,6 +237,8 @@ void getCOMport()
     String jsonData = "";
     boolean status = false ;
 
+    // String arduinoCliPath = "C:\\Users\\Gebruiker\\Documents\\arduino-cli14\\arduino-cli.exe " ;
+
     String arduinoCliPath = myPath + "\\Arduino-cli\\arduino-cli.exe " ;
     String sketchPath     = myPath + "\\arduinoProgram" ;
     String listCommand    = "board list --format json" ;
@@ -268,11 +270,15 @@ void getCOMport()
     catch (IOException e) {println("IOException, it fails") ; }
 }
 
+void settings()
+{
+    size(displayWidth, displayHeight) ;
+}
+
 void setup()
 { 
     selectInput("Open file", "inputSelected");
     // fullScreen() ;
-    size(displayWidth, displayHeight) ;
     textSize( 20 );
     background(255) ;
     
@@ -1449,6 +1455,7 @@ void flashProgram()
     String jsonData = "";
     boolean status = false ;
 
+    // String arduinoCliPath = "C:\\Users\\Gebruiker\\Documents\\arduino-cli14\\arduino-cli.exe " ;
     String arduinoCliPath = myPath + "\\Arduino-cli\\arduino-cli.exe " ;
     String sketchPath     = myPath + "\\arduinoProgram" ;
 
@@ -1574,7 +1581,8 @@ void showComPort()
 {
     textSize(20);
     fill(255) ;
-    text( "Found port: " + COM_PORT, 600, height-100 ) ;
+    if( COM_PORT != "" ) text( "Found port: " + COM_PORT, 580, height-100 ) ;
+    else                 text( "No port found", 580, height-100 ) ;
 }
 
 void showLogo()
@@ -1584,7 +1592,7 @@ void showLogo()
     textAlign(CENTER,BOTTOM);
     text("FunctionBloX", width/2, height - 80) ;
 
-    image(logo, width/2 + 200, height-110, 70, 70);
+    image(logo, width/2 + 100, height-110, 70, 70);
 }
 
 void printVersion() { text("V1.2.0", width/2, height - 40) ; }
