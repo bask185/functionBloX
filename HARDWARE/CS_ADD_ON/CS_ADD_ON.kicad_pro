@@ -419,7 +419,7 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "GPIO_UNIT.kicad_pro",
+    "filename": "CS_ADD_ON.kicad_pro",
     "version": 1
   },
   "net_settings": {
@@ -461,7 +461,7 @@
     "page_layout_descr_file": ""
   },
   "schematic": {
-    "annotate_start_num": 700,
+    "annotate_start_num": 0,
     "drawing": {
       "dashed_lines_dash_length_ratio": 12.0,
       "dashed_lines_gap_length_ratio": 3.0,
@@ -496,64 +496,24 @@
   },
   "sheets": [
     [
-      "4337ba29-1ab5-4e01-8f76-ba2df9f917ea",
+      "9015212e-8c4b-409f-85e8-7580ae3f096f",
       ""
     ],
     [
-      "740c215e-a35c-4e2e-87d7-ed68f2296011",
-      "CPU"
+      "d63802fb-3614-4231-b6f5-964f19e2892a",
+      "CS1"
     ],
     [
-      "a906ae47-0b9b-4d87-b0df-13938bf2addd",
-      "USB"
+      "a849f09b-5c7b-4e22-9451-4366a7244430",
+      "CS2"
     ],
     [
-      "10876f3a-0f91-4450-8c86-98644a20e430",
-      "POW"
+      "d4c64c80-72a3-409f-9470-c67d029ac4d4",
+      "CS3"
     ],
     [
-      "a9f3b4c9-f704-4889-a70f-498ef2e5a5f7",
-      "DCC"
-    ],
-    [
-      "8e9d23af-0bf1-4147-8d60-da0a673bbbe2",
-      "servo1-2"
-    ],
-    [
-      "73f80225-8e4b-4be8-964d-f519ebaec57d",
-      "relay1"
-    ],
-    [
-      "c6c651c9-05ea-4a7c-9728-196e7bc3a161",
-      "switches"
-    ],
-    [
-      "fc859dc1-7a0d-47af-8312-20b0fe23e241",
-      "LEDS"
-    ],
-    [
-      "ef61d328-02dc-441e-a1ff-f4c7e3dc25da",
-      "relay2"
-    ],
-    [
-      "1fecc2ef-e63c-484a-aa05-80d920b90924",
-      "relay3"
-    ],
-    [
-      "d6856941-045d-4552-a435-52896689e293",
-      "relay4"
-    ],
-    [
-      "6dfd080b-0fe9-4c84-ab0e-199085b14889",
-      "servo3-4"
-    ],
-    [
-      "ea5fe436-bdb1-4507-8211-481da5163b1b",
-      "potentiometer"
-    ],
-    [
-      "4fcd022e-bfb2-407e-815b-ca7bf6d546c8",
-      "eeprom"
+      "03edc369-4084-40ff-af40-773403b03b35",
+      "CS4"
     ]
   ],
   "text_variables": {}

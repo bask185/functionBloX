@@ -1103,7 +1103,7 @@
   (symbol (lib_id "resistors_0603:R_100R_0603") (at 144.78 62.23 90) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 313fd486-0eb0-4d60-b554-317574e5e9bc)
-    (property "Reference" "R?" (at 140.97 63.5 90)
+    (property "Reference" "R301" (at 140.97 63.5 90)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "100R" (at 149.86 63.5 90)
@@ -1123,7 +1123,7 @@
     (instances
       (project "GPIO_UNIT"
         (path "/4337ba29-1ab5-4e01-8f76-ba2df9f917ea/a906ae47-0b9b-4d87-b0df-13938bf2addd"
-          (reference "R?") (unit 1)
+          (reference "R301") (unit 1)
         )
       )
     )
@@ -1201,7 +1201,7 @@
   (symbol (lib_id "resistors_0603:R_100R_0603") (at 144.78 64.77 90) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 50ff5d11-dfe2-4b33-b53f-ed24734e2686)
-    (property "Reference" "R?" (at 140.97 66.04 90)
+    (property "Reference" "R302" (at 140.97 66.04 90)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "100R" (at 149.86 66.04 90)
@@ -1221,7 +1221,7 @@
     (instances
       (project "GPIO_UNIT"
         (path "/4337ba29-1ab5-4e01-8f76-ba2df9f917ea/a906ae47-0b9b-4d87-b0df-13938bf2addd"
-          (reference "R?") (unit 1)
+          (reference "R302") (unit 1)
         )
       )
     )
@@ -1498,13 +1498,13 @@
   (symbol (lib_id "Connector:Conn_01x03_Pin") (at 134.62 64.77 0) (mirror x) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 9c2bafa9-9643-4132-adcd-2f71ea3f0da5)
-    (property "Reference" "J?" (at 135.89 68.58 0)
+    (property "Reference" "J301" (at 135.89 68.58 0)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "Conn_01x03_Pin" (at 135.255 69.85 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (property "Footprint" "" (at 134.62 64.77 0)
+    (property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Horizontal" (at 134.62 64.77 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (at 134.62 64.77 0)
@@ -1516,7 +1516,7 @@
     (instances
       (project "GPIO_UNIT"
         (path "/4337ba29-1ab5-4e01-8f76-ba2df9f917ea/a906ae47-0b9b-4d87-b0df-13938bf2addd"
-          (reference "J?") (unit 1)
+          (reference "J301") (unit 1)
         )
       )
     )
