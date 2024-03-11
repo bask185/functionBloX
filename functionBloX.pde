@@ -1,8 +1,14 @@
 /*
 TODO
-digital blocks must be able to use analog pins as well  // SEEMS TO WORK. saving/loading seems to work. .ino files looks okay as well
-current address must be reset after ENTER. (TEST ME)
-make all test programs.
+- make all test programs. MOST ARE DONE. I may do turning loop as well
+
+- PANNING, much needed
+- update documentation
+
+NOTE:
+Texts are succesfully implemented
+colors are also added. May use fine tuning, but is okay for now
+
 
 BEACON
 
@@ -14,6 +20,7 @@ void setup()
 void draw()
     drawBackground() ;
     checkFunctionBlocks() ;
+    checkTexts()
     checkDemoBlocks() ;
     checkLinePoints() ;
     printTexts() ;
@@ -44,15 +51,18 @@ void mousePressed()
         assembleProgram() ;
         flashProgram() ;
         clearProgram() ;
+        alterText() ;
         handleCheckBoxes() ;
 
     void rightMousePress()
         void deleteObject() ;
         void removeNode() ;
         void removeLink() ;
+        void removeText() ;
 
 void mouseDragged()
     void dragItem() ;
+    void dragText() ;
 
 void mouseMoved()
     dragLine() ;
@@ -87,7 +97,14 @@ PImage logo ;
 color backGroundColor = 100 ; 
 color mainPanel  = 200 ;
 // color mainPanel  = #5C4033 ; dark brown 
-color fbColor    = #97db61  ;
+color fbColor            = #97db61 ;
+color digitalColor       = #97db61 ;
+color arithmaticColor    = #db7361 ;
+color digitalIoColor     = #dbb661 ;
+color analogIoColor      = #618edb ;
+color dccColor           = #7761db ;
+color serialColor        = #bf61db ;
+color miscellaneousColor = #48a186 ; // constant, pulse, comperator, delay, map
 color textColor  = 0 ;
 
 PrintWriter     file ;
@@ -115,6 +132,7 @@ ArrayList <FunctionBlock> demoBlocks = new ArrayList() ;
 ArrayList <FunctionBlock>     blocks = new ArrayList() ;
 ArrayList <Link>              links  = new ArrayList() ;
 ArrayList <CheckBox>      checkBoxes = new ArrayList() ;
+ArrayList <Text>               texts = new ArrayList() ;
 
 final int   idle             =  0 ;
 final int   movingItem       =  1 ;
@@ -127,12 +145,14 @@ final int   settingPulseTime =  7 ;
 final int   settingMapValues =  8 ;
 final int   settingText      =  9 ;
 final int   settingAddress   = 10 ;
+final int   movingText       = 11 ;
+final int   alteringText     = 12 ;
 
 final int   defaultGridSize  = 60 ;
 
 int         gridSize = defaultGridSize ;
-int         xOffset ;
-int         yOffset ;
+int         xOffset = 0 ;
+int         yOffset = 0 ;
 int         selectedBoard = 255 ;
 
 final int DIGITAL_BLOCKS = 0 ;
@@ -189,11 +209,15 @@ checklist adding new block
 */
 
 int     col ;
+int     col_prev ;
 int     col_raw ;
 int     row ;
+int     row_prev ;
 int     row_raw ;
 int     subCol ;
 int     subRow ;
+int     spoofX ;
+int     spoofY ;
 int     nItems ;
 boolean locked ;
 int     index ;
@@ -216,9 +240,11 @@ int     indexOfBlock ;
 
 int     nAnalogBlocks ;
 int     nDigitalBlocks ;
+int     textIndex ;
 
 String  serialText = "";
 
+int      hoverOverText ;
 boolean  hoverOverFB ;
 boolean  hoverOverDemo ;
 boolean  hoverOverPoint ;
@@ -336,20 +362,22 @@ void setup()
 void draw()
 {
     drawBackground() ;
+    drawBlocks() ;
+    drawLinks() ;
     checkFunctionBlocks() ;
+    checkTexts() ;
     checkDemoBlocks() ;
     checkLinePoints() ;
     printTexts() ;
     updateBlocks() ;
-    drawBlocks() ;
     updateLinks() ;
-    drawLinks() ;
     drawControlButtons() ;
     updateCursor() ;
     drawCursor() ;
     drawCheckBoxes() ;
     showMessage() ;
     showComPort() ;
+    drawTexts() ;
 
     showLogo() ;
     printVersion() ;
@@ -366,9 +394,10 @@ void draw()
 void drawBackground()
 {
     // background(0x9b,0x87,0x0c) ; backGroundColor = 0xAb970c ;
-    background( backGroundColor  ) ;
+    background( backGroundColor  ) ; // dark grey main window
+
     fill( mainPanel) ;
-    rect(5,5,(width - 120) - 2 , (height - 120) - 2 ) ;
+    rect(5,5,(width - 2*defaultGridSize) - 2 , (height - 2*defaultGridSize) - 2 ) ; // canvas
 
     textAlign(CENTER,CENTER);
     for( int i = 0 ; i < demoBlocks.size() ; i ++ )
@@ -410,7 +439,7 @@ void updateLinks()
 {
     for( int i = 0 ; i < links.size() ; i++ )  // get connected Q of the link
     {
-        Link link = links.get(i) ;
+        Link link = links.get( i ) ; // NOTE IndexOutOfBoundsException has occured once 11-3-2024
 
         int start_x    = link.getStartPosX() ;
         int start_y    = link.getStartPosY() ;
@@ -508,6 +537,24 @@ void checkFunctionBlocks()
     }
 }
 
+void checkTexts()
+{
+    if( mode == movingItem ) return ;
+
+    for (int i = 0; i < texts.size(); i++)                                     // loop over all function blocks, sets index according and sets or clears 'hoverOverFB'
+    { 
+        hoverOverText = 0 ;
+
+        Text description = texts.get(i);
+        if( description.hoveringOver() > 0 )
+        {
+            hoverOverText = description.hoveringOver() ;                        // 1 is hovering over move control, 2 is hovering over text control
+            textIndex = i ;
+            return ;
+        }
+    }
+}
+
 void checkDemoBlocks()
 {
     if( mode == movingItem ) return ;
@@ -517,6 +564,8 @@ void checkDemoBlocks()
         hoverOverDemo = false ;
 
         FunctionBlock block = demoBlocks.get(i);
+
+        block.lock() ;
         
         if( col_raw == block.getXpos() 
         &&  row_raw == block.getYpos() )
@@ -555,15 +604,17 @@ void checkLinePoints()
 void updateCursor()
 {
     // SK find some method to prevent drawing boxes were it should not during zooming out
+    // spoofing mouse values is FUBAR for panning. The blocks and links have to be phyiscally placed at different coordinates.
+
     col_raw = mouseX / defaultGridSize ;
 
-    col = mouseX / gridSize - xOffset ;
+    col = mouseX / gridSize  ;
     int max_col = (width - 3*gridSize) / gridSize ;
     col = constrain( col, 0, max_col ) ;
 
     row_raw =    mouseY / defaultGridSize ;
 
-    row =    mouseY / gridSize - yOffset ;
+    row =    mouseY / gridSize  ;
     int max_row = (height - 3*gridSize ) / gridSize ;
     row = constrain( row, 0, max_row ) ;
 
@@ -607,11 +658,22 @@ void printTexts()
 {
     try
     { 
+         
         FunctionBlock block = blocks.get(index);
 
         int type = block.getType() ;
         serialText = block.getText() ;
-        if( serialText == null ) serialText = "" ;
+        
+        try{
+            Text description    =  texts.get( textIndex ) ;
+            if( mode == alteringText )
+            {
+                serialText = description.getDescription() ;
+            }
+        }
+        catch (IndexOutOfBoundsException e) {}
+
+        if( serialText      == null ) serialText = "" ;
 
         text1 = "";
         text2 = "";
@@ -655,6 +717,11 @@ void printTexts()
         else if( mode == movingItem)
         {
             text1 = "MOVING FUNCTION BLOCK" ;
+            text2 = "" ;
+        }
+        else if( mode == movingText )
+        {
+            text1 = "MOVING TEXT" ;
             text2 = "" ;
         }
         else if( mode == settingPin )
@@ -708,6 +775,11 @@ void printTexts()
             text1 = "ENTER MESSAGE" ;
             text2 = serialText ;
         }
+        else if( mode == alteringText )
+        {
+            text1 = "Alter text: " + serialText ;
+            text2 = "PRESS <ENTER> WHEN READY" ;
+        }
         else if( mode == settingAddress )
         {
             text1 = "ENTER ADDRESS" ;
@@ -735,6 +807,8 @@ void printTexts()
         else if(   flashButton.hoveringOver() )    {text1 = "FLASH PROGRAM" ;}
        // else if( clearButton.hoveringOver() )      {text1 = "CLEAR PROGRAM" ;}
         else if(    quitButton.hoveringOver() )    {text1 = "SAVE AND QUIT PROGRAM" ;}
+        else if(  hoverOverText == 1 )             {text1 = "MOVE TEXT AROUND" ; text2 = "DELETE TEXT" ; }
+        else if(  hoverOverText == 2 )             {text1 = "CHANGE TEXT" ;}
 
 
         if(      text1 == "" && text2 != "" ) mouse = loadImage("images/mouse4.png") ;
@@ -784,6 +858,30 @@ void moveItem()
     catch( IndexOutOfBoundsException e ) {}
 }
 
+void alterText()
+{
+    try
+    {
+        Text description ;
+
+        for (int i = 0; i < texts.size(); i++) // find out index of text
+        {
+            description = texts.get( i ) ;
+            if( description.hoveringOver() > 0 ) 
+            {
+                if( description.hoveringOver() == 1 ) mode = movingText ;
+                if( description.hoveringOver() == 2 ) mode = alteringText ;
+
+                textIndex = i ;
+                println( textIndex ) ; 
+                break ; 
+            }
+        }
+    }
+    catch( IndexOutOfBoundsException e ) {}
+}
+
+
 void alterNumber()
 {
     try
@@ -814,8 +912,22 @@ void alterNumber()
         ||  type ==   SERVO
         ||  type == ANA_OUT ) mode = settingPin ;
 
+        return ;
+
 
     } catch (IndexOutOfBoundsException e) {}
+
+    // try TODO ADDTEXTS
+    // {
+
+
+    //     Text description = texts.get( index ) ;
+
+
+    //     return ;
+
+
+    // } catch (IndexOutOfBoundsException e) {}
 }
 
 void createLink()
@@ -875,14 +987,32 @@ void removeNode()
 void removeLink()
 {
     //println("foundLinkIndex: " + foundLinkIndex) ;
-    links.remove( foundLinkIndex ) ;
-    linkIndex -- ;
+    if( foundLinkIndex >= 0 )
+    {
+        links.remove( foundLinkIndex ) ;
+        foundLinkIndex -- ;
+    }
+}
+
+void removeText()
+{
+    if( textIndex >= 0 )
+    {
+        texts.remove( textIndex ) ;
+        textIndex -- ;
+    }
 }
 
 void dragItem() 
 {
     FunctionBlock block = blocks.get(index);
     block.setPos(col-xOffset,row-yOffset); // these offsets work...
+}
+
+void dragText()
+{
+    Text description = texts.get( textIndex ) ;
+    description.move( col, row ) ;
 }
 
 void dragLine()
@@ -905,7 +1035,7 @@ void drawCursor()
 void leftMousePress()
 {
     if( mode == settingPin || mode == settingDelayTime || mode == settingPulseTime 
-    ||  mode == settingMapValues || mode == settingText || mode == settingAddress ) mode = idle ;                       // as long as a number is set, LMB nor RMB must do anything
+    ||  mode == settingMapValues || mode == settingText || mode == settingAddress ) mode = idle ; // as long as a number is set, LMB nor RMB must do anything
 
     if(      mode == idle && hoverOverDemo )                                     addFunctionBlock() ;
     else if( mode == idle )                                                      moveItem() ;
@@ -918,6 +1048,7 @@ void leftMousePress()
     else if( programButton.hoveringOver() )                                      assembleProgram() ; // obsolete?
     else if(   flashButton.hoveringOver() )                                    { assembleProgram() ;
                                                                                  flashProgram() ; }
+    else if( hoverOverText > 0 )                                                 alterText() ;
     //else if( clearButton.hoveringOver() )                                        clearProgram() ;
     else if( quitButton.hoveringOver() )                                        
     { 
@@ -947,6 +1078,7 @@ void rightMousePress()
     && blockMiddle == true )                deleteObject() ;  
     else if( mode == addingLinePoints )     removeNode() ;
     else if( hoverOverPoint )               removeLink() ;
+    else if( hoverOverText == 1 )           removeText() ;
 }
 void mousePressed()
 {	
@@ -958,14 +1090,23 @@ void mouseDragged()
 {
     if( mouseButton ==  LEFT 
     &&  mode == movingItem )                dragItem() ;
-    // if( mouseButton ==  CENTER )
-    // {
-    //     if( row != row_prev || col != col_prev)
-    //     {   row_prev = row ;   col_prev = col ;
 
+    if( mouseButton == LEFT
+    &&  mode == movingText )                dragText() ;
 
-        
-    // }
+    if( mouseButton ==  CENTER )        // spoof mouse values in order to achieve panning
+    {
+        if( row != row_prev || col != col_prev)
+        {   
+            if( row < row_prev ) yOffset -- ;
+            if( row > row_prev ) yOffset ++ ;
+
+            if( col < col_prev ) xOffset -- ;
+            if( col > col_prev ) xOffset ++ ;
+                
+            row_prev = row ;   col_prev = col ;
+        }
+    }
 }
 void mouseMoved()
 {
@@ -973,7 +1114,7 @@ void mouseMoved()
 }
 void mouseReleased()
 {
-    if( mode == movingItem )                mode = idle ;
+    if( mode == movingItem || mode == movingText ) mode = idle ;
 }
 
 void mouseWheel(MouseEvent event)
@@ -1009,11 +1150,15 @@ long makeNumber(long _number, long lowerLimit, long upperLimit )
 void keyPressed()
 {
     // PRINT LINKS FOR DEBUGGING
-    if (key == ESC) key = 0 ;           // discard escape key, prevents accidently terminating and lose things..
+    if (key == ESC) 
+    {
+        key = 0 ;           // discard escape key, prevents accidently terminating and lose things..
+        mode = idle ;
+    }
     
     if( mode == settingPin       || mode == settingDelayTime 
     ||  mode == settingPulseTime || mode == settingMapValues 
-    ||  mode == settingText      || mode == settingAddress   )
+    ||  mode == settingText      || mode == settingAddress    )
     {
         if( keyCode == ENTER )
         {
@@ -1058,7 +1203,7 @@ void keyPressed()
             }
         }
     }
-    if( mode == settingText )
+    if( mode == settingText || mode == alteringText ) // the first is for serial blocks, the other for text elements
     {
         if( keyCode == BACKSPACE 
         &&  serialText.length() > 0 )
@@ -1073,8 +1218,24 @@ void keyPressed()
         {
             serialText += key ;
         }
-        FunctionBlock block = blocks.get( index ) ;
-        block.setText( serialText ) ;
+
+        if( mode == settingText )
+        {
+            FunctionBlock block = blocks.get( index ) ;
+            block.setText( serialText ) ;
+        }
+        if( mode == alteringText )
+        {
+            Text description = texts.get( textIndex ) ;
+            description.setDescription( serialText ) ;
+        }
+    }
+
+    if( mode == idle && key == 't' )
+    {
+        println("adding text");
+        texts.add( new Text( col, row, "text" )) ;
+        saved = false ;
     }
     
     // if(keyCode ==    UP && yOffset >   0 ) yOffset -- ;
@@ -1106,7 +1267,7 @@ void saveLayout()
 
     output.println( blocks.size() ) ;          // the amount of elements is saved first, this is used for the loading
 
-    for (int i = 0; i < blocks.size() ; i++ ) // SK: BUG sometimes false entry of some non existing block...
+    for (int i = 0; i < blocks.size() ; i++ ) // SK: BUG sometimes false entry of some non existing block... (still relevant?)
     {
         FunctionBlock block = blocks.get(i) ;
         output.println( block.getXpos() + "," + block.getYpos() + "," 
@@ -1119,7 +1280,7 @@ void saveLayout()
                       + block.getPinType() ) ;
     }
 
-    output.println(links.size());           // the amount of links is saved
+    output.println(links.size());           // LINKS
     for (int i = 0; i < links.size(); i++ )
     {
         Link link = links.get(i) ;
@@ -1140,7 +1301,15 @@ void saveLayout()
         output.println( "," + isAnalog ) ;
         
         //output.println() ;  // newline
-    }  
+    } 
+
+    output.println(texts.size());  // TEXTS
+    for (int i = 0; i < texts.size(); i++ )
+    {
+        Text description = texts.get(i) ;
+        output.println( description.getX() + "," + description.getY() + "," + description.getDescription() ) ;
+    }
+
     output.close();
 }
 
@@ -1249,6 +1418,25 @@ void loadLayout()
         link.removePoint() ;
         linkIndex ++ ;
     }
+    
+    size = 0 ;
+    try { 
+        line = input.readLine();
+        size = Integer.parseInt( line ) ;
+
+        for( int i = 0 ; i < size ; i++ )   // SEEM TO WORK
+        {
+            line = input.readLine();
+            String[] pieces = split(line, ',');
+            int x = Integer.parseInt( pieces[0] ) ;
+            int y = Integer.parseInt( pieces[1] ) ;
+            String description =      pieces[2] ;
+
+            texts.add( new Text(x,y,description)) ;
+            //println("added text: "+description+" At pos("+x+','+y+')');
+        }    
+    } 
+    catch (IOException e) { println("NO TEXTS IN FILE"); }
 
     saved = true ;
 }
@@ -1599,6 +1787,15 @@ void showComPort()
     fill(0) ;
     if( COM_PORT != "" ) text( "Found port: " + COM_PORT, 580, height-100 ) ;
     else                 text( "No port found", 580, height-100 ) ;
+}
+
+void drawTexts()
+{
+    for (int i = 0; i < texts.size(); i++)                                     // loop over all function blocks, sets index according and sets or clears 'hoverOverFB'
+    { 
+        Text description = texts.get(i) ;
+        description.draw() ;
+    } 
 }
 
 void showLogo()

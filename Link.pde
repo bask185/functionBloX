@@ -59,17 +59,17 @@ class Link
             //  x * gridSize + gridSize/6 + subX * gridSize / 3 ;
             //  y * gridSize + gridSize/6 + subY * gridSize / 3 ;
 
-            int xPos = (positions[0][ i ] >>   8 ) - xOffset ;
+            int xPos = (positions[0][ i ] >>   8 ) + xOffset ;
             int xSub = (positions[0][ i ] & 0xFF ) ;
-            int yPos = (positions[1][ i ] >>   8 ) - yOffset ;
+            int yPos = (positions[1][ i ] >>   8 ) + yOffset ;
             int ySub = (positions[1][ i ] & 0xFF ) ;
 
             int x1 = (xPos)  * gridSize + xSub * gridSize / 3 + gridSize/6;
             int y1 = (yPos)  * gridSize + ySub * gridSize / 3 + gridSize/6;
 
-            xPos = (positions[0][ i+1 ] >>   8 ) - xOffset ;
+            xPos = (positions[0][ i+1 ] >>   8 ) + xOffset ;
             xSub = (positions[0][ i+1 ] & 0xFF ) ;
-            yPos = (positions[1][ i+1 ] >>   8 ) - yOffset ;
+            yPos = (positions[1][ i+1 ] >>   8 ) + yOffset ;
             ySub = (positions[1][ i+1 ] & 0xFF ) ;
 
             int x2 = (xPos) * gridSize + xSub * gridSize / 3 + gridSize/6 ;
@@ -161,7 +161,7 @@ class Link
     {
         if( nPoints >  0 ) nPoints -- ;
 
-        println(nPoints) ;
+        // println(nPoints) ;
 
         if( nPoints == 0 ) { return  true ; }
         else                 return false ;
