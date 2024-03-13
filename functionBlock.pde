@@ -20,7 +20,7 @@ public class FunctionBlock
 
     char a, b, c, d, e;
 
-    String serialText ;
+    String serialText = "" ;
 
     long in1, in2, out1, out2 ;
 
@@ -152,11 +152,11 @@ public class FunctionBlock
         stroke(0);
 
         byte box = 0 ;
-        String txt = "" ; // for loop?
-        // for( int i = 0 ; i < serialText.length() - 2 ; i ++ ) 
-        // {
+        String txt = "" ; 
+        for( int i = 0 ; i < serialText.length() - 2 ; i ++ ) 
+        {
 
-        // }
+        }
         try
         {
             a = serialText.charAt(0) ;

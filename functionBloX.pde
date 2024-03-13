@@ -2,16 +2,17 @@
 TODO
 - make all test programs. MOST ARE DONE. I may do turning loop as well
 - update documentation
-- The panning itself mostly works. There is a bug when creating a new line. 
-  the 'col' and 'row' values are used for initial values, but I think they are spoofed?
+- serial text in serial blocks, when backspace is used and characters are removed, the block itself wont update
+  despite it's private variable has actually changed
 
-- BUG cannot remove lines at this point
+
 
 
 NOTE:
 Texts are succesfully implemented
 colors are also added. May use fine tuning, but is okay for now
-drawing new lines also seem to work well. Only when a point is added, the line jumps elsewhere until you move mouse again
+panning and zooming is 100% operational
+besides of serial texts I can't think of any bugs. I may want to rename the 'spoof' names
 
 
 BEACON
@@ -248,7 +249,7 @@ int     nAnalogBlocks ;
 int     nDigitalBlocks ;
 int     textIndex ;
 
-String  serialText = "";
+String  SerialText = "";
 
 int      hoverOverText ;
 boolean  hoverOverFB ;
@@ -290,7 +291,7 @@ void getCOMport()
         in = new BufferedReader(new InputStreamReader( p.getInputStream()));
         while ((line = in.readLine(  )) != null) { jsonData += line ;  }
 
-        println( jsonData ) ;
+        // println( jsonData ) ;
 
         if (parseJSONArray(jsonData) != null)
         {
@@ -372,10 +373,10 @@ void setup()
 void draw()
 {
     drawBackground() ;
-    drawBlocks() ;
-    drawLinks() ;
     checkFunctionBlocks() ;
     checkTexts() ;
+    drawBlocks() ;
+    drawLinks() ;
     checkDemoBlocks() ;
     checkLinePoints() ;
     printTexts() ;
@@ -459,17 +460,6 @@ void updateLinks()
         int stop_y     = link.getStopPosY() ;
         int stop_subX  = link.getStopSubX() ;
         int stop_subY  = link.getStopSubY() ;
-
-        
-        if( i == 1 )
-        {
-            println("start_x= " + start_x ) ;
-            println("start_y= " + start_y ) ;
-            println("stop_x= "  + stop_x  ) ;
-            println("stop_y= "  + stop_y  ) ;
-        }
-
-
 
         boolean Qfound  = false ;
         boolean INfound = false ;
@@ -648,27 +638,27 @@ void updateCursor()
     }  
    
 
-    textAlign(LEFT,TOP);
-    textSize(20);    
-    text("col: " + col,10,50);                                                         // row and col on screen.
-    text("row: " + row,10,70);
-    text("index: "+ index,10,90);  text("index2: "+ indexOfBlock,200,90);
-    text("mode " + mode,10,110);
-    text("subCol " + subCol,10,130);
-    text("subRow " + subRow,10,150);
-    if(hoverOverPoint == true ) text("line detected ",10,170);
-    text("linkQ   " + linkQ, 10, 190);
-    text("linkIn  " + linkIn, 10, 210);
-    text("linkRow " + linkRow, 10, 230);
-    text("analogQ " + analogQ, 10, 250);
-    text("analogIn " + analogIn, 10, 270);
-    text("link index " + foundLinkIndex, 10, 290);
-    // text("X offset " + xO f fset, 10, 310);
-    // text("Y offset " + yO f fset, 10, 330);
-    text("hoverOverDemo " + hoverOverDemo, 10, 350);
-    text("col spoof: " + colSpoofed,10,370);                                                         // row and col on screen.
-    text("row spoof: " + rowSpoofed,10,390);
-    text("grid size: " + gridSize,10,410);
+    // textAlign(LEFT,TOP);
+    // textSize(20);    
+    // text("col: " + col,10,50);                                                         // row and col on screen.
+    // text("row: " + row,10,70);
+    // text("index: "+ index,10,90);  text("index2: "+ indexOfBlock,200,90);
+    // text("mode " + mode,10,110);
+    // text("subCol " + subCol,10,130);
+    // text("subRow " + subRow,10,150);
+    // if(hoverOverPoint == true ) text("line detected ",10,170);
+    // text("linkQ   " + linkQ, 10, 190);
+    // text("linkIn  " + linkIn, 10, 210);
+    // text("linkRow " + linkRow, 10, 230);
+    // text("analogQ " + analogQ, 10, 250);
+    // text("analogIn " + analogIn, 10, 270);
+    // text("link index " + foundLinkIndex, 10, 290);
+    // // text("X offset " + xO f fset, 10, 310);
+    // // text("Y offset " + yO f fset, 10, 330);
+    // text("hoverOverDemo " + hoverOverDemo, 10, 350);
+    // text("col spoof: " + colSpoofed,10,370);                                                         // row and col on screen.
+    // text("row spoof: " + rowSpoofed,10,390);
+    // text("grid size: " + gridSize,10,410);
 
     // if( text1 != "" || text2 != "" )
     // {
@@ -683,22 +673,22 @@ void printTexts()
 {
     try
     { 
-         
+        fill(0);
         FunctionBlock block = blocks.get(index);
 
         int type = block.getType() ;
-        serialText = block.getText() ;
+        SerialText = block.getText() ;
         
         try{
             Text description    =  texts.get( textIndex ) ;
             if( mode == alteringText )
             {
-                serialText = description.getDescription() ;
+                SerialText = description.getDescription() ;
             }
         }
         catch (IndexOutOfBoundsException e) {}
 
-        if( serialText      == null ) serialText = "" ;
+        if( SerialText      == null ) SerialText = "" ;
 
         text1 = "";
         text2 = "";
@@ -792,17 +782,17 @@ void printTexts()
             else if( type == SER_IN || type == SER_OUT )
             {
                 text1 = "ENTER MESSAGE" ;
-                text2 = serialText ;
+                text2 = SerialText ;
             }
         }
         else if( mode == settingText )
         {
             text1 = "ENTER MESSAGE" ;
-            text2 = serialText ;
+            text2 = SerialText ;
         }
         else if( mode == alteringText )
         {
-            text1 = "Alter text: " + serialText ;
+            text1 = "Alter text: " + SerialText ;
             text2 = "PRESS <ENTER> WHEN READY" ;
         }
         else if( mode == settingAddress )
@@ -914,7 +904,7 @@ void alterNumber()
         pinNumber = 0 ;
         delayTime = 0 ;
         in1 = in2 = out1 = out2 = 0 ;
-        serialText = "" ;
+        SerialText = "" ;
 
         FunctionBlock block = blocks.get( index ) ;
         int type = block.getType() ;
@@ -1191,7 +1181,7 @@ void keyPressed()
     println("mode: " + mode ) ;
     if( mode == settingPin       || mode == settingDelayTime 
     ||  mode == settingPulseTime || mode == settingMapValues 
-    ||  /*mode == settingText  ||*/ mode == settingAddress    )
+    /*||  mode == settingText  */|| mode == settingAddress    )
     {
         if( keyCode == ENTER )
         {
@@ -1240,9 +1230,9 @@ void keyPressed()
     {
         println("altering") ;
         if( keyCode == BACKSPACE 
-        &&  serialText.length() > 0 )
+        &&  SerialText.length() > 0 )
         {
-            serialText = serialText.substring( 0, serialText.length()-1 ); 
+            SerialText = SerialText.substring( 0, SerialText.length()-1 ); 
         }
         else if( keyCode == ENTER )
         {
@@ -1250,20 +1240,20 @@ void keyPressed()
         }
         else if( key >= 20 && key <= 128 )
         {
-            serialText += key ;
+            SerialText += key ;
         }
 
         if( mode == settingText )
         {
             FunctionBlock block = blocks.get( index ) ;
-            println("setting texts: " + serialText) ;
+            println("setting texts: " + SerialText) ;
             println("index: "+index) ;
-            block.setText( serialText ) ;
+            block.setText( SerialText ) ;
         }
         if( mode == alteringText )
         {
             Text description = texts.get( textIndex ) ;
-            description.setDescription( serialText ) ;
+            description.setDescription( SerialText ) ;
         }
     }
 
