@@ -75,15 +75,15 @@ class Link
             int x2 = (xPos) * gridSize + xSub * gridSize / 3 + gridSize/6 ;
             int y2 = (yPos) * gridSize + ySub * gridSize / 3 + gridSize/6 ;
 
-            // if( x1 > ( width/gridSize -3 )) return ;
-            // if( x2 > ( width/gridSize -3 )) return ;
-            // if( y1 > (height/gridSize -3 )) return ;
-            // if( y2 > (height/gridSize -3 )) return ;
-
-            x1 += xOffset * gridSize ; // this ensures
+            x1 += xOffset * gridSize ;
             x2 += xOffset * gridSize ;
             y1 += yOffset * gridSize ;
             y2 += yOffset * gridSize ;
+            
+            if( x1 >  width/* /(gridSize)*/ - (3*gridSize) ) return ;
+            if( x2 >  width/* /(gridSize)*/ - (3*gridSize) ) return ;
+            if( y1 > height/* /(gridSize)*/ - (3*gridSize) ) return ;
+            if( y2 > height/* /(gridSize)*/ - (3*gridSize) ) return ;
 
             line( x1, y1, x2, y2 ) ;
             fill(255) ;

@@ -152,7 +152,11 @@ public class FunctionBlock
         stroke(0);
 
         byte box = 0 ;
-        String txt = "" ;
+        String txt = "" ; // for loop?
+        // for( int i = 0 ; i < serialText.length() - 2 ; i ++ ) 
+        // {
+
+        // }
         try
         {
             a = serialText.charAt(0) ;

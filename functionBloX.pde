@@ -30,7 +30,6 @@ void draw()
     printTexts() ;
     updateBlocks() ;
     drawBlocks() ;
-    updateLinks() ;
     drawLinks() ;
     drawControlButtons() ;
     updateCursor() ;
@@ -72,6 +71,7 @@ void mouseMoved()
     dragLine() ;
 
 void mouseReleased()
+    updateLinks() ;
 
 void mouseWheel(MouseEvent event)
 
@@ -290,11 +290,15 @@ void getCOMport()
         in = new BufferedReader(new InputStreamReader( p.getInputStream()));
         while ((line = in.readLine(  )) != null) { jsonData += line ;  }
 
+        println( jsonData ) ;
+
         if (parseJSONArray(jsonData) != null)
         {
             for (int i = 0; i < parseJSONArray(jsonData).size(); i++)
             {
                 if( parseJSONArray(jsonData).getJSONObject(i).getJSONObject("port").getString("protocol_label").contains("USB") )
+                // NOTE, should specify this to CH340 or the main 3 original arduino boards.
+                //       may also use that to auto select the right board type
                 {
                     COM_PORT = parseJSONArray(jsonData).getJSONObject(i).getJSONObject("port").getString("address");
                     println( COM_PORT ) ;
@@ -376,7 +380,6 @@ void draw()
     checkLinePoints() ;
     printTexts() ;
     updateBlocks() ;
-    updateLinks() ;
     drawControlButtons() ;
     updateCursor() ;
     drawCursor() ;
@@ -456,6 +459,17 @@ void updateLinks()
         int stop_y     = link.getStopPosY() ;
         int stop_subX  = link.getStopSubX() ;
         int stop_subY  = link.getStopSubY() ;
+
+        
+        if( i == 1 )
+        {
+            println("start_x= " + start_x ) ;
+            println("start_y= " + start_y ) ;
+            println("stop_x= "  + stop_x  ) ;
+            println("stop_y= "  + stop_y  ) ;
+        }
+
+
 
         boolean Qfound  = false ;
         boolean INfound = false ;
@@ -861,7 +875,7 @@ void moveItem()
     {
         FunctionBlock block = blocks.get( index ); // DEBUG NEED A TRY N CATCH.. 3x happened
 
-        if( col == block.getXpos() &&  row == block.getYpos() && blockMiddle == true )
+        if( colSpoofed == block.getXpos() &&  rowSpoofed == block.getYpos() && blockMiddle == true )
         {
             mode = movingItem ;
         }
@@ -1132,7 +1146,10 @@ void mouseMoved()
 }
 void mouseReleased()
 {
-    if( mode == movingItem || mode == movingText ) mode = idle ;
+    if( mode == movingItem || mode == movingText )
+    {
+        mode = idle ;
+    }
 }
 
 void mouseWheel(MouseEvent event)
@@ -1171,9 +1188,10 @@ void keyPressed()
         mode = idle ;
     }
     
+    println("mode: " + mode ) ;
     if( mode == settingPin       || mode == settingDelayTime 
     ||  mode == settingPulseTime || mode == settingMapValues 
-    ||  mode == settingText      || mode == settingAddress    )
+    ||  /*mode == settingText  ||*/ mode == settingAddress    )
     {
         if( keyCode == ENTER )
         {
@@ -1218,8 +1236,9 @@ void keyPressed()
             }
         }
     }
-    if( mode == settingText || mode == alteringText ) // the first is for serial blocks, the other for text elements
+    else if( mode == settingText || mode == alteringText ) // the first is for serial blocks, the other for text elements
     {
+        println("altering") ;
         if( keyCode == BACKSPACE 
         &&  serialText.length() > 0 )
         {
@@ -1237,6 +1256,8 @@ void keyPressed()
         if( mode == settingText )
         {
             FunctionBlock block = blocks.get( index ) ;
+            println("setting texts: " + serialText) ;
+            println("index: "+index) ;
             block.setText( serialText ) ;
         }
         if( mode == alteringText )
@@ -1246,12 +1267,16 @@ void keyPressed()
         }
     }
 
-    if( mode == idle && key == 't' )
+    else if( key == 't' )
     {
         println("adding text");
         texts.add( new Text( colSpoofed, rowSpoofed, "text" )) ;
         saved = false ;
-    } 
+    }
+    else if( key == ' ' )
+    {
+        xOffset = yOffset = 0 ;
+    }
 }
 
 
@@ -1470,6 +1495,8 @@ void clearProgram()
 
 void assembleProgram() 
 {    
+    updateLinks() ;
+
     file = createWriter("arduinoProgram/arduinoProgram.ino");
     file.println("#include \"functionBlocks.h\"") ;
     file.println("") ;
@@ -1666,6 +1693,8 @@ void flashProgram()
 
     getCOMport() ;
 
+    assembleProgram() ;
+
     String myPath = sketchPath() ;
     String fqbn = "" ;
     String command ;
@@ -1686,6 +1715,9 @@ void flashProgram()
     
     String buildCommand   = "compile -b " + fqbn + " " + sketchPath ;
     String uploadCommand  = "upload " + sketchPath + " -b " + fqbn + " -p "+ COM_PORT ;
+
+    println("buildCommand:  ",buildCommand) ;
+    println("uploadCommand: ",uploadCommand) ;
 
     try
     {      
@@ -1751,7 +1783,7 @@ void drawCheckBoxes()
 {
     fill(0) ;
     textSize(15);
-    text("BOARD",470,height-110) ;
+    //text("BOARD",470,height-110) ;
 
     for (int i = 0; i < checkBoxes.size(); i++)                                     // loop over all function blocks, sets index according and sets or clears 'hoverOverFB'
     { 
