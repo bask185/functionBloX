@@ -228,8 +228,8 @@ public class FunctionBlock
         this.xPos = xPos ;
         this.yPos = yPos ;
     }
-    int  getXpos() { return xAdj ; }
-    int  getYpos() { return yAdj ; }
+    int  getXpos()      { return xPos ; }
+    int  getYpos()      { return yPos ; }
 
     void setGridSize( int gridSize )
     {

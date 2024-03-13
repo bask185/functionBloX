@@ -59,21 +59,31 @@ class Link
             //  x * gridSize + gridSize/6 + subX * gridSize / 3 ;
             //  y * gridSize + gridSize/6 + subY * gridSize / 3 ;
 
-            int xPos = (positions[0][ i ] >>   8 ) + xOffset ;
+            int xPos = (positions[0][ i ] >>   8 ) ;
             int xSub = (positions[0][ i ] & 0xFF ) ;
-            int yPos = (positions[1][ i ] >>   8 ) + yOffset ;
+            int yPos = (positions[1][ i ] >>   8 ) ;
             int ySub = (positions[1][ i ] & 0xFF ) ;
 
-            int x1 = (xPos)  * gridSize + xSub * gridSize / 3 + gridSize/6;
-            int y1 = (yPos)  * gridSize + ySub * gridSize / 3 + gridSize/6;
+            int x1 = (xPos) * gridSize + xSub * gridSize / 3 + gridSize/6;
+            int y1 = (yPos) * gridSize + ySub * gridSize / 3 + gridSize/6;
 
-            xPos = (positions[0][ i+1 ] >>   8 ) + xOffset ;
+            xPos = (positions[0][ i+1 ] >>   8 ) ;
             xSub = (positions[0][ i+1 ] & 0xFF ) ;
-            yPos = (positions[1][ i+1 ] >>   8 ) + yOffset ;
+            yPos = (positions[1][ i+1 ] >>   8 ) ;
             ySub = (positions[1][ i+1 ] & 0xFF ) ;
 
             int x2 = (xPos) * gridSize + xSub * gridSize / 3 + gridSize/6 ;
             int y2 = (yPos) * gridSize + ySub * gridSize / 3 + gridSize/6 ;
+
+            // if( x1 > ( width/gridSize -3 )) return ;
+            // if( x2 > ( width/gridSize -3 )) return ;
+            // if( y1 > (height/gridSize -3 )) return ;
+            // if( y2 > (height/gridSize -3 )) return ;
+
+            x1 += xOffset * gridSize ; // this ensures
+            x2 += xOffset * gridSize ;
+            y1 += yOffset * gridSize ;
+            y2 += yOffset * gridSize ;
 
             line( x1, y1, x2, y2 ) ;
             fill(255) ;

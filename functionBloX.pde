@@ -1,13 +1,17 @@
 /*
 TODO
 - make all test programs. MOST ARE DONE. I may do turning loop as well
-
-- PANNING, much needed
 - update documentation
+- The panning itself mostly works. There is a bug when creating a new line. 
+  the 'col' and 'row' values are used for initial values, but I think they are spoofed?
+
+- BUG cannot remove lines at this point
+
 
 NOTE:
 Texts are succesfully implemented
 colors are also added. May use fine tuning, but is okay for now
+drawing new lines also seem to work well. Only when a point is added, the line jumps elsewhere until you move mouse again
 
 
 BEACON
@@ -56,9 +60,9 @@ void mousePressed()
 
     void rightMousePress()
         void deleteObject() ;
-        void removeNode() ;
-        void removeLink() ;
-        void removeText() ;
+        void deleteNode() ;
+        void deleteLink() ;
+        void deleteText() ;
 
 void mouseDragged()
     void dragItem() ;
@@ -214,6 +218,8 @@ int     col_raw ;
 int     row ;
 int     row_prev ;
 int     row_raw ;
+int     rowSpoofed ;
+int     colSpoofed ;
 int     subCol ;
 int     subRow ;
 int     spoofX ;
@@ -525,8 +531,8 @@ void checkFunctionBlocks()
 
         FunctionBlock block = blocks.get(i);
         
-        if( col == block.getXpos() 
-        &&  row == block.getYpos() )
+        if( colSpoofed == (block.getXpos() ) 
+        &&  rowSpoofed == (block.getYpos() ) )
         {
             hoverOverFB = true ;
             if( subCol == 1 && subRow == 1 ) blockMiddle =  true ;
@@ -588,8 +594,8 @@ void checkLinePoints()
         
         for( int j = 0 ; j < link.getNlinks()+1 ; j++ )
         {
-            if( link.getPosX( j ) == col      //text("col: true",10,230);
-            &&  link.getPosY( j ) == row      //text("row: true",10,250);
+            if( link.getPosX( j ) == colSpoofed      //text("col: true",10,230);
+            &&  link.getPosY( j ) == rowSpoofed      //text("row: true",10,250);
             &&  link.getSubX( j ) == subCol   //text("subCol: true" ,10,270); 
             &&  link.getSubY( j ) == subRow ) //text("subRow: true" ,10,290);
             {   
@@ -598,7 +604,7 @@ void checkLinePoints()
             }
         }
     }
-    foundLinkIndex = 0 ;
+    //foundLinkIndex = 0 ;
 }
 
 void updateCursor()
@@ -608,15 +614,17 @@ void updateCursor()
 
     col_raw = mouseX / defaultGridSize ;
 
-    col = mouseX / gridSize  ;
+    col = mouseX / gridSize ;
     int max_col = (width - 3*gridSize) / gridSize ;
     col = constrain( col, 0, max_col ) ;
+    colSpoofed = col - xOffset ;
 
     row_raw =    mouseY / defaultGridSize ;
 
     row =    mouseY / gridSize  ;
     int max_row = (height - 3*gridSize ) / gridSize ;
     row = constrain( row, 0, max_row ) ;
+    rowSpoofed = row - yOffset ;
 
 
     if( mode != movingItem )
@@ -626,24 +634,27 @@ void updateCursor()
     }  
    
 
-    // textAlign(LEFT,TOP);
-    // textSize(20);    
-    // text("X: " + col,10,50);                                                         // row and col on screen.
-    // text("Y: " + row,10,70);
-    // text("index: "+ index,10,90);  text("index2: "+ indexOfBlock,200,90);
-    // text("mode " + mode,10,110);
-    // text("subCol " + subCol,10,130);
-    // text("subRow " + subRow,10,150);
-    // if(hoverOverPoint == true ) text("line detected ",10,170);
-    // text("linkQ   " + linkQ, 10, 190);
-    // text("linkIn  " + linkIn, 10, 210);
-    // text("linkRow " + linkRow, 10, 230);
-    // text("analogQ " + analogQ, 10, 250);
-    // text("analogIn " + analogIn, 10, 270);
-    // text("link index " + foundLinkIndex, 10, 290);
-    // text("X offset " + xOffset, 10, 310);
-    // text("Y offset " + yOffset, 10, 330);
-    // text("hoverOverDemo " + hoverOverDemo, 10, 350);
+    textAlign(LEFT,TOP);
+    textSize(20);    
+    text("col: " + col,10,50);                                                         // row and col on screen.
+    text("row: " + row,10,70);
+    text("index: "+ index,10,90);  text("index2: "+ indexOfBlock,200,90);
+    text("mode " + mode,10,110);
+    text("subCol " + subCol,10,130);
+    text("subRow " + subRow,10,150);
+    if(hoverOverPoint == true ) text("line detected ",10,170);
+    text("linkQ   " + linkQ, 10, 190);
+    text("linkIn  " + linkIn, 10, 210);
+    text("linkRow " + linkRow, 10, 230);
+    text("analogQ " + analogQ, 10, 250);
+    text("analogIn " + analogIn, 10, 270);
+    text("link index " + foundLinkIndex, 10, 290);
+    // text("X offset " + xO f fset, 10, 310);
+    // text("Y offset " + yO f fset, 10, 330);
+    text("hoverOverDemo " + hoverOverDemo, 10, 350);
+    text("col spoof: " + colSpoofed,10,370);                                                         // row and col on screen.
+    text("row spoof: " + rowSpoofed,10,390);
+    text("grid size: " + gridSize,10,410);
 
     // if( text1 != "" || text2 != "" )
     // {
@@ -939,9 +950,11 @@ void createLink()
     FunctionBlock block = blocks.get( index ) ;
     int type = block.getType() ;
 
-    links.add( new Link( col, row, gridSize ) ) ;
-    Link link = links.get( linkIndex ) ;
-    link.updatePoint( col, row, subCol, subRow  ) ;
+    linkIndex = links.size()  ;
+
+    links.add( new Link( colSpoofed, rowSpoofed, gridSize ) ) ;
+    Link link = links.get( linkIndex ) ;            // ERROR IF first a link is removed than a new one is adde, we get an error out of bounds.
+    link.updatePoint( colSpoofed, rowSpoofed, subCol, subRow  ) ;
 }
 
 void finishLink()
@@ -955,7 +968,7 @@ void addNodeToLink()
 {
     Link link = links.get( linkIndex ) ;
     link.addPoint( ) ;
-    link.updatePoint( col, row, subCol, subRow  ) ;
+    link.updatePoint( colSpoofed, rowSpoofed, subCol, subRow  ) ;
 }
 
 void deleteObject()
@@ -970,7 +983,7 @@ void deleteObject()
     hoverOverFB = false ;
 }
 
-void removeNode()
+void deleteNode()
 {
     Link link =links.get( linkIndex ) ;
     if( link.removePoint( ) )
@@ -984,9 +997,9 @@ void removeNode()
     }
 }
 
-void removeLink()
+void deleteLink()
 {
-    //println("foundLinkIndex: " + foundLinkIndex) ;
+    println("foundLinkIndex: " + foundLinkIndex) ;
     if( foundLinkIndex >= 0 )
     {
         links.remove( foundLinkIndex ) ;
@@ -994,7 +1007,7 @@ void removeLink()
     }
 }
 
-void removeText()
+void deleteText()
 {
     if( textIndex >= 0 )
     {
@@ -1006,19 +1019,19 @@ void removeText()
 void dragItem() 
 {
     FunctionBlock block = blocks.get(index);
-    block.setPos(col-xOffset,row-yOffset); // these offsets work...
+    block.setPos( colSpoofed, rowSpoofed ); // these offsets work...
 }
 
 void dragText()
 {
     Text description = texts.get( textIndex ) ;
-    description.move( col, row ) ;
+    description.move( colSpoofed, rowSpoofed ) ;
 }
 
 void dragLine()
 {
     Link link = links.get( linkIndex ) ;
-    link.updatePoint( col, row, subCol, subRow  ) ;
+    link.updatePoint( colSpoofed, rowSpoofed, subCol, subRow  ) ;
 }
 
 void drawCursor()
@@ -1076,9 +1089,9 @@ void rightMousePress()
     &&  index < blocks.size() 
     && hoverOverFB == true
     && blockMiddle == true )                deleteObject() ;  
-    else if( mode == addingLinePoints )     removeNode() ;
-    else if( hoverOverPoint )               removeLink() ;
-    else if( hoverOverText == 1 )           removeText() ;
+    else if( mode == addingLinePoints )     deleteNode() ;
+    else if( hoverOverPoint )               deleteLink() ;
+    else if( hoverOverText == 1 )           deleteText() ;
 }
 void mousePressed()
 {	
@@ -1097,12 +1110,14 @@ void mouseDragged()
     if( mouseButton ==  CENTER )        // spoof mouse values in order to achieve panning
     {
         if( row != row_prev || col != col_prev)
-        {   
-            if( row < row_prev ) yOffset -- ;
-            if( row > row_prev ) yOffset ++ ;
+        {
+            int toChange = (120-gridSize)/30+1;
 
-            if( col < col_prev ) xOffset -- ;
-            if( col > col_prev ) xOffset ++ ;
+            if( row < row_prev ) yOffset -= toChange ;
+            if( row > row_prev ) yOffset += toChange ;
+
+            if( col < col_prev ) xOffset -= toChange ;
+            if( col > col_prev ) xOffset += toChange ;
                 
             row_prev = row ;   col_prev = col ;
         }
@@ -1111,6 +1126,9 @@ void mouseDragged()
 void mouseMoved()
 {
     if( mode == addingLinePoints )          dragLine() ;
+
+    if( row != row_prev || col != col_prev)
+    {   row_prev = row ;   col_prev = col ; }
 }
 void mouseReleased()
 {
@@ -1120,13 +1138,10 @@ void mouseReleased()
 void mouseWheel(MouseEvent event)
 {
     float e = event.getCount();
-    if(( e > 0 && gridSize <  60 )
-    || ( e < 0 && gridSize >  60 )) return ;
+    if(( e > 0 && gridSize <  45 )
+    || ( e < 0 && gridSize > 105 )) return ;
     gridSize -= 15* (int) e ;
 }
-
-
-
 
 
 
@@ -1135,7 +1150,7 @@ long makeNumber(long _number, long lowerLimit, long upperLimit )
          if( keyCode ==  LEFT      ) { _number -- ;             }
     else if( keyCode == RIGHT      ) { _number ++ ;             }
     else if( _number == upperLimit ) { _number = ( key-'0' ) ;  }
-    else if( keyCode == BACKSPACE  ) { _number /= 10;           }
+    else if( keyCode == BACKSPACE  ) { _number /= 10 ;          }
     else if( key >= '0' && key <= '9') 
     {
         _number *= 10;
@@ -1234,14 +1249,9 @@ void keyPressed()
     if( mode == idle && key == 't' )
     {
         println("adding text");
-        texts.add( new Text( col, row, "text" )) ;
+        texts.add( new Text( colSpoofed, rowSpoofed, "text" )) ;
         saved = false ;
-    }
-    
-    // if(keyCode ==    UP && yOffset >   0 ) yOffset -- ;
-    // if(keyCode ==  DOWN && yOffset <  50 ) yOffset ++ ;
-    // if(keyCode ==  LEFT && xOffset >   0 ) xOffset -- ;
-    // if(keyCode == RIGHT && xOffset <  50 ) xOffset ++ ; 
+    } 
 }
 
 
@@ -1450,6 +1460,10 @@ void clearProgram()
     for( int i = links.size() ; i > 0 ; i -- )
     {
         links.remove(i-1);
+    }
+    for( int i = texts.size() ; i > 0 ; i -- )
+    {
+        texts.remove(i-1);
     }
     linkIndex = 0 ;
 }
@@ -1737,7 +1751,7 @@ void drawCheckBoxes()
 {
     fill(0) ;
     textSize(15);
-    text("BOARD",490,height-110) ;
+    text("BOARD",470,height-110) ;
 
     for (int i = 0; i < checkBoxes.size(); i++)                                     // loop over all function blocks, sets index according and sets or clears 'hoverOverFB'
     { 
