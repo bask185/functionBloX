@@ -314,13 +314,14 @@ void getCOMport()
 
 void settings()
 {
-    size(displayWidth, displayHeight) ;
+    // size(displayWidth, displayHeight) ;
+    fullScreen() ;
 }
 
 void setup()
 { 
     selectInput("Open file", "inputSelected");
-    // fullScreen() ;
+    
     textSize( 20 );
     background(255) ;
     
@@ -365,7 +366,7 @@ void setup()
     //clearButton   = new ControlButton(       450, height - 100, "CLEAR") ;
     quitButton    = new ControlButton( width-110, height - 100, "QUIT") ;
 
-    logo = loadImage("Train-Science.png") ;
+    logo = loadImage("./images/Train-Science.png") ;
 
     getCOMport() ;
 }
@@ -1663,6 +1664,7 @@ void assembleProgram()
     file.println("void loop()") ;
     file.println("{") ;
     file.println("    dcc.process() ;") ;
+    file.println("    startDelay() ;") ;
     file.println("/***************** UPDATE FUNCTION BLOCKS *****************/") ;
     file.println("    for( int i = 0 ; i < nDigitalBlocks ; i ++ ) { digitalBlock[i] -> run() ; updateLinks() ; }") ;
     file.println("    for( int i = 0 ; i <  nAnalogBlocks ; i ++ ) {  analogBlock[i] -> run() ; updateLinks() ; }") ;
@@ -1703,22 +1705,26 @@ void flashProgram()
     CheckBox box = checkBoxes.get(selectedBoard) ; // get FQBN from selected board..
     fqbn = "arduino:avr:" + box.getName() ;
     
-    String buildCommand   = "compile -b " + fqbn + " " + sketchPath ;
-    String uploadCommand  = "upload " + sketchPath + " -b " + fqbn + " -p "+ COM_PORT ;
+    String buildCommand   = "compile -b " + fqbn + " -v " + sketchPath ;
+    String uploadCommand  = "upload -v " + sketchPath + " -b " + fqbn + " -v -p "+ COM_PORT ;
 
-    println("buildCommand:  ",buildCommand) ;
-    println("uploadCommand: ",uploadCommand) ;
-
+    //println("buildCommand:  ",buildCommand) ;
+    //println("uploadCommand: ",uploadCommand) ;
     try
     {      
         command = arduinoCliPath + buildCommand ; // compile (can't toss errors really..)
-        println(command);
+        println("buildCommand:  ",command) ;
         Process p = launch(command);
 
+        in = new BufferedReader(new InputStreamReader( p.getInputStream())); // extra debug stuff
+        while ((line = in.readLine(  )) != null)
+        {
+            ;
+        }
+
         command = arduinoCliPath + uploadCommand ; // start upload
-        println(command);
+        println("uploadCommand: ",command) ;
         p = launch(command);
-        //if(!p.waitFor(10, TimeUnit.SECONDS)) { p.destroy();  }
 
         in = new BufferedReader(new InputStreamReader( p.getInputStream())); // extra debug stuff
         while ((line = in.readLine(  )) != null)

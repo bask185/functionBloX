@@ -6,7 +6,18 @@ extern void    sendMessage( String S )  __attribute__((weak)) ;
 extern String  getMessage()             __attribute__((weak)) ;
 extern uint8_t getDCCstate( uint16_t )  __attribute__((weak)) ;
 
+uint8_t delayedStart = 0 ;
+
 const int ANALOG_SAMPLE_TIME = 20 ;
+
+void startDelay()
+{
+    if( delayedStart == 0
+    &&  millis() > 5000 )
+    {
+        delayedStart = 1 ;
+    } 
+}
 
 class DigitalBlock
 {
@@ -274,7 +285,7 @@ public:
 
     void run()
     {
-        digitalWrite( pin, IN2 ) ;
+        digitalWrite( pin, IN2 & delayedStart ) ;
     }
 } ;
 
@@ -380,6 +391,8 @@ public:
 
     void run()
     {
+        if( delayedStart == 0 ) return ;
+
         if( IN2 != prevIn )
         {   prevIn  = IN2 ;                // if incomming change, update PWM level
 
@@ -403,13 +416,16 @@ public:
 
     void run()
     {
+        if( delayedStart == 0 ) return ; 
+
         if( servoPos != IN2 && IN3 == 1 ) // In3 acts as a latch pin
         {   servoPos  = IN2 ;
 
             fallOffTime = millis() ;
         
             servoPos = constrain( servoPos, 0, 180 ) ;
-            motor.write(servoPos) ;
+            motor.write( servoPos ) ;
+
             if( motor.attached() == 0 ) motor.attach(pin) ;
         }
         else if( millis() - fallOffTime >= 500 )
