@@ -1179,7 +1179,7 @@ void keyPressed()
         mode = idle ;
     }
     
-    println("mode: " + mode ) ;
+    //println("mode: " + mode ) ;
     if( mode == settingPin       || mode == settingDelayTime 
     ||  mode == settingPulseTime || mode == settingMapValues 
     /*||  mode == settingText  */|| mode == settingAddress    )
@@ -1229,7 +1229,7 @@ void keyPressed()
     }
     else if( mode == settingText || mode == alteringText ) // the first is for serial blocks, the other for text elements
     {
-        println("altering") ;
+        //println("altering") ;
         if( keyCode == BACKSPACE 
         &&  SerialText.length() > 0 )
         {
@@ -1247,8 +1247,8 @@ void keyPressed()
         if( mode == settingText )
         {
             FunctionBlock block = blocks.get( index ) ;
-            println("setting texts: " + SerialText) ;
-            println("index: "+index) ;
+            // println("setting texts: " + SerialText) ;
+            // println("index: "+index) ;
             block.setText( SerialText ) ;
         }
         if( mode == alteringText )
@@ -1260,7 +1260,7 @@ void keyPressed()
 
     else if( key == 't' )
     {
-        println("adding text");
+        // println("adding text");
         texts.add( new Text( colSpoofed, rowSpoofed, "text" )) ;
         saved = false ;
     }
@@ -1590,20 +1590,10 @@ void assembleProgram()
         else                file.print("digitalBlock" ) ;
         file.print("["+IN+"] -> IN" +(subrow+1)+" = " ) ;
 
-        // FunctionBlock block = blocks.get( Q ) ;         // CONST BLOCKS ARE TEMPORARILY USED AS REGULAR BLOCKS. CODE MUST BE TESTED ON BUGS NOW
-        // if( block.getType() == CONSTANT )
-        // {
-        //     int constVal = block.getDelay() ;
-        //     file.println( constVal + " ;") ;
-        //     println("Q: " + Q + " CONSTANT: " + constVal ) ;
-
-        // }
-        // else
-        {
-            if( analogOut > 0 )  file.print(" analogBlock" ) ;
-            else                 file.print("digitalBlock" ) ;
-            file.println( "["+Q+"] -> Q ;") ;
-        }
+        if( analogOut > 0 )  file.print(" analogBlock" ) ;
+        else                 file.print("digitalBlock" ) ;
+        file.println( "["+Q+"] -> Q ;") ;
+        
     }
     file.println("}") ;
     file.println("") ;
@@ -1672,13 +1662,6 @@ void assembleProgram()
     file.close() ;
 }
 
-/* IDEAS FOR HARDWARE
-CURRENT DETECT
-
-TODO:
-  make functions for compiling and uploading alike.
-
-*/
 void flashProgram()
 {
     clearMessages() ;
@@ -1719,7 +1702,7 @@ void flashProgram()
         in = new BufferedReader(new InputStreamReader( p.getInputStream())); // extra debug stuff
         while ((line = in.readLine(  )) != null)
         {
-            ;
+            println( line ) ;
         }
 
         command = arduinoCliPath + uploadCommand ; // start upload
@@ -1729,6 +1712,7 @@ void flashProgram()
         in = new BufferedReader(new InputStreamReader( p.getInputStream())); // extra debug stuff
         while ((line = in.readLine(  )) != null)
         {
+            println( line ) ;
             if( line.contains("New upload port")) status = true ; // this particular text comes by when an upload is succesful
         }
         if( status == true )  { println("SUCCES") ; }

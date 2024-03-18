@@ -6,16 +6,16 @@ extern void    sendMessage( String S )  __attribute__((weak)) ;
 extern String  getMessage()             __attribute__((weak)) ;
 extern uint8_t getDCCstate( uint16_t )  __attribute__((weak)) ;
 
-uint8_t delayedStart = 0 ;
+uint8_t outputEnabled = 0 ;
 
 const int ANALOG_SAMPLE_TIME = 20 ;
 
-void startDelay()
+void inline startDelay()
 {
-    if( delayedStart == 0
-    &&  millis() > 5000 )
+    if( outputEnabled == 0
+    &&  millis() > 50 )   // wait this time before output blocks are enabled
     {
-        delayedStart = 1 ;
+        outputEnabled = 1 ;
     } 
 }
 
@@ -188,7 +188,7 @@ public:
 
     void run()
     {
-        if( IN2 != Q )
+        if( outputEnabled && IN2 != Q )
         {     
             Q = IN2 ;
             if( Q ) 
@@ -233,7 +233,7 @@ public:
         uint8_t state  = getDCCstate( address ) ;
         if( state == 0 ) Q = 0 ;
         if( state == 1 ) Q = 1 ;
-        // state can be 2, which means different address is set -> no change of my Q
+        // state can be 2, which means different address is set -> no change for my Q
     }
 
 private:
@@ -285,7 +285,7 @@ public:
 
     void run()
     {
-        digitalWrite( pin, IN2 & delayedStart ) ;
+        digitalWrite( pin, IN2 & outputEnabled ) ;
     }
 } ;
 
@@ -391,7 +391,7 @@ public:
 
     void run()
     {
-        if( delayedStart == 0 ) return ;
+        if( outputEnabled == 0 ) return ;
 
         if( IN2 != prevIn )
         {   prevIn  = IN2 ;                // if incomming change, update PWM level
@@ -416,7 +416,7 @@ public:
 
     void run()
     {
-        if( delayedStart == 0 ) return ; 
+        if( outputEnabled == 0 ) return ; 
 
         if( servoPos != IN2 && IN3 == 1 ) // In3 acts as a latch pin
         {   servoPos  = IN2 ;
