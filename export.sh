@@ -27,8 +27,6 @@ cp arduinoProgram/NmraDcc.h windows-amd64/arduinoProgram/
 cp arduinoProgram/NmraDcc.cpp windows-amd64/arduinoProgram/
 # cp arduinoProgram/NmraDcc.cpp application.linux64/arduinoProgram/
 
-cp 
-
 cp -r images/* windows-amd64/images/
 # cp -r images/* application.linux64/images/
 

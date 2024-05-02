@@ -5,6 +5,11 @@ TODO
 - serial text in serial blocks, when backspace is used and characters are removed, the block itself wont update
   despite it's private variable has actually changed
 
+- fix the exported folder with aid of the arduino forum.
+- fix the main window so that that the right default blocks aren't on it half way. This looks terrible and happens on different PC's
+- try to use windowed mode? (SEEMS TO WORK!, need testing on different PC)
+
+
 
 
 
@@ -314,8 +319,8 @@ void getCOMport()
 
 void settings()
 {
-    // size(displayWidth, displayHeight) ;
-    fullScreen() ;
+    size(displayWidth, displayHeight) ; // seems better
+    //fullScreen() ;
 }
 
 void setup()
@@ -1834,4 +1839,4 @@ void showLogo()
     image(logo, width/2 + 100, height-110, 70, 70);
 }
 
-void printVersion() { text("V1.2.0", width/2, height - 40) ; }
+void printVersion() { text("V2.0.0", width/2, height - 2*gridSize) ; }
